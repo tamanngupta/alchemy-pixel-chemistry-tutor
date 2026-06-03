@@ -119,15 +119,17 @@ function Landing() {
               <div className="mb-4 inline-block font-pixel text-[10px] text-neon">// PLAYER PERKS</div>
               <h2 className="font-pixel text-3xl text-foreground md:text-5xl">WHY ALCHEMY?</h2>
               <p className="mx-auto mt-6 max-w-2xl font-body text-xl text-muted-foreground">
-                Six power-ups that turn chemistry from a chore into a quest.
+                Five power-ups that turn chemistry from a chore into a quest.
               </p>
             </div>
 
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            <div className="mx-auto grid max-w-5xl gap-6 sm:grid-cols-2 lg:grid-cols-6">
               {FEATURES.map((f, i) => (
                 <div
                   key={f.title}
-                  className="pixel-border group relative bg-card p-6 transition-transform hover:-translate-y-2"
+                  className={`pixel-border group relative bg-card p-6 transition-transform hover:-translate-y-2 lg:col-span-2 ${
+                    i === 3 ? "lg:col-start-2" : ""
+                  }`}
                   style={{ transform: `translateY(${Math.max(-40, Math.min(0, (y - 700 - i * 60) * -0.05))}px)` }}
                 >
                   <div className="mb-4 inline-flex h-14 w-14 items-center justify-center bg-secondary font-pixel text-2xl text-neon text-glow">
