@@ -94,22 +94,21 @@
 
 @keyframes wizard-walk {
   0% { transform: translateX(-30vw) translateY(0); }
-  10% { transform: translateX(-25vw) translateY(-6px); }
-  20% { transform: translateX(-20vw) translateY(0); }
-  30% { transform: translateX(-15vw) translateY(-6px); }
-  40% { transform: translateX(-10vw) translateY(0); }
-  50% { transform: translateX(-4vw) translateY(-4px); }
-  60% { transform: translateX(2vw) translateY(0); }
-  100% { transform: translateX(2vw) translateY(0); }
+  15% { transform: translateX(-20vw) translateY(-6px); }
+  30% { transform: translateX(-10vw) translateY(0); }
+  45% { transform: translateX(0) translateY(-6px); }
+  60% { transform: translateX(15vw) translateY(0); }
+  75% { transform: translateX(30vw) translateY(-4px); }
+  100% { transform: translateX(40vw) translateY(0); }
 }
 @keyframes wizard-cast {
-  0%, 100% { transform: translateX(2vw) scale(1); }
-  50% { transform: translateX(2vw) scale(1.08) rotate(-3deg); }
+  0%, 100% { transform: translateX(40vw) scale(1); }
+  50% { transform: translateX(40vw) scale(1.08) rotate(-3deg); }
 }
 @keyframes blast-grow {
-  0% { transform: scale(0); opacity: 0; }
+  0% { transform: translate(-50%, 0) scale(0.3); opacity: 0; }
   20% { opacity: 1; }
-  100% { transform: scale(60); opacity: 1; }
+  100% { transform: translate(-50%, 0) scale(8); opacity: 1; }
 }
 @keyframes cover-fade {
   0%, 80% { opacity: 1; }

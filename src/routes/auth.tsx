@@ -1,7 +1,8 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
-import { TestTube } from "@/components/TestTube";
 import wizard from "@/assets/wizard.png";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/auth")({
   head: () => ({
@@ -15,6 +16,40 @@ export const Route = createFileRoute("/auth")({
 
 function AuthPage() {
   const [mode, setMode] = useState<"signin" | "signup">("signup");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [name, setName] = useState("");
+  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setLoading(true);
+    try {
+      if (mode === "signup") {
+        const { error } = await supabase.auth.signUp({
+          email,
+          password,
+          options: {
+            emailRedirectTo: `${window.location.origin}/`,
+            data: { wizard_name: name },
+          },
+        });
+        if (error) throw error;
+        toast.success("Welcome, wizard! Check your email to confirm.");
+        navigate({ to: "/" });
+      } else {
+        const { error } = await supabase.auth.signInWithPassword({ email, password });
+        if (error) throw error;
+        toast.success("Re-entering the lab...");
+        navigate({ to: "/" });
+      }
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Something went wrong");
+    } finally {
+      setLoading(false);
+    }
+  }
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-background px-6 py-16">
@@ -26,8 +61,8 @@ function AuthPage() {
       </Link>
 
       <div className="relative z-10 mx-auto mt-12 grid max-w-5xl gap-12 md:grid-cols-2 md:items-center">
-        <div className="text-center md:text-left">
-          <div className="flex items-center justify-center gap-4 md:justify-start">
+        <div className="text-center">
+          <div className="flex items-center justify-center">
             <img
               src={wizard}
               alt="Alchemy wizard"
@@ -35,7 +70,6 @@ function AuthPage() {
               height={140}
               style={{ imageRendering: "pixelated", filter: "drop-shadow(0 0 20px var(--color-neon))", animation: "float-y 3s ease-in-out infinite" }}
             />
-            <TestTube size={80} />
           </div>
           <h1 className="mt-6 font-pixel text-3xl text-foreground text-glow md:text-5xl">
             {mode === "signup" ? "JOIN THE LAB" : "WELCOME BACK"}
@@ -47,10 +81,7 @@ function AuthPage() {
           </p>
         </div>
 
-        <form
-          onSubmit={(e) => e.preventDefault()}
-          className="pixel-border-neon bg-card p-8"
-        >
+        <form onSubmit={handleSubmit} className="pixel-border-neon bg-card p-8">
           <div className="mb-6 flex">
             {(["signup", "signin"] as const).map((m) => (
               <button
@@ -67,16 +98,17 @@ function AuthPage() {
           </div>
 
           {mode === "signup" && (
-            <Field label="WIZARD NAME" type="text" placeholder="merlin_42" />
+            <Field label="WIZARD NAME" type="text" placeholder="merlin_42" value={name} onChange={setName} />
           )}
-          <Field label="EMAIL" type="email" placeholder="you@alchemy.lab" />
-          <Field label="PASSWORD" type="password" placeholder="••••••••" />
+          <Field label="EMAIL" type="email" placeholder="you@alchemy.lab" value={email} onChange={setEmail} required />
+          <Field label="PASSWORD" type="password" placeholder="••••••••" value={password} onChange={setPassword} required />
 
           <button
             type="submit"
-            className="mt-6 w-full pixel-border bg-primary px-6 py-4 font-pixel text-xs text-primary-foreground transition-transform hover:-translate-y-0.5"
+            disabled={loading}
+            className="mt-6 w-full pixel-border bg-primary px-6 py-4 font-pixel text-xs text-primary-foreground transition-transform hover:-translate-y-0.5 disabled:opacity-50"
           >
-            {mode === "signup" ? "▶ CREATE ACCOUNT" : "▶ ENTER LAB"}
+            {loading ? "▸ CASTING..." : mode === "signup" ? "▶ CREATE ACCOUNT" : "▶ ENTER LAB"}
           </button>
 
           <p className="mt-6 text-center font-body text-base text-muted-foreground">
@@ -95,13 +127,21 @@ function AuthPage() {
   );
 }
 
-function Field({ label, type, placeholder }: { label: string; type: string; placeholder: string }) {
+function Field({
+  label, type, placeholder, value, onChange, required,
+}: {
+  label: string; type: string; placeholder: string;
+  value: string; onChange: (v: string) => void; required?: boolean;
+}) {
   return (
     <label className="mb-4 block">
       <span className="mb-2 block font-pixel text-[10px] text-neon">{label}</span>
       <input
         type={type}
         placeholder={placeholder}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        required={required}
         className="w-full border-4 border-border bg-input px-4 py-3 font-body text-xl text-foreground placeholder:text-muted-foreground focus:border-neon focus:outline-none"
       />
     </label>

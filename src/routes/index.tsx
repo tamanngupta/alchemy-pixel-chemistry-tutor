@@ -32,7 +32,6 @@ const FEATURES = [
   { icon: "▶", title: "Actively Engage", body: "Drag, click, react. No boring textbooks — chemistry you play with, not read about." },
   { icon: "✦", title: "Carbonyl Mastery", body: "Aldehydes, ketones, esters, enolates. Mechanism intuition that actually sticks." },
   { icon: "♪", title: "Zero Strict Teachers", body: "Learn at your own pace from home. No judgement, just curiosity rewarded." },
-  { icon: "★", title: "Built for Kids", body: "Pixel-friendly visuals and bite-sized challenges that make hard concepts click." },
 ];
 
 function Landing() {
@@ -82,9 +81,8 @@ function Landing() {
               ▸ LVL 1 · CARBONYL CHEMISTRY
             </div>
             <h1 className="flex flex-wrap items-center justify-center gap-4 font-pixel text-5xl text-foreground text-glow md:text-7xl">
-              <span>ALCHE</span>
+              <span>ALCHEMY</span>
               <TestTube size={90} />
-              <span>MY</span>
             </h1>
             <p className="mx-auto mt-8 max-w-2xl font-body text-2xl leading-snug text-muted-foreground">
               Skip the boring test tubes. Master carbonyl chemistry the SOCRATIC way —
