@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import wizard from "@/assets/wizard.png";
-import spellAsset from "@/assets/spell.png.asset.json";
+
 
 export function WizardIntro() {
   const [phase, setPhase] = useState<"walk" | "cast" | "blast" | "done">("walk");
@@ -38,18 +38,14 @@ export function WizardIntro() {
         />
       </div>
       {phase !== "walk" && (
-        <img
-          src={spellAsset.url}
-          alt="Pixel spell blast"
-          width={160}
-          height={160}
-          className="absolute"
+        <div
+          className="absolute bottom-44 left-[14vw] h-6 w-6"
           style={{
-            bottom: "11rem",
-            left: "50%",
-            imageRendering: "pixelated",
+            background:
+              "linear-gradient(135deg, var(--color-neon) 0%, var(--color-neon) 35%, oklch(0.45 0.15 230) 65%, oklch(0.12 0.04 260) 100%)",
             animation: "blast-grow 2s cubic-bezier(.6,.2,.8,1) forwards",
-            filter: "drop-shadow(0 0 40px var(--color-neon)) drop-shadow(0 0 80px var(--color-neon))",
+            boxShadow:
+              "0 0 60px var(--color-neon), inset 0 0 12px oklch(0.12 0.04 260)",
           }}
         />
       )}
