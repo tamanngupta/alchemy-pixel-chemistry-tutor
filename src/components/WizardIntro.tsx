@@ -39,13 +39,14 @@ export function WizardIntro() {
       </div>
       {phase !== "walk" && (
         <div
-          className="absolute bottom-44 left-[14vw] h-6 w-6"
+          className="absolute bottom-44 left-1/2 h-6 w-6 rounded-full"
           style={{
             background:
-              "linear-gradient(135deg, var(--color-neon) 0%, var(--color-neon) 35%, oklch(0.45 0.15 230) 65%, oklch(0.12 0.04 260) 100%)",
+              "radial-gradient(circle, var(--color-neon) 0%, var(--color-neon) 35%, oklch(0.45 0.15 230) 70%, oklch(0.12 0.04 260) 100%)",
             animation: "blast-grow 2s cubic-bezier(.6,.2,.8,1) forwards",
             boxShadow:
               "0 0 60px var(--color-neon), inset 0 0 12px oklch(0.12 0.04 260)",
+            transformOrigin: "center",
           }}
         />
       )}
