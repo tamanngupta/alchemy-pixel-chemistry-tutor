@@ -37,12 +37,12 @@ function AuthPage() {
         });
         if (error) throw error;
         toast.success("Welcome, wizard! Check your email to confirm.");
-        navigate({ to: "/" });
+        navigate({ to: "/lessons" });
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
         toast.success("Re-entering the lab...");
-        navigate({ to: "/" });
+        navigate({ to: "/lessons" });
       }
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Something went wrong");
