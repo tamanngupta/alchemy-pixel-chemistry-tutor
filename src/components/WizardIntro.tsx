@@ -6,16 +6,9 @@ export function WizardIntro() {
   const [phase, setPhase] = useState<"walk" | "cast" | "blast" | "done">("walk");
 
   useEffect(() => {
-    if (sessionStorage.getItem("alchemy-intro-played")) {
-      setPhase("done");
-      return;
-    }
     const t1 = setTimeout(() => setPhase("cast"), 2200);
-    const t2 = setTimeout(() => setPhase("blast"), 2900);
-    const t3 = setTimeout(() => {
-      setPhase("done");
-      sessionStorage.setItem("alchemy-intro-played", "1");
-    }, 4200);
+    const t2 = setTimeout(() => setPhase("blast"), 3000);
+    const t3 = setTimeout(() => setPhase("done"), 5000);
     return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); };
   }, []);
 
@@ -24,7 +17,7 @@ export function WizardIntro() {
   return (
     <div
       className="fixed inset-0 z-[100] overflow-hidden bg-deep scanlines"
-      style={{ animation: phase === "blast" ? "cover-fade 1.3s ease-out forwards" : undefined }}
+      style={{ animation: phase === "blast" ? "cover-fade 2s ease-out forwards" : undefined }}
     >
       <div className="absolute inset-0 grid-bg opacity-40" />
       <div
@@ -48,11 +41,15 @@ export function WizardIntro() {
         <img
           src={spellAsset.url}
           alt="Pixel spell blast"
-          className="absolute bottom-44 left-1/2 -translate-x-1/2 h-24 w-24"
+          width={160}
+          height={160}
+          className="absolute"
           style={{
+            bottom: "11rem",
+            left: "50%",
             imageRendering: "pixelated",
-            animation: "blast-grow 1.3s cubic-bezier(.6,.2,.8,1) forwards",
-            filter: "drop-shadow(0 0 30px var(--color-neon))",
+            animation: "blast-grow 2s cubic-bezier(.6,.2,.8,1) forwards",
+            filter: "drop-shadow(0 0 40px var(--color-neon)) drop-shadow(0 0 80px var(--color-neon))",
           }}
         />
       )}
