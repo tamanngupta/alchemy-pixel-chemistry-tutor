@@ -139,15 +139,28 @@ function LessonsPage() {
 
       {/* TIMELINE */}
       <section className="relative z-10 mx-auto mt-10 max-w-md">
-        {/* central dashed spine */}
-        <div
-          className="absolute left-1/2 top-0 bottom-0 w-1 -translate-x-1/2"
-          style={{
-            backgroundImage:
-              "repeating-linear-gradient(to bottom, var(--color-neon) 0 8px, transparent 8px 18px)",
-            opacity: 0.45,
-          }}
-        />
+        {/* curved dashed path (snakes through nodes, stretches to fit) */}
+        <svg
+          className="pointer-events-none absolute inset-0 h-full w-full"
+          viewBox="0 0 400 1600"
+          preserveAspectRatio="none"
+          aria-hidden="true"
+        >
+          <path
+            d="M 200 0
+               C 80 120, 320 240, 200 360
+               S 80 600, 200 720
+               S 320 960, 200 1080
+               S 80 1320, 200 1440
+               L 200 1600"
+            fill="none"
+            stroke="var(--color-neon)"
+            strokeWidth="3"
+            strokeDasharray="8 12"
+            strokeLinecap="round"
+            opacity="0.55"
+          />
+        </svg>
 
         {/* floating ambient orbs */}
         <div className="pointer-events-none absolute inset-0 overflow-hidden">
@@ -157,7 +170,7 @@ function LessonsPage() {
               className="absolute h-3 w-3 rounded-full border border-neon/40"
               style={{
                 top: `${top}%`,
-                left: i % 2 === 0 ? "8%" : "88%",
+                left: i % 2 === 0 ? "6%" : "90%",
                 opacity: 0.5,
                 animation: `float-y ${3 + i}s ease-in-out infinite`,
               }}
@@ -165,14 +178,21 @@ function LessonsPage() {
           ))}
         </div>
 
-        <div className="relative flex flex-col items-center gap-12 py-6">
-          {LESSONS.map((lesson) => {
+        <div className="relative flex flex-col items-center gap-14 py-6">
+          {LESSONS.map((lesson, i) => {
             const isDone = completed.has(lesson.id);
             const isCurrent = lesson.id === currentId;
             const isLocked = !isDone && !isCurrent;
+            // snake offsets — alternating sway to follow the curved path
+            const sway = [0, -70, 70, -90, 70, -70, 0];
+            const offset = sway[i % sway.length];
 
             return (
-              <div key={lesson.id} className="relative flex flex-col items-center">
+              <div
+                key={lesson.id}
+                className="relative flex flex-col items-center"
+                style={{ transform: `translateX(${offset}px)` }}
+              >
                 <LessonNode
                   lesson={lesson}
                   state={isDone ? "done" : isCurrent ? "current" : "locked"}
