@@ -1,0 +1,1310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Different Nucleophiles</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323:wght@400&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;1,9..144,300;1,9..144,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg:        oklch(0.10 0.05 265);
+            --bg-card:   oklch(0.24 0.09 265);
+            --bg-card2:  oklch(0.18 0.07 265);
+            --surface:   oklch(0.28 0.07 265);
+            --neon:      oklch(0.85 0.22 210);
+            --primary:   oklch(0.72 0.18 230);
+            --accent:    oklch(0.78 0.2  200);
+            --danger:    oklch(0.65 0.25 25);
+            --text:      oklch(0.95 0.04 230);
+            --muted:     oklch(0.75 0.05 230);
+            --border:    oklch(0.5  0.15 240);
+            --prose:     oklch(0.88 0.03 230);
+            --prose-dim: oklch(0.72 0.04 230);
+        }
+ 
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+ 
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            overflow-x: hidden;
+            image-rendering: pixelated;
+        }
+ 
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background-image:
+                linear-gradient(color-mix(in oklab, var(--neon) 12%, transparent) 1px, transparent 1px),
+                linear-gradient(90deg, color-mix(in oklab, var(--neon) 12%, transparent) 1px, transparent 1px);
+            background-size: 40px 40px;
+            pointer-events: none;
+            z-index: 0;
+        }
+ 
+        body::after {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background-image: repeating-linear-gradient(
+                0deg,
+                rgba(0,0,0,0.13) 0px,
+                rgba(0,0,0,0.13) 2px,
+                transparent 2px,
+                transparent 4px
+            );
+            pointer-events: none;
+            z-index: 0;
+        }
+ 
+        .px-border {
+            box-shadow:
+                0 -4px 0 0 var(--border),
+                0  4px 0 0 var(--border),
+                -4px 0 0 0 var(--border),
+                 4px 0 0 0 var(--border);
+        }
+        .px-border-neon {
+            box-shadow:
+                0 -4px 0 0 var(--neon),
+                0  4px 0 0 var(--neon),
+                -4px 0 0 0 var(--neon),
+                 4px 0 0 0 var(--neon),
+                0 0 24px color-mix(in oklab, var(--neon) 50%, transparent);
+        }
+ 
+        /* ── INTRO SCREEN ── */
+        #intro-screen {
+            position: fixed; inset: 0;
+            background: var(--bg);
+            display: flex; align-items: center; justify-content: center;
+            z-index: 100; flex-direction: column; gap: 20px;
+        }
+ 
+        #intro-screen::after {
+            content: '';
+            position: absolute; inset: 0;
+            background-image: repeating-linear-gradient(
+                0deg,
+                rgba(0,0,0,0.13) 0px,
+                rgba(0,0,0,0.13) 2px,
+                transparent 2px,
+                transparent 4px
+            );
+            pointer-events: none;
+        }
+ 
+        #intro-screen .module-tag {
+            font-family: 'Press Start 2P', monospace;
+            font-size: 9px;
+            letter-spacing: 0.15em;
+            color: var(--neon);
+            opacity: 0;
+            animation: fadeUp 0.6s ease 0.3s forwards;
+            position: relative; z-index: 1;
+            text-shadow: 0 0 6px var(--neon);
+        }
+ 
+        #intro-screen h1 {
+            font-family: 'Fraunces', serif;
+            font-size: clamp(2rem, 5vw, 3.8rem);
+            font-weight: 300;
+            color: var(--text);
+            text-align: center;
+            opacity: 0;
+            animation: fadeUp 0.7s ease 0.6s forwards;
+            line-height: 1.25;
+            position: relative; z-index: 1;
+        }
+ 
+        #intro-screen h1 em {
+            font-style: italic;
+            color: var(--neon);
+            text-shadow: 0 0 12px var(--neon), 0 0 30px color-mix(in oklab, var(--neon) 50%, transparent);
+            -webkit-text-fill-color: var(--neon);
+        }
+ 
+        #intro-screen .sub {
+            font-family: 'DM Sans', sans-serif;
+            font-size: 15px;
+            color: var(--muted);
+            opacity: 0;
+            animation: fadeUp 0.6s ease 1s forwards;
+            letter-spacing: 0.02em;
+            position: relative; z-index: 1;
+        }
+ 
+        #intro-screen .carbonyl-symbol {
+            font-family: 'Press Start 2P', monospace;
+            font-size: clamp(2.5rem, 8vw, 5.5rem);
+            color: var(--neon);
+            text-shadow: 0 0 16px var(--neon), 0 0 40px color-mix(in oklab, var(--neon) 60%, transparent);
+            opacity: 0;
+            animation: fadeUp 0.8s ease 1.4s forwards, flicker 3s ease 2.2s infinite;
+            letter-spacing: 0.05em;
+            position: relative; z-index: 1;
+        }
+ 
+        #intro-screen .begin-btn {
+            margin-top: 12px;
+            padding: 14px 44px;
+            background: var(--primary);
+            border: none;
+            color: oklch(0.12 0.06 265);
+            font-family: 'Press Start 2P', monospace;
+            font-size: 11px;
+            letter-spacing: 0.08em;
+            cursor: pointer;
+            opacity: 0;
+            animation: fadeUp 0.6s ease 2s forwards;
+            transition: transform 0.15s;
+            position: relative; z-index: 1;
+            box-shadow:
+                0 -4px 0 0 var(--neon),
+                0  4px 0 0 var(--neon),
+                -4px 0 0 0 var(--neon),
+                 4px 0 0 0 var(--neon),
+                0 0 24px color-mix(in oklab, var(--neon) 50%, transparent);
+        }
+        #intro-screen .begin-btn:hover { transform: translateY(-3px); }
+ 
+        /* ── MAIN SCREEN ── */
+        .screen {
+            display: none;
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 48px 24px 80px;
+            position: relative;
+            z-index: 1;
+        }
+ 
+        .lesson-tag {
+            font-family: 'Press Start 2P', monospace;
+            font-size: 8px;
+            letter-spacing: 0.15em;
+            color: var(--neon);
+            margin-bottom: 14px;
+            text-shadow: 0 0 6px var(--neon);
+            display: block;
+        }
+ 
+        .lesson-title {
+            font-family: 'Fraunces', serif;
+            font-size: 2.4rem;
+            font-weight: 300;
+            margin-bottom: 48px;
+            color: var(--text);
+            line-height: 1.2;
+        }
+        .lesson-title em {
+            font-style: italic;
+            color: var(--neon);
+            -webkit-text-fill-color: var(--neon);
+            text-shadow: 0 0 10px var(--neon), 0 0 25px color-mix(in oklab, var(--neon) 40%, transparent);
+        }
+ 
+        .section-label {
+            font-family: 'Press Start 2P', monospace;
+            font-size: 8px;
+            letter-spacing: 0.15em;
+            color: var(--neon);
+            margin-bottom: 24px;
+            text-shadow: 0 0 6px var(--neon);
+            display: block;
+        }
+ 
+        /* ── REACTION NAV ── */
+        .reaction-nav { display: flex; gap: 12px; margin-bottom: 40px; flex-wrap: wrap; }
+ 
+        .reaction-nav-btn {
+            padding: 10px 22px;
+            background: var(--bg-card);
+            color: var(--muted);
+            font-family: 'Press Start 2P', monospace;
+            font-size: 9px;
+            letter-spacing: 0.05em;
+            cursor: pointer;
+            transition: all 0.15s;
+            border: none;
+            box-shadow:
+                0 -4px 0 0 var(--border),
+                0  4px 0 0 var(--border),
+                -4px 0 0 0 var(--border),
+                 4px 0 0 0 var(--border);
+        }
+        .reaction-nav-btn:hover { color: var(--text); }
+        .reaction-nav-btn.active {
+            color: oklch(0.12 0.06 265);
+            background: var(--primary);
+            box-shadow:
+                0 -4px 0 0 var(--neon),
+                0  4px 0 0 var(--neon),
+                -4px 0 0 0 var(--neon),
+                 4px 0 0 0 var(--neon),
+                0 0 24px color-mix(in oklab, var(--neon) 50%, transparent);
+        }
+ 
+        /* ── REACTION PANELS ── */
+        .reaction-panel { display: none; }
+        .reaction-panel.active { display: block; }
+ 
+        .reaction-header { margin-bottom: 32px; }
+ 
+        .reaction-name {
+            font-family: 'Fraunces', serif;
+            font-size: 1.7rem;
+            font-weight: 300;
+            margin-bottom: 6px;
+            color: var(--text);
+            line-height: 1.25;
+        }
+        .reaction-name em {
+            font-style: italic;
+            color: var(--neon);
+            -webkit-text-fill-color: var(--neon);
+            text-shadow: 0 0 10px var(--neon), 0 0 25px color-mix(in oklab, var(--neon) 40%, transparent);
+        }
+ 
+        .reaction-type {
+            font-family: 'Press Start 2P', monospace;
+            font-size: 8px;
+            color: var(--muted);
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+            display: block;
+        }
+ 
+        /* ── PREDICT BUTTON ── */
+        .predict-trigger-btn {
+            display: inline-flex; align-items: center; gap: 8px;
+            padding: 10px 24px;
+            background: transparent;
+            color: var(--neon);
+            font-family: 'Press Start 2P', monospace;
+            font-size: 8px;
+            letter-spacing: 0.05em;
+            cursor: pointer;
+            margin-bottom: 36px;
+            transition: transform 0.15s;
+            border: none;
+            box-shadow:
+                0 -4px 0 0 var(--neon),
+                0  4px 0 0 var(--neon),
+                -4px 0 0 0 var(--neon),
+                 4px 0 0 0 var(--neon);
+        }
+        .predict-trigger-btn:hover {
+            transform: translateY(-2px);
+            background: color-mix(in oklab, var(--neon) 8%, transparent);
+        }
+ 
+        /* ── PREDICT OVERLAY ── */
+        .predict-overlay {
+            display: none; position: fixed; inset: 0;
+            background: rgba(0,0,0,0.88);
+            backdrop-filter: blur(6px);
+            z-index: 200; align-items: center; justify-content: center;
+        }
+        .predict-overlay.open { display: flex; animation: fadeIn 0.2s ease; }
+ 
+        .predict-modal {
+            background: var(--bg-card);
+            padding: 40px;
+            max-width: 650px; width: 92%;
+            position: relative;
+            max-height: 88vh; overflow-y: auto;
+            animation: slideUp 0.25s ease;
+            box-shadow:
+                0 -4px 0 0 var(--border),
+                0  4px 0 0 var(--border),
+                -4px 0 0 0 var(--border),
+                 4px 0 0 0 var(--border);
+        }
+ 
+        .predict-close {
+            position: absolute; top: 18px; right: 22px;
+            background: var(--surface);
+            width: 30px; height: 30px;
+            display: flex; align-items: center; justify-content: center;
+            color: var(--muted); font-size: 14px; cursor: pointer;
+            transition: color 0.2s;
+            border: none;
+            box-shadow:
+                0 -2px 0 0 var(--border),
+                0  2px 0 0 var(--border),
+                -2px 0 0 0 var(--border),
+                 2px 0 0 0 var(--border);
+            font-family: monospace;
+        }
+        .predict-close:hover { color: var(--text); }
+ 
+        .predict-modal-title {
+            font-family: 'Fraunces', serif;
+            font-size: 1.2rem;
+            font-weight: 400;
+            margin-bottom: 6px;
+            color: var(--text);
+        }
+ 
+        .predict-modal-sub {
+            font-family: 'DM Sans', sans-serif;
+            font-size: 15px;
+            color: var(--prose);
+            margin-bottom: 28px;
+            line-height: 1.8;
+        }
+ 
+        /* ── DRAG & DROP ── */
+        .word-boxes { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 28px; }
+ 
+        .word-box {
+            padding: 8px 16px;
+            background: var(--surface);
+            cursor: grab;
+            font-family: 'Press Start 2P', monospace;
+            font-size: 8px;
+            color: var(--text);
+            user-select: none;
+            transition: all 0.15s;
+            border: none;
+            box-shadow:
+                0 -2px 0 0 var(--border),
+                0  2px 0 0 var(--border),
+                -2px 0 0 0 var(--border),
+                 2px 0 0 0 var(--border);
+        }
+        .word-box:hover {
+            box-shadow:
+                0 -2px 0 0 var(--neon),
+                0  2px 0 0 var(--neon),
+                -2px 0 0 0 var(--neon),
+                 2px 0 0 0 var(--neon);
+            color: var(--neon);
+        }
+        .word-box.dragging { opacity: 0.4; }
+        .word-box.used { opacity: 0.25; cursor: default; pointer-events: none; }
+ 
+        .drop-targets { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px; }
+ 
+        .drop-target {
+            border: 2px dashed var(--border);
+            padding: 16px 20px;
+            min-height: 64px;
+            display: flex; align-items: center;
+            transition: border-color 0.2s, background 0.2s;
+            position: relative;
+            background: var(--surface);
+        }
+        .drop-target.dragover { border-color: var(--neon); background: color-mix(in oklab, var(--neon) 5%, transparent); }
+        .drop-target.correct {
+            border: none;
+            box-shadow:
+                0 -4px 0 0 var(--accent),
+                0  4px 0 0 var(--accent),
+                -4px 0 0 0 var(--accent),
+                 4px 0 0 0 var(--accent),
+                0 0 12px color-mix(in oklab, var(--accent) 30%, transparent);
+            background: color-mix(in oklab, var(--accent) 6%, transparent);
+        }
+        .drop-target.wrong {
+            border: none;
+            box-shadow:
+                0 -4px 0 0 var(--danger),
+                0  4px 0 0 var(--danger),
+                -4px 0 0 0 var(--danger),
+                 4px 0 0 0 var(--danger),
+                0 0 12px color-mix(in oklab, var(--danger) 30%, transparent);
+            background: color-mix(in oklab, var(--danger) 6%, transparent);
+        }
+ 
+        .drop-target-label {
+            position: absolute; top: -10px; left: 12px;
+            font-family: 'Press Start 2P', monospace;
+            font-size: 8px;
+            letter-spacing: 0.08em;
+            color: var(--muted);
+            background: var(--surface);
+            padding: 0 6px;
+        }
+        .drop-target-content {
+            font-family: 'Press Start 2P', monospace;
+            font-size: 8px;
+            color: var(--text);
+        }
+        .drop-target-placeholder {
+            font-family: 'DM Sans', sans-serif;
+            font-size: 13px;
+            color: var(--muted);
+            font-style: italic;
+        }
+ 
+        .predict-actions { display: flex; gap: 10px; }
+ 
+        .check-btn {
+            padding: 10px 28px;
+            background: var(--primary);
+            border: none;
+            color: oklch(0.12 0.06 265);
+            font-family: 'Press Start 2P', monospace;
+            font-size: 8px;
+            letter-spacing: 0.05em;
+            cursor: pointer;
+            transition: transform 0.15s;
+            box-shadow:
+                0 -4px 0 0 var(--neon),
+                0  4px 0 0 var(--neon),
+                -4px 0 0 0 var(--neon),
+                 4px 0 0 0 var(--neon),
+                0 0 16px color-mix(in oklab, var(--neon) 40%, transparent);
+        }
+        .check-btn:hover { transform: translateY(-2px); }
+ 
+        .reset-btn {
+            padding: 10px 20px;
+            background: transparent;
+            color: var(--muted);
+            font-family: 'Press Start 2P', monospace;
+            font-size: 8px;
+            letter-spacing: 0.05em;
+            cursor: pointer;
+            transition: color 0.2s;
+            border: none;
+            box-shadow:
+                0 -2px 0 0 var(--border),
+                0  2px 0 0 var(--border),
+                -2px 0 0 0 var(--border),
+                 2px 0 0 0 var(--border);
+        }
+        .reset-btn:hover { color: var(--text); }
+ 
+        .predict-feedback {
+            display: none;
+            margin-top: 16px;
+            padding: 14px 18px;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 15px;
+            line-height: 1.8;
+        }
+        .predict-feedback.correct {
+            background: var(--bg-card);
+            color: var(--neon);
+            text-shadow: 0 0 6px var(--neon);
+            box-shadow:
+                0 -4px 0 0 var(--neon),
+                0  4px 0 0 var(--neon),
+                -4px 0 0 0 var(--neon),
+                 4px 0 0 0 var(--neon);
+        }
+        .predict-feedback.wrong {
+            background: var(--bg-card);
+            color: var(--danger);
+            box-shadow:
+                0 -4px 0 0 var(--danger),
+                0  4px 0 0 var(--danger),
+                -4px 0 0 0 var(--danger),
+                 4px 0 0 0 var(--danger);
+        }
+ 
+        /* ── HOTSPOT MAP ── */
+        .hotspot-map {
+            background: var(--bg-card);
+            padding: 32px;
+            margin-bottom: 16px;
+            box-shadow:
+                0 -4px 0 0 var(--neon),
+                0  4px 0 0 var(--neon),
+                -4px 0 0 0 var(--neon),
+                 4px 0 0 0 var(--neon),
+                0 0 30px color-mix(in oklab, var(--neon) 20%, transparent);
+        }
+ 
+        .hotspot-equation {
+            display: flex; align-items: center;
+            gap: 12px; flex-wrap: wrap; margin-bottom: 8px;
+        }
+        .hs-species { display: flex; flex-direction: column; align-items: center; gap: 5px; }
+ 
+        .hs-plain-label {
+            font-family: 'Press Start 2P', monospace;
+            font-size: 8px;
+            color: var(--muted);
+            white-space: nowrap;
+            text-align: center;
+        }
+ 
+        .hs-term {
+            padding: 8px 16px;
+            background: var(--surface);
+            font-family: 'Fraunces', serif;
+            font-size: 14px;
+            color: var(--text);
+            cursor: pointer;
+            transition: all 0.15s;
+            position: relative;
+            white-space: nowrap;
+            border: none;
+            box-shadow:
+                0 -2px 0 0 var(--border),
+                0  2px 0 0 var(--border),
+                -2px 0 0 0 var(--border),
+                 2px 0 0 0 var(--border);
+        }
+        .hs-term:hover, .hs-term.active {
+            color: oklch(0.12 0.06 265);
+            background: var(--neon);
+            box-shadow:
+                0 -2px 0 0 var(--neon),
+                0  2px 0 0 var(--neon),
+                -2px 0 0 0 var(--neon),
+                 2px 0 0 0 var(--neon),
+                0 0 12px color-mix(in oklab, var(--neon) 40%, transparent);
+        }
+        .hs-term.has-pulse::after {
+            content: '';
+            position: absolute; top: -3px; right: -3px;
+            width: 7px; height: 7px;
+            background: var(--neon);
+            box-shadow: 0 0 6px var(--neon);
+            animation: pulse-dot 1.8s ease infinite;
+        }
+ 
+        .hs-formula {
+            font-family: 'Press Start 2P', monospace;
+            font-size: 8px;
+            color: var(--neon);
+            text-shadow: 0 0 6px var(--neon);
+            text-align: center;
+        }
+        .hs-plus { color: var(--muted); font-size: 1.3rem; padding: 0 4px; }
+        .hs-arrow {
+            color: var(--muted); font-size: 1rem; padding: 0 4px;
+            display: flex; flex-direction: column; align-items: center; gap: 4px;
+        }
+ 
+        .hotspot-card-area {
+            min-height: 20px;
+            margin-top: 20px;
+            border-top: 2px solid var(--border);
+            padding-top: 20px;
+        }
+ 
+        .hotspot-card {
+            display: none;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 15px;
+            color: var(--prose);
+            line-height: 1.8;
+            padding: 16px 20px;
+            background: var(--bg-card2);
+            border-left: 4px solid var(--neon);
+        }
+        .hotspot-card.active { display: block; animation: fadeUp 0.2s ease; }
+ 
+        .hotspot-card-title {
+            font-family: 'Press Start 2P', monospace;
+            font-size: 8px;
+            letter-spacing: 0.1em;
+            color: var(--neon);
+            margin-bottom: 12px;
+            display: block;
+            text-shadow: 0 0 6px var(--neon);
+        }
+ 
+        .hotspot-hint {
+            font-family: 'DM Sans', sans-serif;
+            font-size: 14px;
+            color: var(--muted);
+            font-style: italic;
+        }
+ 
+        .derivative-table { width: 100%; border-collapse: collapse; margin-top: 6px; }
+        .derivative-table th {
+            font-family: 'Press Start 2P', monospace;
+            font-size: 7px;
+            color: var(--neon);
+            font-weight: 500;
+            text-align: left;
+            padding: 8px 10px;
+            border-bottom: 2px solid var(--border);
+        }
+        .derivative-table td {
+            font-family: 'DM Sans', sans-serif;
+            font-size: 14px;
+            color: var(--prose);
+            padding: 9px 10px;
+            border-bottom: 1px solid rgba(255,255,255,0.06);
+            vertical-align: middle;
+            line-height: 1.6;
+        }
+        .derivative-table tr:last-child td { border-bottom: none; }
+        .derivative-table .formula-cell { color: var(--text); font-family: monospace; white-space: nowrap; }
+ 
+        @keyframes pulse-dot {
+            0%,100%{ opacity:1; transform:scale(1); }
+            50%{ opacity:0.4; transform:scale(1.6); }
+        }
+ 
+        /* ── DID YOU KNOW ── */
+        .did-you-know {
+            background: var(--bg-card2);
+            border-left: 4px solid var(--neon);
+            padding: 16px 20px;
+            margin-bottom: 32px;
+        }
+ 
+        .dyk-label {
+            font-family: 'Press Start 2P', monospace;
+            font-size: 8px;
+            letter-spacing: 0.15em;
+            color: var(--neon);
+            margin-bottom: 10px;
+            display: block;
+            text-shadow: 0 0 6px var(--neon);
+        }
+ 
+        .dyk-text {
+            font-family: 'DM Sans', sans-serif;
+            font-size: 15px;
+            color: var(--prose);
+            line-height: 1.8;
+        }
+        .dyk-text .ht {
+            color: var(--neon);
+            font-weight: 500;
+            text-shadow: 0 0 4px color-mix(in oklab, var(--neon) 40%, transparent);
+        }
+ 
+        /* ── MECHANISM SPLIT ── */
+        .mechanism-split {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+            align-items: start;
+            margin-bottom: 32px;
+        }
+ 
+        .mechanism-visual {
+            position: sticky; top: 24px;
+            background: var(--bg);
+            padding: 28px;
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            min-height: 250px;
+            box-shadow:
+                0 -4px 0 0 var(--neon),
+                0  4px 0 0 var(--neon),
+                -4px 0 0 0 var(--neon),
+                 4px 0 0 0 var(--neon),
+                0 0 20px color-mix(in oklab, var(--neon) 20%, transparent);
+        }
+        .mechanism-visual svg { max-width: 100%; height: auto; }
+ 
+        .visual-label {
+            font-family: 'Press Start 2P', monospace;
+            font-size: 8px;
+            letter-spacing: 0.1em;
+            color: var(--muted);
+            text-align: center;
+            margin-top: 12px;
+        }
+ 
+        .mechanism-scroll { display: flex; flex-direction: column; gap: 12px; }
+ 
+        .mechanism-step {
+            background: var(--bg-card);
+            overflow: hidden; cursor: pointer;
+            box-shadow:
+                0 -4px 0 0 var(--border),
+                0  4px 0 0 var(--border),
+                -4px 0 0 0 var(--border),
+                 4px 0 0 0 var(--border);
+            transition: box-shadow 0.2s;
+        }
+        .mechanism-step:hover {
+            box-shadow:
+                0 -4px 0 0 var(--muted),
+                0  4px 0 0 var(--muted),
+                -4px 0 0 0 var(--muted),
+                 4px 0 0 0 var(--muted);
+        }
+        .mechanism-step.open {
+            box-shadow:
+                0 -4px 0 0 var(--accent),
+                0  4px 0 0 var(--accent),
+                -4px 0 0 0 var(--accent),
+                 4px 0 0 0 var(--accent),
+                0 0 16px color-mix(in oklab, var(--accent) 30%, transparent);
+        }
+ 
+        .mechanism-step-header {
+            padding: 16px 20px;
+            display: flex; align-items: center; gap: 14px;
+            transition: background 0.2s;
+        }
+        .mechanism-step-header:hover { background: var(--surface); }
+ 
+        .step-number {
+            width: 28px; height: 28px;
+            display: flex; align-items: center; justify-content: center;
+            font-family: 'Press Start 2P', monospace;
+            font-size: 9px;
+            color: var(--muted);
+            flex-shrink: 0;
+            transition: all 0.2s;
+            box-shadow:
+                0 -2px 0 0 var(--border),
+                0  2px 0 0 var(--border),
+                -2px 0 0 0 var(--border),
+                 2px 0 0 0 var(--border);
+        }
+        .mechanism-step.open .step-number {
+            color: var(--accent);
+            box-shadow:
+                0 -2px 0 0 var(--accent),
+                0  2px 0 0 var(--accent),
+                -2px 0 0 0 var(--accent),
+                 2px 0 0 0 var(--accent),
+                0 0 8px color-mix(in oklab, var(--accent) 40%, transparent);
+            background: color-mix(in oklab, var(--accent) 8%, transparent);
+        }
+ 
+        .step-title {
+            font-family: 'DM Sans', sans-serif;
+            font-size: 15px;
+            font-weight: 400;
+            color: var(--text);
+            line-height: 1.5;
+        }
+ 
+        .step-chevron {
+            margin-left: auto;
+            font-family: 'Press Start 2P', monospace;
+            font-size: 8px;
+            color: var(--muted);
+            transition: transform 0.2s;
+            flex-shrink: 0;
+        }
+        .mechanism-step.open .step-chevron { transform: rotate(180deg); }
+ 
+        .mechanism-step-body { display: none; border-top: 2px solid var(--border); }
+        .mechanism-step.open .mechanism-step-body { display: block; }
+ 
+        .step-explanation {
+            padding: 16px 20px;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 15px;
+            color: var(--prose);
+            line-height: 1.8;
+        }
+        .step-explanation .ht {
+            color: var(--neon);
+            font-weight: 500;
+            text-shadow: 0 0 4px color-mix(in oklab, var(--neon) 40%, transparent);
+        }
+        .step-explanation .intuition {
+            margin-top: 10px;
+            padding: 10px 14px;
+            background: var(--bg-card2);
+            border-left: 4px solid var(--accent);
+            font-family: 'DM Sans', sans-serif;
+            font-size: 14px;
+            color: var(--prose-dim);
+            font-style: italic;
+            line-height: 1.75;
+        }
+ 
+        /* ── BOTTOM NAV ── */
+        .next-wrap {
+            margin-top: 48px;
+            display: flex;
+            justify-content: space-between;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+ 
+        .next-btn {
+            padding: 14px 36px;
+            background: var(--primary);
+            border: none;
+            color: oklch(0.12 0.06 265);
+            font-family: 'Press Start 2P', monospace;
+            font-size: 9px;
+            letter-spacing: 0.06em;
+            cursor: pointer;
+            transition: transform 0.15s;
+            box-shadow:
+                0 -4px 0 0 var(--neon),
+                0  4px 0 0 var(--neon),
+                -4px 0 0 0 var(--neon),
+                 4px 0 0 0 var(--neon),
+                0 0 20px color-mix(in oklab, var(--neon) 40%, transparent);
+        }
+        .next-btn:hover { transform: translateY(-3px); }
+ 
+        .ghost-btn {
+            padding: 14px 28px;
+            background: transparent;
+            color: var(--muted);
+            font-family: 'Press Start 2P', monospace;
+            font-size: 9px;
+            letter-spacing: 0.06em;
+            cursor: pointer;
+            transition: color 0.2s, transform 0.15s;
+            border: none;
+            box-shadow:
+                0 -4px 0 0 var(--border),
+                0  4px 0 0 var(--border),
+                -4px 0 0 0 var(--border),
+                 4px 0 0 0 var(--border);
+        }
+        .ghost-btn:hover { color: var(--text); transform: translateY(-1px); }
+ 
+        /* ── ANIMATIONS ── */
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(16px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes flicker {
+            0%, 100% { opacity: 1; }
+            50%       { opacity: 0.82; }
+        }
+ 
+        @media (max-width: 700px) {
+            .mechanism-split { grid-template-columns: 1fr; }
+            .mechanism-visual { position: relative; top: 0; }
+            .drop-targets { grid-template-columns: 1fr; }
+            .hotspot-map { padding: 24px 18px; }
+        }
+    </style>
+</head>
+<body>
+ 
+<div id="intro-screen">
+    <p class="module-tag">// MODULE 1 &middot; LESSON 4</p>
+    <h1>When Addition <em>Changes Jobs</em></h1>
+    <p class="sub">Hydride and nitrogen nucleophiles do not behave like the last set</p>
+    <div class="carbonyl-symbol">H&#8315; / H&#8322;N-Z</div>
+    <button class="begin-btn" onclick="beginLesson()">&#x25B6; BEGIN</button>
+</div>
+ 
+<div id="main-screen" class="screen">
+    <p class="lesson-tag">Module 1 / Lesson 4</p>
+    <h2 class="lesson-title">When Addition <em>Changes Jobs</em></h2>
+ 
+    <div class="reaction-nav">
+        <button class="reaction-nav-btn active" onclick="showReaction('hydride', this)">Hydride</button>
+        <button class="reaction-nav-btn" onclick="showReaction('nitrogen', this)">Nitrogen</button>
+    </div>
+ 
+    <div id="reaction-hydride" class="reaction-panel active">
+        <div class="reaction-header">
+            <p class="reaction-type">Reduction by nucleophilic addition</p>
+            <h3 class="reaction-name">The <em>Hydride</em> Transfer</h3>
+        </div>
+ 
+        <button class="predict-trigger-btn" onclick="openPredict('hydride')">&#9671; Test your prediction first</button>
+        <div class="predict-overlay" id="predict-overlay-hydride">
+            <div class="predict-modal">
+                <button class="predict-close" onclick="closePredict('hydride')">&#x2715;</button>
+                <p class="predict-modal-title">Predict before you proceed.</p>
+                <p class="predict-modal-sub">NaBH<sub>4</sub> reduces aldehydes and ketones. The reagent contains B-H bonds. Which part delivers the electron pair to carbon, and what is formed after the alkoxide is protonated?</p>
+                <div class="word-boxes" id="words-hydride">
+                    <div class="word-box" draggable="true" data-value="H:- from BH4-">H<sup>-</sup> from BH<sub>4</sub><sup>-</sup></div>
+                    <div class="word-box" draggable="true" data-value="H+ from solvent">H+ from solvent</div>
+                    <div class="word-box" draggable="true" data-value="Na+">Na+</div>
+                    <div class="word-box" draggable="true" data-value="BH4- attacks as a whole">BH<sub>4</sub><sup>-</sup> attacks as a whole</div>
+                    <div class="word-box" draggable="true" data-value="Alcohol">Alcohol</div>
+                    <div class="word-box" draggable="true" data-value="Gem-diol">Gem-diol</div>
+                    <div class="word-box" draggable="true" data-value="Acetal">Acetal</div>
+                    <div class="word-box" draggable="true" data-value="Carboxylic acid">Carboxylic acid</div>
+                </div>
+                <div class="drop-targets">
+                    <div class="drop-target" id="drop-hydride-nucleophile" data-correct="H:- from BH4-"><span class="drop-target-label">Nucleophile</span><span class="drop-target-placeholder">Drop here</span></div>
+                    <div class="drop-target" id="drop-hydride-product" data-correct="Alcohol"><span class="drop-target-label">Final product</span><span class="drop-target-placeholder">Drop here</span></div>
+                </div>
+                <div class="predict-actions">
+                    <button class="check-btn" onclick="checkPredict('hydride')">CHECK</button>
+                    <button class="reset-btn" onclick="resetPredict('hydride')">RESET</button>
+                </div>
+                <div id="predict-feedback-hydride" class="predict-feedback"></div>
+            </div>
+        </div>
+ 
+        <p class="section-label">// THE COMPLETE REACTION</p>
+        <div class="hotspot-map" id="hmap-hydride">
+            <div class="hotspot-equation">
+                <div class="hs-species"><span class="hs-plain-label">Aldehyde or ketone</span><span class="hs-formula">R<sub>2</sub>C=O</span></div>
+                <span class="hs-plus">+</span>
+                <div class="hs-species"><span class="hs-term has-pulse" data-map="hydride" data-card="donor">NaBH<sub>4</sub></span><span class="hs-formula">B-H bond donor</span></div>
+                <div class="hs-arrow"><span>&#10230;</span><span class="hs-term has-pulse" data-map="hydride" data-card="workup">then protonation</span></div>
+                <div class="hs-species"><span class="hs-plain-label">Alcohol</span><span class="hs-formula">R<sub>2</sub>CHOH</span></div>
+            </div>
+            <div style="margin-top:16px; display:flex; gap:10px; flex-wrap:wrap;">
+                <span class="hs-term has-pulse" data-map="hydride" data-card="nah">Why not NaH?</span>
+                <span class="hs-term has-pulse" data-map="hydride" data-card="selective">Why aldehydes first?</span>
+            </div>
+            <p class="hotspot-hint" style="margin-top:10px;">Click highlighted terms to explore them.</p>
+            <div class="hotspot-card-area" id="hcard-area-hydride">
+                <div class="hotspot-card" id="hcard-hydride-donor">
+                    <span class="hotspot-card-title">The B-H bond is the donor</span>
+                    NaBH<sub>4</sub> does not throw loose H<sup>-</sup> into solution. The electron pair in a B-H sigma bond is donated into the carbonyl pi star orbital, the antibonding orbital of C=O. As that overlap develops, hydrogen becomes part of the new C-H bond and the C=O pi electrons move onto oxygen.
+                </div>
+                <div class="hotspot-card" id="hcard-hydride-workup">
+                    <span class="hotspot-card-title">Protonation is cleanup</span>
+                    The first step makes an alkoxide. Water or alcohol solvent then gives oxygen a proton. The proton does not start the attack. It only neutralizes oxygen after carbon has already gained the new C-H bond.
+                </div>
+                <div class="hotspot-card" id="hcard-hydride-selective">
+                    <span class="hotspot-card-title">Why NaBH<sub>4</sub> is selective</span>
+                    NaBH<sub>4</sub> is mild enough to reduce aldehydes and ketones but not most esters or amides. If a molecule contains both an aldehyde and an ester, NaBH<sub>4</sub> usually reduces the aldehyde and leaves the ester alone. Ketones react more slowly than aldehydes because the carbonyl carbon is more crowded and less electrophilic.
+                </div>
+                <div class="hotspot-card" id="hcard-hydride-nah">
+                    <span class="hotspot-card-title">Why NaH is not the reagent</span>
+                    Sodium hydride is a powerful base, not a useful carbonyl reducer. The filled 1s orbital on hydride is compact. It overlaps well with the hydrogen end of an H-X sigma star orbital, so it removes protons efficiently. It overlaps poorly with the larger carbon contribution to the carbonyl pi star orbital, so it does not reduce aldehydes or ketones the way BH<sub>4</sub><sup>-</sup> does.
+                </div>
+            </div>
+        </div>
+ 
+        <div class="did-you-know">
+            <span class="dyk-label">// INTUITION LOCK</span>
+            <p class="dyk-text">Reduction is still nucleophilic addition, but the electron pair comes through a <span class="ht">B-H bond</span>. Carbon gains H, oxygen receives the pi electrons, and only after that does the solvent protonate oxygen to give the alcohol.</p>
+        </div>
+ 
+        <p class="section-label">// STEP BY STEP MECHANISM</p>
+        <div class="mechanism-split">
+            <div class="mechanism-visual" id="mvis-hydride">
+                <svg viewBox="0 0 360 170" width="320" xmlns="http://www.w3.org/2000/svg">
+                    <defs>
+                        <marker id="h-main" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#7ec8a4"/></marker>
+                        <marker id="h-blue" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#7aa7d9"/></marker>
+                    </defs>
+                    <text x="22" y="90" fill="#7ec8a4" font-family="monospace" font-size="15">H⁻</text>
+                    <path d="M 48 82 Q 78 54 108 76" stroke="#7ec8a4" stroke-width="1.7" fill="none" marker-end="url(#h-main)"/>
+                    <text x="116" y="92" fill="#c8b89a" font-family="monospace" font-size="16">C</text>
+                    <line x1="127" y1="91" x2="146" y2="91" stroke="#e07070" stroke-width="2.5"/>
+                    <line x1="127" y1="84" x2="146" y2="84" stroke="#e07070" stroke-width="2.5"/>
+                    <text x="150" y="92" fill="#e07070" font-family="monospace" font-size="16">O</text>
+                    <path d="M 137 82 Q 143 60 155 70" stroke="#7aa7d9" stroke-width="1.6" fill="none" marker-end="url(#h-blue)"/>
+                    <line x1="210" y1="85" x2="252" y2="85" stroke="#888" stroke-width="1.5"/>
+                    <polygon points="252,80 262,85 252,90" fill="#888"/>
+                    <text x="274" y="82" fill="#888" font-family="monospace" font-size="13">H-C-O-</text>
+                    <text x="274" y="106" fill="#7ec8a4" font-size="11">alkoxide first</text>
+                </svg>
+                <p class="visual-label">Select a step to see its diagram</p>
+            </div>
+            <div class="mechanism-scroll">
+                <div class="mechanism-step" onclick="toggleStep(this,'hydride',1)">
+                    <div class="mechanism-step-header"><div class="step-number">1</div><span class="step-title">A B-H bond delivers hydride character to carbon</span><span class="step-chevron">&#9662;</span></div>
+                    <div class="mechanism-step-body"><div class="step-explanation">The filled B-H sigma bond overlaps with the empty carbonyl <span class="ht">pi star orbital</span>. Electron density flows into the carbon side of that pi star orbital, so a new C-H bond forms. At the same time, the C=O pi electrons move onto oxygen, giving an alkoxide. Boron is left electron-poor, which helps pull the transfer forward.<div class="intuition">Hydride reduction is an orbital match: filled B-H sigma donates into empty C=O pi star. The new bond forms at carbon because the carbonyl carbon is the electrophilic end.</div></div></div>
+                </div>
+                <div class="mechanism-step" onclick="toggleStep(this,'hydride',2)">
+                    <div class="mechanism-step-header"><div class="step-number">2</div><span class="step-title">The alkoxide is protonated</span><span class="step-chevron">&#9662;</span></div>
+                    <div class="mechanism-step-body"><div class="step-explanation">The oxygen anion picks up H+ from ethanol, water, or acidic work-up. That gives the alcohol. The protonation happens <span class="ht">after</span> the C-H bond has already formed.<div class="intuition">The proton is not the attacker. It is the finishing touch that turns O- into OH.</div></div></div>
+                </div>
+                <div class="mechanism-step" onclick="toggleStep(this,'hydride',3)">
+                    <div class="mechanism-step-header"><div class="step-number">3</div><span class="step-title">One borohydride can reduce more than one carbonyl</span><span class="step-chevron">&#9662;</span></div>
+                    <div class="mechanism-step-body"><div class="step-explanation">BH<sub>4</sub><sup>-</sup> contains four B-H bonds, so more than one hydride transfer is possible. In real reactions it is not perfectly four-for-four, but NaBH<sub>4</sub> still reduces aldehydes and ketones in good yield because the solvent keeps protonating the alkoxide products.<div class="intuition">BH<sub>4</sub><sup>-</sup> is like a small hydride reservoir. Each transfer spends one B-H bond and makes one new C-H bond.</div></div></div>
+                </div>
+                <div class="mechanism-step" onclick="toggleStep(this,'hydride',4)">
+                    <div class="mechanism-step-header"><div class="step-number">4</div><span class="step-title">NaBH<sub>4</sub> versus NaH versus LiAlH<sub>4</sub></span><span class="step-chevron">&#9662;</span></div>
+                    <div class="mechanism-step-body"><div class="step-explanation">NaH behaves as a base because compact hydride overlaps well with the sigma star orbital of H-X bonds. NaBH<sub>4</sub> works as a mild hydride donor because its B-H sigma bond can donate into the carbonyl pi star orbital. LiAlH<sub>4</sub> is stronger and must be kept dry; it can reduce esters, acids, amides, and nitriles too.<div class="intuition">Not every compound with hydrogen attached to a metal is a carbonyl reducer. The orbital fit decides whether hydrogen removes a proton or adds to carbonyl carbon.</div></div></div>
+                </div>
+            </div>
+        </div>
+    </div>
+ 
+    <div id="reaction-nitrogen" class="reaction-panel">
+        <div class="reaction-header">
+            <p class="reaction-type">Addition followed by elimination</p>
+            <h3 class="reaction-name">The <em>Nitrogen</em> Condensation</h3>
+        </div>
+ 
+        <button class="predict-trigger-btn" onclick="openPredict('nitrogen')">&#9671; Test your prediction first</button>
+        <div class="predict-overlay" id="predict-overlay-nitrogen">
+            <div class="predict-modal">
+                <button class="predict-close" onclick="closePredict('nitrogen')">&#x2715;</button>
+                <p class="predict-modal-title">Predict before you proceed.</p>
+                <p class="predict-modal-sub">Ammonia derivatives have a lone pair on nitrogen. After addition, why does the reaction not stop at an alcohol-like product?</p>
+                <div class="word-boxes" id="words-nitrogen">
+                    <div class="word-box" draggable="true" data-value="Nitrogen lone pair">Nitrogen lone pair</div>
+                    <div class="word-box" draggable="true" data-value="Acid starts by bonding to carbon">Acid starts by bonding to carbon</div>
+                    <div class="word-box" draggable="true" data-value="Oxygen attacks nitrogen">Oxygen attacks nitrogen</div>
+                    <div class="word-box" draggable="true" data-value="Carbonyl pi bond attacks amine">Carbonyl pi bond attacks amine</div>
+                    <div class="word-box" draggable="true" data-value="C=N product + water">C=N product + water</div>
+                    <div class="word-box" draggable="true" data-value="Gem-diol">Gem-diol</div>
+                    <div class="word-box" draggable="true" data-value="Acetal">Acetal</div>
+                    <div class="word-box" draggable="true" data-value="Carboxylate">Carboxylate</div>
+                </div>
+                <div class="drop-targets">
+                    <div class="drop-target" id="drop-nitrogen-nucleophile" data-correct="Nitrogen lone pair"><span class="drop-target-label">Nucleophile</span><span class="drop-target-placeholder">Drop here</span></div>
+                    <div class="drop-target" id="drop-nitrogen-product" data-correct="C=N product + water"><span class="drop-target-label">Final result</span><span class="drop-target-placeholder">Drop here</span></div>
+                </div>
+                <div class="predict-actions">
+                    <button class="check-btn" onclick="checkPredict('nitrogen')">Check</button>
+                    <button class="reset-btn" onclick="resetPredict('nitrogen')">Reset</button>
+                </div>
+                <div id="predict-feedback-nitrogen" class="predict-feedback"></div>
+            </div>
+        </div>
+ 
+        <p class="section-label">// THE COMPLETE REACTION</p>
+        <div class="hotspot-map" id="hmap-nitrogen">
+            <div class="hotspot-equation">
+                <div class="hs-species"><span class="hs-plain-label">Carbonyl</span><span class="hs-formula">R<sub>2</sub>C=O</span></div>
+                <span class="hs-plus">+</span>
+                <div class="hs-species"><span class="hs-term has-pulse" data-map="nitrogen" data-card="reagent">H<sub>2</sub>N-Z</span><span class="hs-formula">N nucleophile</span></div>
+                <div class="hs-arrow"><span>&#8652;</span><span class="hs-term has-pulse" data-map="nitrogen" data-card="acid">mild acid</span></div>
+                <div class="hs-species"><span class="hs-term has-pulse" data-map="nitrogen" data-card="products">R<sub>2</sub>C=N-Z</span><span class="hs-formula">+ H<sub>2</sub>O</span></div>
+            </div>
+            <p class="hotspot-hint" style="margin-top:10px;">Click highlighted terms to explore them.</p>
+            <div class="hotspot-card-area" id="hcard-area-nitrogen">
+                <div class="hotspot-card" id="hcard-nitrogen-reagent">
+                    <span class="hotspot-card-title">One pattern, many names</span>
+                    <table class="derivative-table">
+                        <thead>
+                            <tr>
+                                <th>Z in H<sub>2</sub>N-Z</th>
+                                <th>Reagent</th>
+                                <th>Condensed derivative</th>
+                                <th>Product name</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><td class="formula-cell">H</td><td>Ammonia, NH<sub>3</sub></td><td class="formula-cell">R<sub>2</sub>C=NH</td><td>Imine</td></tr>
+                            <tr><td class="formula-cell">R</td><td>Primary amine, RNH<sub>2</sub></td><td class="formula-cell">R<sub>2</sub>C=NR</td><td>Substituted imine, Schiff base</td></tr>
+                            <tr><td class="formula-cell">OH</td><td>Hydroxylamine, NH<sub>2</sub>OH</td><td class="formula-cell">R<sub>2</sub>C=N-OH</td><td>Oxime</td></tr>
+                            <tr><td class="formula-cell">NH<sub>2</sub></td><td>Hydrazine, NH<sub>2</sub>NH<sub>2</sub></td><td class="formula-cell">R<sub>2</sub>C=N-NH<sub>2</sub></td><td>Hydrazone</td></tr>
+                            <tr><td class="formula-cell">NHPh</td><td>Phenylhydrazine</td><td class="formula-cell">R<sub>2</sub>C=N-NHPh</td><td>Phenylhydrazone</td></tr>
+                            <tr><td class="formula-cell">NHAr(NO<sub>2</sub>)<sub>2</sub></td><td>2,4-DNP</td><td class="formula-cell">R<sub>2</sub>C=N-NHAr(NO<sub>2</sub>)<sub>2</sub></td><td>2,4-DNP derivative</td></tr>
+                            <tr><td class="formula-cell">NHCONH<sub>2</sub></td><td>Semicarbazide</td><td class="formula-cell">R<sub>2</sub>C=N-NHCONH<sub>2</sub></td><td>Semicarbazone</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="hotspot-card" id="hcard-nitrogen-acid">
+                    <span class="hotspot-card-title">Why mild acid is best</span>
+                    Acid activates the carbonyl and helps turn OH into water, a good leaving group. Too much acid protonates the amine, removing the nitrogen lone pair. Too little acid leaves the carbonyl under-activated.
+                </div>
+                <div class="hotspot-card" id="hcard-nitrogen-products">
+                    <span class="hotspot-card-title">Addition then elimination</span>
+                    This starts like nucleophilic addition but ends differently. After nitrogen adds, the OH is converted into water and leaves. An R<sub>2</sub>C=N-Z bond forms, so the oxygen is replaced by a nitrogen group.
+                </div>
+            </div>
+        </div>
+ 
+        <div class="did-you-know">
+            <span class="dyk-label">// INTUITION LOCK</span>
+            <p class="dyk-text">Nitrogen additions are condensations: add the nucleophile, then throw away water. The carbonyl oxygen does not stay. That is why oximes, hydrazones, and imines are not alcohols.</p>
+        </div>
+ 
+        <p class="section-label">// STEP BY STEP MECHANISM</p>
+        <div class="mechanism-split">
+            <div class="mechanism-visual" id="mvis-nitrogen">
+                <svg viewBox="0 0 360 185" width="320" xmlns="http://www.w3.org/2000/svg">
+                    <defs>
+                        <marker id="n-main" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#7ec8a4"/></marker>
+                        <marker id="n-blue" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#7aa7d9"/></marker>
+                    </defs>
+                    <text x="18" y="98" fill="#7ec8a4" font-family="monospace" font-size="14">H₂N-Z</text>
+                    <path d="M 63 88 Q 92 58 120 78" stroke="#7ec8a4" stroke-width="1.7" fill="none" marker-end="url(#n-main)"/>
+                    <text x="128" y="98" fill="#c8b89a" font-family="monospace" font-size="16">C</text>
+                    <line x1="139" y1="97" x2="158" y2="97" stroke="#e07070" stroke-width="2.5"/>
+                    <line x1="139" y1="90" x2="158" y2="90" stroke="#e07070" stroke-width="2.5"/>
+                    <text x="162" y="98" fill="#e07070" font-family="monospace" font-size="16">O</text>
+                    <path d="M 149 88 Q 155 66 167 76" stroke="#7aa7d9" stroke-width="1.6" fill="none" marker-end="url(#n-blue)"/>
+                    <line x1="210" y1="91" x2="252" y2="91" stroke="#888" stroke-width="1.5"/>
+                    <polygon points="252,86 262,91 252,96" fill="#888"/>
+                    <text x="273" y="86" fill="#888" font-family="monospace" font-size="12">R₂C(OH)-NH-Z</text>
+                    <text x="273" y="111" fill="#7ec8a4" font-size="11">carbinolamine first</text>
+                </svg>
+                <p class="visual-label">Select a step to see its diagram</p>
+            </div>
+            <div class="mechanism-scroll">
+                <div class="mechanism-step" onclick="toggleStep(this,'nitrogen',1)">
+                    <div class="mechanism-step-header"><div class="step-number">1</div><span class="step-title">Nitrogen lone pair attacks carbonyl carbon</span><span class="step-chevron">&#9662;</span></div>
+                    <div class="mechanism-step-body"><div class="step-explanation">The nitrogen atom donates its lone pair into the carbonyl carbon. The C=O pi electrons move to oxygen, giving a tetrahedral addition product called a carbinolamine.<div class="intuition">Same first move as before: electron-rich atom attacks electron-poor carbon. The nucleophile is nitrogen, not a proton.</div></div></div>
+                </div>
+                <div class="mechanism-step" onclick="toggleStep(this,'nitrogen',2)">
+                    <div class="mechanism-step-header"><div class="step-number">2</div><span class="step-title">Proton transfers set up water as leaving group</span><span class="step-chevron">&#9662;</span></div>
+                    <div class="mechanism-step-body"><div class="step-explanation">The OH group is protonated to become OH<sub>2</sub><sup>+</sup>. Water is a much better leaving group than OH<sup>-</sup>. At the same time, nitrogen must keep access to its electron pair so the C=N bond can form.<div class="intuition">Acid is not here to attack. Acid edits the leaving group so the molecule can lose water cleanly.</div></div></div>
+                </div>
+                <div class="mechanism-step" onclick="toggleStep(this,'nitrogen',3)">
+                    <div class="mechanism-step-header"><div class="step-number">3</div><span class="step-title">Water leaves and C=N forms</span><span class="step-chevron">&#9662;</span></div>
+                    <div class="mechanism-step-body"><div class="step-explanation">Water leaves. The nitrogen lone pair helps form the R<sub>2</sub>C=N-Z bond, giving an imine, oxime, hydrazone, semicarbazone, or 2,4-DNP derivative depending on H<sub>2</sub>N-Z.<div class="intuition">Addition gave the molecule a handle. Elimination removes water and replaces C=O with R<sub>2</sub>C=N-Z.</div></div></div>
+                </div>
+                <div class="mechanism-step" onclick="toggleStep(this,'nitrogen',4)">
+                    <div class="mechanism-step-header"><div class="step-number">4</div><span class="step-title">Why pH 4-5 is the sweet spot</span><span class="step-chevron">&#9662;</span></div>
+                    <div class="mechanism-step-body"><div class="step-explanation">If the solution is too acidic, H<sub>2</sub>N-Z becomes H<sub>3</sub>N<sup>+</sup>-Z and loses nucleophilicity. If it is too basic, the carbonyl is not activated and OH is not converted into water. Mild acid balances both jobs.<div class="intuition">Too much acid silences nitrogen. Too little acid leaves the door closed. Mild acid keeps both partners useful.</div></div></div>
+                </div>
+            </div>
+        </div>
+    </div>
+ 
+    <div class="next-wrap">
+       <button class="ghost-btn" onclick="window.location.href='lesson3.html'">&#x25C4; BACK TO LESSON 3</button>
+       <button class="next-btn" onclick="window.location.href='lesson5.html'">&#x25B6; LESSON 5: REDUCTION GATE</button>
+    </div>
+</div>
+ 
+<script>
+    var draggedValue = null;
+    var draggedElement = null;
+    var dropState = {
+        hydride:  { nucleophile: null, product: null },
+        nitrogen: { nucleophile: null, product: null }
+    };
+ 
+    var stepSVGs = {
+        hydride: {
+            1: '<svg viewBox="0 0 360 170" width="320" xmlns="http://www.w3.org/2000/svg"><defs><marker id="hh1" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#7ec8a4"/></marker><marker id="hh2" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#7aa7d9"/></marker></defs><text x="22" y="90" fill="#7ec8a4" font-family="monospace" font-size="15">H⁻</text><path d="M 48 82 Q 78 54 108 76" stroke="#7ec8a4" stroke-width="1.7" fill="none" marker-end="url(#hh1)"/><text x="116" y="92" fill="#c8b89a" font-family="monospace" font-size="16">C</text><line x1="127" y1="91" x2="146" y2="91" stroke="#e07070" stroke-width="2.5"/><line x1="127" y1="84" x2="146" y2="84" stroke="#e07070" stroke-width="2.5"/><text x="150" y="92" fill="#e07070" font-family="monospace" font-size="16">O</text><path d="M 137 82 Q 143 60 155 70" stroke="#7aa7d9" stroke-width="1.6" fill="none" marker-end="url(#hh2)"/><line x1="210" y1="85" x2="252" y2="85" stroke="#888" stroke-width="1.5"/><polygon points="252,80 262,85 252,90" fill="#888"/><text x="274" y="82" fill="#888" font-family="monospace" font-size="13">R₂CHO⁻</text><text x="274" y="106" fill="#7ec8a4" font-size="11">alkoxide first</text></svg>',
+            2: '<svg viewBox="0 0 390 140" width="340" xmlns="http://www.w3.org/2000/svg"><defs><marker id="hh3" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#7ec8a4"/></marker></defs><text x="18" y="72" fill="#888" font-family="monospace" font-size="14">R₂CHO⁻</text><text x="88" y="72" fill="#888" font-size="13">+</text><text x="104" y="72" fill="#7ec8a4" font-family="monospace" font-size="14">H-OEt</text><path d="M 58 58 Q 92 28 120 54" stroke="#7ec8a4" stroke-width="1.5" fill="none" marker-end="url(#hh3)"/><line x1="174" y1="66" x2="216" y2="66" stroke="#888" stroke-width="1.5"/><polygon points="216,61 226,66 216,71" fill="#888"/><text x="238" y="72" fill="#c8b89a" font-family="monospace" font-size="14">R₂CHOH</text><text x="304" y="72" fill="#888" font-size="13">+</text><text x="320" y="72" fill="#888" font-family="monospace" font-size="14">⁻OEt</text><text x="238" y="98" fill="#7ec8a4" font-size="11">alcohol</text></svg>',
+            3: '<svg viewBox="0 0 360 170" width="320" xmlns="http://www.w3.org/2000/svg"><text x="20" y="40" fill="#7ec8a4" font-family="monospace" font-size="14">BH₄⁻</text><text x="76" y="40" fill="#888" font-size="12">has four B-H bonds</text><line x1="20" y1="66" x2="62" y2="66" stroke="#7ec8a4" stroke-width="1.5"/><polygon points="62,61 72,66 62,71" fill="#7ec8a4"/><text x="86" y="70" fill="#c8b89a" font-family="monospace" font-size="13">carbonyl 1</text><line x1="164" y1="66" x2="206" y2="66" stroke="#7ec8a4" stroke-width="1.5"/><polygon points="206,61 216,66 206,71" fill="#7ec8a4"/><text x="230" y="70" fill="#c8b89a" font-family="monospace" font-size="13">carbonyl 2</text><text x="20" y="112" fill="#888" font-size="12">Each transfer spends one B-H bond and makes one C-H bond.</text><text x="20" y="138" fill="#888" font-size="12">Solvent protonates each alkoxide to finish the alcohol.</text></svg>',
+            4: '<svg viewBox="0 0 360 178" width="320" xmlns="http://www.w3.org/2000/svg"><text x="20" y="32" fill="#e07070" font-size="13">NaH</text><text x="92" y="32" fill="#888" font-size="12">strong base, removes H⁺ from acids</text><line x1="20" y1="52" x2="326" y2="52" stroke="#333"/><text x="20" y="84" fill="#7ec8a4" font-size="13">NaBH₄</text><text x="92" y="84" fill="#888" font-size="12">mild B-H donor for aldehydes and ketones</text><line x1="20" y1="104" x2="326" y2="104" stroke="#333"/><text x="20" y="136" fill="#c8b89a" font-size="13">LiAlH₄</text><text x="92" y="136" fill="#888" font-size="12">strong hydride donor for less reactive carbonyls too</text><text x="92" y="158" fill="#e07070" font-size="11">keep dry until work-up</text></svg>'
+        },
+        nitrogen: {
+            1: '<svg viewBox="0 0 390 185" width="340" xmlns="http://www.w3.org/2000/svg"><defs><marker id="nn1" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#7ec8a4"/></marker><marker id="nn2" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#7aa7d9"/></marker></defs><text x="18" y="98" fill="#7ec8a4" font-family="monospace" font-size="14">H₂N-Z</text><path d="M 63 88 Q 92 58 120 78" stroke="#7ec8a4" stroke-width="1.7" fill="none" marker-end="url(#nn1)"/><text x="128" y="98" fill="#c8b89a" font-family="monospace" font-size="16">C</text><line x1="139" y1="97" x2="158" y2="97" stroke="#e07070" stroke-width="2.5"/><line x1="139" y1="90" x2="158" y2="90" stroke="#e07070" stroke-width="2.5"/><text x="162" y="98" fill="#e07070" font-family="monospace" font-size="16">O</text><path d="M 149 88 Q 155 66 167 76" stroke="#7aa7d9" stroke-width="1.6" fill="none" marker-end="url(#nn2)"/><line x1="210" y1="91" x2="252" y2="91" stroke="#888" stroke-width="1.5"/><polygon points="252,86 262,91 252,96" fill="#888"/><text x="273" y="86" fill="#888" font-family="monospace" font-size="12">R₂C(OH)-NH-Z</text><text x="273" y="111" fill="#7ec8a4" font-size="11">carbinolamine first</text></svg>',
+            2: '<svg viewBox="0 0 390 150" width="340" xmlns="http://www.w3.org/2000/svg"><text x="20" y="72" fill="#888" font-family="monospace" font-size="13">R₂C(OH)-NH-Z</text><text x="143" y="72" fill="#888" font-size="13">+ H⁺</text><line x1="196" y1="66" x2="236" y2="66" stroke="#888" stroke-width="1.5"/><polygon points="236,61 246,66 236,71" fill="#888"/><text x="258" y="72" fill="#e07070" font-family="monospace" font-size="13">R₂C(OH₂⁺)-NH-Z</text><text x="258" y="96" fill="#7ec8a4" font-size="11">water can leave</text></svg>',
+            3: '<svg viewBox="0 0 400 150" width="350" xmlns="http://www.w3.org/2000/svg"><defs><marker id="nn3" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#7ec8a4"/></marker></defs><text x="18" y="72" fill="#888" font-family="monospace" font-size="13">R₂C(OH₂⁺)-NH-Z</text><path d="M 126 60 Q 154 30 184 56" stroke="#7ec8a4" stroke-width="1.5" fill="none" marker-end="url(#nn3)"/><line x1="206" y1="66" x2="248" y2="66" stroke="#888" stroke-width="1.5"/><polygon points="248,61 258,66 248,71" fill="#888"/><text x="270" y="72" fill="#c8b89a" font-family="monospace" font-size="13">R₂C=N-Z</text><text x="340" y="72" fill="#888" font-size="13">+</text><text x="356" y="72" fill="#e07070" font-family="monospace" font-size="13">H₂O</text></svg>',
+            4: '<svg viewBox="0 0 360 155" width="320" xmlns="http://www.w3.org/2000/svg"><text x="18" y="42" fill="#e07070" font-size="12">too acidic</text><text x="100" y="42" fill="#888" font-family="monospace" font-size="12">H₃N⁺-Z</text><text x="188" y="42" fill="#888" font-size="12">no lone pair to attack</text><line x1="18" y1="62" x2="330" y2="62" stroke="#333"/><text x="18" y="92" fill="#7ec8a4" font-size="12">pH 4-5</text><text x="100" y="92" fill="#888" font-family="monospace" font-size="12">H₂N-Z + activated C=O</text><text x="100" y="116" fill="#7ec8a4" font-size="11">both partners still useful</text></svg>'
+        }
+    };
+ 
+    var stepLabels = {
+        hydride:  { 1:'Step 1 - B-H Transfer', 2:'Step 2 - Protonation', 3:'Step 3 - More Transfers', 4:'Step 4 - Reagent Choice' },
+        nitrogen: { 1:'Step 1 - Nitrogen Adds', 2:'Step 2 - Water Is Set Up', 3:'Step 3 - C=N Forms', 4:'pH Sweet Spot' }
+    };
+ 
+    function beginLesson() {
+        $('#intro-screen').fadeOut(600, function() {
+            $('#main-screen').fadeIn(400);
+            window.scrollTo(0, 0);
+        });
+    }
+ 
+    function showReaction(id, btn) {
+        $('.reaction-panel').removeClass('active');
+        $('.reaction-nav-btn').removeClass('active');
+        $('#reaction-' + id).addClass('active');
+        $(btn).addClass('active');
+    }
+ 
+    function openPredict(id) {
+        document.getElementById('predict-overlay-' + id).classList.add('open');
+        document.body.style.overflow = 'hidden';
+    }
+ 
+    function closePredict(id) {
+        document.getElementById('predict-overlay-' + id).classList.remove('open');
+        document.body.style.overflow = '';
+    }
+ 
+    document.querySelectorAll('.predict-overlay').forEach(function(o) {
+        o.addEventListener('click', function(e) {
+            if (e.target === this) { this.classList.remove('open'); document.body.style.overflow = ''; }
+        });
+    });
+ 
+    $(document).on('dragstart', '.word-box', function() {
+        if ($(this).hasClass('used')) return;
+        draggedValue = $(this).data('value');
+        draggedElement = this;
+        var el = this;
+        setTimeout(function() { $(el).addClass('dragging'); }, 0);
+    });
+    $(document).on('dragend', '.word-box', function() { $(this).removeClass('dragging'); });
+    $(document).on('dragover', '.drop-target', function(e) { e.preventDefault(); $(this).addClass('dragover'); });
+    $(document).on('dragleave', '.drop-target', function() { $(this).removeClass('dragover'); });
+    $(document).on('drop', '.drop-target', function(e) {
+        e.preventDefault();
+        $(this).removeClass('dragover');
+        var parts = $(this).attr('id').split('-');
+        var reaction = parts[1];
+        var field = parts[2];
+        var prev = dropState[reaction][field];
+        if (prev) { $('.word-box[data-value="' + prev + '"]').removeClass('used'); }
+        dropState[reaction][field] = draggedValue;
+        $(draggedElement).addClass('used');
+        $(this).find('.drop-target-placeholder').hide();
+        $(this).find('.drop-target-content').remove();
+        $(this).append('<span class="drop-target-content">' + draggedValue + '</span>');
+        $(this).removeClass('correct wrong');
+    });
+ 
+    function checkPredict(reaction) {
+        var nt = $('#drop-' + reaction + '-nucleophile');
+        var pt = $('#drop-' + reaction + '-product');
+        var nv = dropState[reaction]['nucleophile'];
+        var pv = dropState[reaction]['product'];
+        if (!nv || !pv) {
+            $('#predict-feedback-' + reaction).removeClass('correct wrong').addClass('wrong').html('Fill both boxes before checking.').show();
+            return;
+        }
+        var nr = nv === nt.data('correct');
+        var pr = pv === pt.data('correct');
+        nt.removeClass('correct wrong').addClass(nr ? 'correct' : 'wrong');
+        pt.removeClass('correct wrong').addClass(pr ? 'correct' : 'wrong');
+        var fb = $('#predict-feedback-' + reaction);
+        if (nr && pr) {
+            fb.removeClass('wrong').addClass('correct').html('Exactly. Now see why below.').show();
+        } else {
+            var msg = 'Not quite. ';
+            if (!nr) msg += 'The nucleophile is <strong>' + nt.data('correct') + '</strong>. ';
+            if (!pr) msg += 'The final result is <strong>' + pt.data('correct') + '</strong>.';
+            fb.removeClass('correct').addClass('wrong').html(msg).show();
+        }
+    }
+ 
+    function resetPredict(reaction) {
+        dropState[reaction] = { nucleophile: null, product: null };
+        $('#words-' + reaction + ' .word-box').removeClass('used');
+        $('[id^="drop-' + reaction + '"]').each(function() {
+            $(this).removeClass('correct wrong');
+            $(this).find('.drop-target-content').remove();
+            $(this).find('.drop-target-placeholder').show();
+        });
+        $('#predict-feedback-' + reaction).hide();
+    }
+ 
+    document.querySelectorAll('.hs-term[data-card]').forEach(function(term) {
+        term.addEventListener('click', function() {
+            var mapId = this.dataset.map;
+            var cardId = this.dataset.card;
+            var area = document.getElementById('hcard-area-' + mapId);
+            var allCards = area.querySelectorAll('.hotspot-card');
+            var allTerms = document.getElementById('hmap-' + mapId).querySelectorAll('.hs-term[data-card]');
+            var target = document.getElementById('hcard-' + mapId + '-' + cardId);
+            if (this.classList.contains('active')) {
+                this.classList.remove('active');
+                allCards.forEach(function(c) { c.classList.remove('active'); });
+                return;
+            }
+            allTerms.forEach(function(t) { t.classList.remove('active'); });
+            allCards.forEach(function(c) { c.classList.remove('active'); });
+            this.classList.add('active');
+            if (target) target.classList.add('active');
+        });
+    });
+ 
+    function toggleStep(el, reaction, stepNum) {
+        var wasOpen = el.classList.contains('open');
+        el.closest('.mechanism-scroll').querySelectorAll('.mechanism-step').forEach(function(s) { s.classList.remove('open'); });
+        if (!wasOpen) {
+            el.classList.add('open');
+            var svg = stepSVGs[reaction] && stepSVGs[reaction][stepNum];
+            if (svg) {
+                var vis = document.getElementById('mvis-' + reaction);
+                vis.innerHTML = svg + '<p class="visual-label">' + stepLabels[reaction][stepNum] + '</p>';
+            }
+        }
+    }
+</script>
+</body>
+</html>

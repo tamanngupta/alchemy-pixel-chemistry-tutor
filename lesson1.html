@@ -1,0 +1,1362 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Carbon Gets a Double Date</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="https://3dmol.org/build/3Dmol-min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323:wght@400&family=Fraunces:ital,wght@0,300;0,400;0,500;1,300&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+    <style>
+        /* ============================================
+           ALCHEMY DESIGN SYSTEM — lesson token layer
+           ============================================ */
+        :root {
+            /* oklch palette from Lovable */
+            --bg:        oklch(0.10 0.05 265);
+            --bg-card:   oklch(0.24 0.09 265);
+            --bg-card2:  oklch(0.18 0.07 265);
+            --surface:   oklch(0.28 0.07 265);
+            --neon:      oklch(0.85 0.22 210);
+            --primary:   oklch(0.72 0.18 230);
+            --accent:    oklch(0.78 0.2  200);
+            --danger:    oklch(0.65 0.25 25);
+            --text:      oklch(0.95 0.04 230);
+            --muted:     oklch(0.75 0.05 230);
+            --border:    oklch(0.5  0.15 240);
+
+            /* readable prose tokens */
+            --prose:     oklch(0.88 0.03 230);
+            --prose-dim: oklch(0.72 0.04 230);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            overflow-x: hidden;
+            image-rendering: pixelated;
+        }
+
+        /* ── pixel grid background ── */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background-image:
+                linear-gradient(color-mix(in oklab, var(--neon) 12%, transparent) 1px, transparent 1px),
+                linear-gradient(90deg, color-mix(in oklab, var(--neon) 12%, transparent) 1px, transparent 1px);
+            background-size: 40px 40px;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* ── scanlines overlay ── */
+        body::after {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background-image: repeating-linear-gradient(
+                0deg,
+                rgba(0,0,0,0.13) 0px,
+                rgba(0,0,0,0.13) 2px,
+                transparent 2px,
+                transparent 4px
+            );
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* ── pixel border util ── */
+        .px-border {
+            box-shadow:
+                0 -4px 0 0 var(--border),
+                0  4px 0 0 var(--border),
+                -4px 0 0 0 var(--border),
+                 4px 0 0 0 var(--border);
+        }
+        .px-border-neon {
+            box-shadow:
+                0 -4px 0 0 var(--neon),
+                0  4px 0 0 var(--neon),
+                -4px 0 0 0 var(--neon),
+                 4px 0 0 0 var(--neon),
+                0 0 24px color-mix(in oklab, var(--neon) 50%, transparent);
+        }
+        .px-border-accent {
+            box-shadow:
+                0 -4px 0 0 var(--accent),
+                0  4px 0 0 var(--accent),
+                -4px 0 0 0 var(--accent),
+                 4px 0 0 0 var(--accent),
+                0 0 16px color-mix(in oklab, var(--accent) 40%, transparent);
+        }
+
+        /* ── text glow ── */
+        .text-glow {
+            text-shadow: 0 0 8px var(--neon), 0 0 24px color-mix(in oklab, var(--neon) 50%, transparent);
+        }
+        .text-glow-accent {
+            text-shadow: 0 0 8px var(--accent), 0 0 20px color-mix(in oklab, var(--accent) 40%, transparent);
+        }
+
+        /* ============================================
+           INTRO SCREEN
+           ============================================ */
+        #intro-screen {
+            position: fixed;
+            inset: 0;
+            background: var(--bg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        /* scanlines on intro too */
+        #intro-screen::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background-image: repeating-linear-gradient(
+                0deg,
+                rgba(0,0,0,0.13) 0px,
+                rgba(0,0,0,0.13) 2px,
+                transparent 2px,
+                transparent 4px
+            );
+            pointer-events: none;
+        }
+
+        #intro-screen .module-tag {
+            font-family: 'Press Start 2P', monospace;
+            font-size: 9px;
+            letter-spacing: 0.15em;
+            color: var(--neon);
+            opacity: 0;
+            animation: fadeUp 0.6s ease 0.3s forwards;
+            position: relative;
+            z-index: 1;
+        }
+
+        #intro-screen h1 {
+            font-family: 'Fraunces', serif;
+            font-size: clamp(2rem, 5vw, 3.8rem);
+            font-weight: 300;
+            color: var(--text);
+            text-align: center;
+            opacity: 0;
+            animation: fadeUp 0.7s ease 0.6s forwards;
+            line-height: 1.25;
+            position: relative;
+            z-index: 1;
+        }
+
+        #intro-screen h1 em {
+            font-style: italic;
+            color: var(--neon);
+            text-shadow: 0 0 12px var(--neon), 0 0 30px color-mix(in oklab, var(--neon) 50%, transparent);
+            -webkit-text-fill-color: var(--neon);
+        }
+
+        #intro-screen .sub {
+            font-family: 'VT323', monospace;
+            font-size: 22px;
+            color: var(--muted);
+            opacity: 0;
+            animation: fadeUp 0.6s ease 1s forwards;
+            letter-spacing: 0.05em;
+            position: relative;
+            z-index: 1;
+        }
+
+        #intro-screen .carbonyl-symbol {
+            font-family: 'Press Start 2P', monospace;
+            font-size: clamp(2.5rem, 8vw, 5.5rem);
+            color: var(--neon);
+            text-shadow: 0 0 16px var(--neon), 0 0 40px color-mix(in oklab, var(--neon) 60%, transparent);
+            opacity: 0;
+            animation: fadeUp 0.8s ease 1.4s forwards, flicker 3s ease 2.2s infinite;
+            letter-spacing: 0.05em;
+            position: relative;
+            z-index: 1;
+        }
+
+        #intro-screen .begin-btn {
+            margin-top: 12px;
+            padding: 14px 44px;
+            background: var(--primary);
+            border: none;
+            color: oklch(0.12 0.06 265);
+            font-family: 'Press Start 2P', monospace;
+            font-size: 11px;
+            letter-spacing: 0.08em;
+            cursor: pointer;
+            opacity: 0;
+            animation: fadeUp 0.6s ease 2s forwards;
+            transition: transform 0.15s;
+            position: relative;
+            z-index: 1;
+            box-shadow:
+                0 -4px 0 0 var(--neon),
+                0  4px 0 0 var(--neon),
+                -4px 0 0 0 var(--neon),
+                 4px 0 0 0 var(--neon),
+                0 0 24px color-mix(in oklab, var(--neon) 50%, transparent);
+        }
+
+        #intro-screen .begin-btn:hover {
+            transform: translateY(-3px);
+        }
+
+        /* ============================================
+           LESSON SCREENS
+           ============================================ */
+        .screen {
+            display: none;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 48px 24px 80px;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* ── chrome labels (pixel font) ── */
+        .lesson-tag {
+            font-family: 'Press Start 2P', monospace;
+            font-size: 8px;
+            letter-spacing: 0.15em;
+            color: var(--neon);
+            margin-bottom: 14px;
+            text-shadow: 0 0 6px var(--neon);
+        }
+
+        .section-label {
+            font-family: 'Press Start 2P', monospace;
+            font-size: 8px;
+            letter-spacing: 0.15em;
+            color: var(--neon);
+            margin-bottom: 24px;
+        }
+
+        /* ── lesson title (Fraunces — readable, beautiful) ── */
+        .lesson-title {
+            font-family: 'Fraunces', serif;
+            font-size: 2.4rem;
+            font-weight: 300;
+            margin-bottom: 48px;
+            color: var(--text);
+            line-height: 1.2;
+        }
+
+        .lesson-title em {
+            font-style: italic;
+            color: var(--neon);
+            -webkit-text-fill-color: var(--neon);
+            text-shadow: 0 0 10px var(--neon), 0 0 25px color-mix(in oklab, var(--neon) 40%, transparent);
+        }
+
+        /* ============================================
+           MOLECULE SECTION
+           ============================================ */
+        .molecule-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 28px;
+            margin-bottom: 32px;
+            align-items: start;
+        }
+
+        .viewer-wrap { position: relative; }
+
+        .viewer-label {
+            font-family: 'Press Start 2P', monospace;
+            font-size: 8px;
+            letter-spacing: 0.1em;
+            color: var(--muted);
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        #cpk-btn {
+            background: var(--bg-card);
+            border: none;
+            color: var(--text);
+            font-family: 'Press Start 2P', monospace;
+            font-size: 7px;
+            padding: 6px 12px;
+            cursor: pointer;
+            transition: all 0.15s;
+            letter-spacing: 0.05em;
+            box-shadow:
+                0 -2px 0 0 var(--border),
+                0  2px 0 0 var(--border),
+                -2px 0 0 0 var(--border),
+                 2px 0 0 0 var(--border);
+        }
+
+        #cpk-btn:hover {
+            color: var(--neon);
+            box-shadow:
+                0 -2px 0 0 var(--neon),
+                0  2px 0 0 var(--neon),
+                -2px 0 0 0 var(--neon),
+                 2px 0 0 0 var(--neon);
+        }
+
+        #viewer-container {
+            width: 100%;
+            height: 320px;
+            overflow: hidden;
+            background: var(--bg);
+            position: relative;
+            box-shadow:
+                0 -4px 0 0 var(--neon),
+                0  4px 0 0 var(--neon),
+                -4px 0 0 0 var(--neon),
+                 4px 0 0 0 var(--neon),
+                0 0 30px color-mix(in oklab, var(--neon) 30%, transparent);
+        }
+
+        #viewer { width: 100%; height: 100%; position: absolute; }
+
+        .co-label {
+            position: absolute;
+            bottom: 14px;
+            left: 14px;
+            background: var(--bg-card);
+            padding: 8px 14px;
+            font-family: 'Press Start 2P', monospace;
+            font-size: 10px;
+            color: var(--neon);
+            text-shadow: 0 0 6px var(--neon);
+            box-shadow:
+                0 -2px 0 0 var(--border),
+                0  2px 0 0 var(--border),
+                -2px 0 0 0 var(--border),
+                 2px 0 0 0 var(--border);
+        }
+
+        .co-label span {
+            font-family: 'VT323', monospace;
+            font-size: 14px;
+            color: var(--muted);
+            display: block;
+            margin-top: 4px;
+            letter-spacing: 0.05em;
+        }
+
+        /* ── CPK tooltip ── */
+        #cpk-tooltip {
+            display: none;
+            position: absolute;
+            top: 38px;
+            left: 0;
+            background: var(--bg-card);
+            padding: 16px;
+            z-index: 10;
+            width: 230px;
+            font-size: 13px;
+            box-shadow:
+                0 -4px 0 0 var(--border),
+                0  4px 0 0 var(--border),
+                -4px 0 0 0 var(--border),
+                 4px 0 0 0 var(--border);
+        }
+
+        #cpk-tooltip .cpk-row { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
+        #cpk-tooltip .cpk-row:last-child { margin-bottom: 0; }
+        #cpk-tooltip .cpk-row span { font-family: 'VT323', monospace; font-size: 18px; color: var(--text); }
+        .cpk-dot { width: 14px; height: 14px; flex-shrink: 0; }
+        #cpk-tooltip p {
+            font-family: 'VT323', monospace;
+            font-size: 16px;
+            color: var(--muted);
+            margin-top: 12px;
+            line-height: 1.5;
+            border-top: 2px solid var(--border);
+            padding-top: 10px;
+        }
+
+        /* ============================================
+           FACT CARDS
+           ============================================ */
+        .fact-cards { display: flex; flex-direction: column; gap: 10px; }
+
+        .fact-card {
+            background: var(--bg-card);
+            padding: 14px 18px;
+            cursor: pointer;
+            transition: transform 0.15s;
+            box-shadow:
+                0 -4px 0 0 var(--border),
+                0  4px 0 0 var(--border),
+                -4px 0 0 0 var(--border),
+                 4px 0 0 0 var(--border);
+        }
+
+        .fact-card:hover {
+            transform: translateX(4px);
+            box-shadow:
+                0 -4px 0 0 var(--neon),
+                0  4px 0 0 var(--neon),
+                -4px 0 0 0 var(--neon),
+                 4px 0 0 0 var(--neon),
+                0 0 12px color-mix(in oklab, var(--neon) 25%, transparent);
+        }
+
+        .fact-card.open {
+            box-shadow:
+                0 -4px 0 0 var(--accent),
+                0  4px 0 0 var(--accent),
+                -4px 0 0 0 var(--accent),
+                 4px 0 0 0 var(--accent),
+                0 0 16px color-mix(in oklab, var(--accent) 30%, transparent);
+        }
+
+        .fact-card-header { display: flex; align-items: center; justify-content: space-between; }
+
+        .fact-card-title {
+            font-family: 'Press Start 2P', monospace;
+            font-size: 8px;
+            color: var(--neon);
+            letter-spacing: 0.05em;
+            line-height: 1.6;
+        }
+
+        .fact-card-icon {
+            font-size: 18px;
+            color: var(--muted);
+            transition: transform 0.2s, color 0.2s;
+            font-family: monospace;
+        }
+
+        .fact-card:hover .fact-card-icon { color: var(--neon); }
+        .fact-card.open .fact-card-icon { transform: rotate(45deg); color: var(--danger); }
+
+        .fact-card-body {
+            display: none;
+            margin-top: 12px;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 14px;
+            color: var(--prose);
+            line-height: 1.75;
+            border-top: 2px solid var(--border);
+            padding-top: 12px;
+        }
+
+        .fact-card.open .fact-card-body { display: block; }
+
+        /* ============================================
+           SECTION DIVIDER
+           ============================================ */
+        .section-divider {
+            border: none;
+            border-top: 4px solid var(--border);
+            margin: 48px 0;
+        }
+
+        /* ============================================
+           EXAMPLES GRID
+           ============================================ */
+        .examples-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+
+        .example-card {
+            background: var(--bg-card);
+            overflow: hidden;
+            transition: transform 0.15s;
+            box-shadow:
+                0 -4px 0 0 var(--border),
+                0  4px 0 0 var(--border),
+                -4px 0 0 0 var(--border),
+                 4px 0 0 0 var(--border);
+        }
+
+        .example-card:hover {
+            transform: translateY(-4px);
+            box-shadow:
+                0 -4px 0 0 var(--neon),
+                0  4px 0 0 var(--neon),
+                -4px 0 0 0 var(--neon),
+                 4px 0 0 0 var(--neon),
+                0 0 20px color-mix(in oklab, var(--neon) 25%, transparent);
+        }
+
+        .example-viewer {
+            width: 100%;
+            height: 200px;
+            background: var(--bg);
+            position: relative;
+            border-bottom: 4px solid var(--border);
+        }
+
+        .example-viewer div { width: 100%; height: 100%; position: absolute; }
+
+        .example-info { padding: 18px 20px; }
+
+        .example-name {
+            font-family: 'Fraunces', serif;
+            font-size: 1.2rem;
+            font-weight: 300;
+            margin-bottom: 4px;
+            color: var(--text);
+        }
+
+        .example-iupac {
+            font-family: 'Press Start 2P', monospace;
+            font-size: 7px;
+            color: var(--muted);
+            margin-bottom: 8px;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+        }
+
+        .example-formula {
+            font-family: 'VT323', monospace;
+            font-size: 20px;
+            color: var(--neon);
+            margin-bottom: 14px;
+            text-shadow: 0 0 6px var(--neon);
+        }
+
+        .example-tags { display: flex; gap: 8px; flex-wrap: wrap; }
+
+        .tag {
+            font-family: 'Press Start 2P', monospace;
+            font-size: 7px;
+            padding: 5px 10px;
+            color: var(--muted);
+            background: var(--surface);
+            box-shadow:
+                0 -2px 0 0 var(--border),
+                0  2px 0 0 var(--border),
+                -2px 0 0 0 var(--border),
+                 2px 0 0 0 var(--border);
+        }
+
+        .tag.highlight {
+            color: var(--neon);
+            box-shadow:
+                0 -2px 0 0 var(--neon),
+                0  2px 0 0 var(--neon),
+                -2px 0 0 0 var(--neon),
+                 2px 0 0 0 var(--neon);
+        }
+
+        /* ============================================
+           MCQ LAYOUT
+           ============================================ */
+        .mcq-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 48px; align-items: start; }
+        .mcq-molecule { position: sticky; top: 48px; }
+
+        .mcq-viewer {
+            width: 100%;
+            height: 280px;
+            overflow: hidden;
+            background: var(--bg);
+            position: relative;
+            box-shadow:
+                0 -4px 0 0 var(--neon),
+                0  4px 0 0 var(--neon),
+                -4px 0 0 0 var(--neon),
+                 4px 0 0 0 var(--neon),
+                0 0 20px color-mix(in oklab, var(--neon) 25%, transparent);
+        }
+
+        .mcq-viewer div { width: 100%; height: 100%; position: absolute; }
+
+        .mcq-viewer-label {
+            font-family: 'Press Start 2P', monospace;
+            font-size: 8px;
+            letter-spacing: 0.1em;
+            color: var(--neon);
+            margin-bottom: 12px;
+            text-shadow: 0 0 6px var(--neon);
+        }
+
+        .comparison-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 16px; }
+
+        .comparison-card {
+            background: var(--bg-card);
+            padding: 14px;
+            text-align: center;
+            box-shadow:
+                0 -4px 0 0 var(--border),
+                0  4px 0 0 var(--border),
+                -4px 0 0 0 var(--border),
+                 4px 0 0 0 var(--border);
+        }
+
+        .comparison-card .bond-type {
+            font-family: 'Press Start 2P', monospace;
+            font-size: 1.1rem;
+            color: var(--accent);
+            display: block;
+            margin-bottom: 6px;
+        }
+
+        .comparison-card .bond-label {
+            font-family: 'VT323', monospace;
+            font-size: 16px;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+        }
+
+        .charge-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 16px; }
+
+        .charge-card {
+            background: var(--bg-card);
+            padding: 14px;
+            text-align: center;
+            box-shadow:
+                0 -4px 0 0 var(--border),
+                0  4px 0 0 var(--border),
+                -4px 0 0 0 var(--border),
+                 4px 0 0 0 var(--border);
+        }
+
+        .charge-card .charge {
+            font-family: 'Press Start 2P', monospace;
+            font-size: 0.9rem;
+            color: var(--neon);
+            display: block;
+            margin-bottom: 6px;
+            text-shadow: 0 0 6px var(--neon);
+        }
+
+        .charge-card .charge-label {
+            font-family: 'VT323', monospace;
+            font-size: 16px;
+            color: var(--muted);
+            letter-spacing: 0.05em;
+        }
+
+        /* ============================================
+           MCQ RIGHT PANEL
+           ============================================ */
+        .mcq-right { display: flex; flex-direction: column; gap: 18px; }
+
+        .mcq-progress {
+            font-family: 'Press Start 2P', monospace;
+            font-size: 8px;
+            letter-spacing: 0.15em;
+            color: var(--neon);
+            text-shadow: 0 0 6px var(--neon);
+        }
+
+        .mcq-question {
+            font-family: 'Fraunces', serif;
+            font-size: 1.5rem;
+            font-weight: 300;
+            line-height: 1.5;
+            color: var(--text);
+        }
+
+        .mcq-options { display: flex; flex-direction: column; gap: 10px; margin-top: 8px; }
+
+        .mcq-option {
+            background: var(--bg-card);
+            border: none;
+            padding: 16px 20px;
+            cursor: pointer;
+            text-align: left;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 14px;
+            color: var(--prose);
+            transition: transform 0.15s;
+            line-height: 1.6;
+            box-shadow:
+                0 -4px 0 0 var(--border),
+                0  4px 0 0 var(--border),
+                -4px 0 0 0 var(--border),
+                 4px 0 0 0 var(--border);
+        }
+
+        .mcq-option:hover:not(:disabled) {
+            transform: translateX(4px);
+            color: var(--text);
+            box-shadow:
+                0 -4px 0 0 var(--neon),
+                0  4px 0 0 var(--neon),
+                -4px 0 0 0 var(--neon),
+                 4px 0 0 0 var(--neon),
+                0 0 12px color-mix(in oklab, var(--neon) 20%, transparent);
+        }
+
+        .mcq-option.correct {
+            color: oklch(0.12 0.06 265);
+            background: var(--neon);
+            box-shadow:
+                0 -4px 0 0 var(--neon),
+                0  4px 0 0 var(--neon),
+                -4px 0 0 0 var(--neon),
+                 4px 0 0 0 var(--neon),
+                0 0 24px color-mix(in oklab, var(--neon) 50%, transparent);
+        }
+
+        .mcq-option.wrong {
+            color: oklch(0.98 0 0);
+            background: oklch(0.3 0.1 25);
+            box-shadow:
+                0 -4px 0 0 var(--danger),
+                0  4px 0 0 var(--danger),
+                -4px 0 0 0 var(--danger),
+                 4px 0 0 0 var(--danger),
+                0 0 16px color-mix(in oklab, var(--danger) 30%, transparent);
+        }
+
+        .mcq-option.dimmed { opacity: 0.25; cursor: default; transform: none !important; }
+        .mcq-option:disabled { cursor: default; }
+
+        /* ============================================
+           FEEDBACK PANEL
+           ============================================ */
+        .feedback-panel {
+            display: none;
+            padding: 20px 24px;
+            margin-top: 8px;
+            line-height: 1.7;
+            font-size: 14px;
+        }
+
+        .feedback-panel.correct {
+            background: var(--bg-card);
+            box-shadow:
+                0 -4px 0 0 var(--neon),
+                0  4px 0 0 var(--neon),
+                -4px 0 0 0 var(--neon),
+                 4px 0 0 0 var(--neon);
+        }
+
+        .feedback-panel.wrong {
+            background: var(--bg-card);
+            box-shadow:
+                0 -4px 0 0 var(--danger),
+                0  4px 0 0 var(--danger),
+                -4px 0 0 0 var(--danger),
+                 4px 0 0 0 var(--danger);
+        }
+
+        .feedback-verdict {
+            font-family: 'Press Start 2P', monospace;
+            font-size: 10px;
+            margin-bottom: 12px;
+            letter-spacing: 0.05em;
+        }
+
+        .feedback-panel.correct .feedback-verdict {
+            color: var(--neon);
+            text-shadow: 0 0 8px var(--neon);
+        }
+
+        .feedback-panel.wrong .feedback-verdict {
+            color: var(--danger);
+        }
+
+        .feedback-body {
+            font-family: 'DM Sans', sans-serif;
+            font-size: 14px;
+            color: var(--prose);
+            line-height: 1.75;
+        }
+
+        .feedback-body .ht {
+            color: var(--neon);
+            font-weight: 500;
+            text-shadow: 0 0 4px color-mix(in oklab, var(--neon) 40%, transparent);
+        }
+
+        /* ============================================
+           FEEDBACK ACTION BUTTONS
+           ============================================ */
+        .feedback-actions { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 18px; }
+
+        .analogy-toggle {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-family: 'Press Start 2P', monospace;
+            font-size: 7px;
+            color: var(--text);
+            cursor: pointer;
+            padding: 8px 14px;
+            background: var(--bg-card2);
+            border: none;
+            transition: all 0.15s;
+            letter-spacing: 0.05em;
+            box-shadow:
+                0 -2px 0 0 var(--border),
+                0  2px 0 0 var(--border),
+                -2px 0 0 0 var(--border),
+                 2px 0 0 0 var(--border);
+        }
+
+        .analogy-toggle:hover {
+            color: var(--neon);
+            box-shadow:
+                0 -2px 0 0 var(--neon),
+                0  2px 0 0 var(--neon),
+                -2px 0 0 0 var(--neon),
+                 2px 0 0 0 var(--neon);
+        }
+
+        .analogy-box {
+            display: none;
+            margin-top: 14px;
+            padding: 16px 18px;
+            background: var(--bg-card2);
+            border-left: 4px solid var(--accent);
+            font-family: 'DM Sans', sans-serif;
+            font-size: 13.5px;
+            color: var(--prose-dim);
+            line-height: 1.75;
+            font-style: italic;
+        }
+
+        .info-box {
+            display: none;
+            margin-top: 10px;
+            padding: 16px 18px;
+            background: var(--bg-card2);
+            border-left: 4px solid var(--neon);
+            font-family: 'DM Sans', sans-serif;
+            font-size: 13.5px;
+            color: var(--prose-dim);
+            line-height: 1.75;
+        }
+
+        .notebook-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-family: 'Press Start 2P', monospace;
+            font-size: 7px;
+            color: var(--text);
+            cursor: pointer;
+            padding: 8px 14px;
+            background: var(--bg-card2);
+            border: none;
+            transition: all 0.15s;
+            letter-spacing: 0.05em;
+            box-shadow:
+                0 -2px 0 0 var(--border),
+                0  2px 0 0 var(--border),
+                -2px 0 0 0 var(--border),
+                 2px 0 0 0 var(--border);
+        }
+
+        .notebook-btn:hover {
+            color: var(--accent);
+            box-shadow:
+                0 -2px 0 0 var(--accent),
+                0  2px 0 0 var(--accent),
+                -2px 0 0 0 var(--accent),
+                 2px 0 0 0 var(--accent);
+        }
+
+        .notebook-btn.saved {
+            color: oklch(0.12 0.06 265);
+            background: var(--accent);
+            box-shadow:
+                0 -2px 0 0 var(--accent),
+                0  2px 0 0 var(--accent),
+                -2px 0 0 0 var(--accent),
+                 2px 0 0 0 var(--accent),
+                0 0 12px color-mix(in oklab, var(--accent) 40%, transparent);
+        }
+
+        /* ============================================
+           CLICKABLE TERMS
+           ============================================ */
+        .clickable-term {
+            color: var(--neon);
+            font-weight: 500;
+            cursor: pointer;
+            border-bottom: 2px solid var(--neon);
+            text-shadow: 0 0 4px color-mix(in oklab, var(--neon) 30%, transparent);
+            transition: all 0.15s;
+        }
+
+        .clickable-term:hover {
+            color: oklch(0.12 0.06 265);
+            background: var(--neon);
+            border-bottom-color: var(--neon);
+            padding: 0 2px;
+        }
+
+        /* ============================================
+           NEXT BUTTON
+           ============================================ */
+        .next-wrap { margin-top: 48px; display: flex; justify-content: flex-end; }
+
+        .next-btn {
+            padding: 14px 36px;
+            background: var(--primary);
+            border: none;
+            color: oklch(0.12 0.06 265);
+            font-family: 'Press Start 2P', monospace;
+            font-size: 10px;
+            cursor: pointer;
+            letter-spacing: 0.06em;
+            transition: transform 0.15s;
+            box-shadow:
+                0 -4px 0 0 var(--neon),
+                0  4px 0 0 var(--neon),
+                -4px 0 0 0 var(--neon),
+                 4px 0 0 0 var(--neon),
+                0 0 20px color-mix(in oklab, var(--neon) 40%, transparent);
+        }
+
+        .next-btn:hover { transform: translateY(-3px); }
+
+        /* ============================================
+           FINAL PROSE — content is king here
+           ============================================ */
+        .final-prose { max-width: 680px; }
+
+        .final-prose p {
+            font-family: 'DM Sans', sans-serif;
+            font-size: 15px;
+            line-height: 1.9;
+            color: var(--prose);
+            margin-bottom: 22px;
+        }
+
+        .final-prose .lead {
+            font-family: 'Fraunces', serif;
+            font-size: 1.15rem;
+            color: var(--text);
+            font-weight: 300;
+            line-height: 1.8;
+        }
+
+        .final-cliffhanger {
+            padding: 32px 0;
+            border-left: 4px solid var(--neon);
+            padding-left: 24px;
+            margin-top: 16px;
+        }
+
+        .final-cliffhanger .cf-label {
+            font-family: 'Press Start 2P', monospace;
+            font-size: 8px;
+            letter-spacing: 0.15em;
+            color: var(--neon);
+            margin-bottom: 14px;
+            text-shadow: 0 0 6px var(--neon);
+        }
+
+        .final-cliffhanger .cf-title {
+            font-family: 'Fraunces', serif;
+            font-size: 1.8rem;
+            font-weight: 300;
+            color: var(--text);
+            margin-bottom: 10px;
+            line-height: 1.35;
+        }
+
+        .final-cliffhanger .cf-sub {
+            font-family: 'VT323', monospace;
+            font-size: 20px;
+            color: var(--muted);
+            letter-spacing: 0.05em;
+        }
+
+        /* ============================================
+           ANIMATIONS
+           ============================================ */
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(16px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes flicker {
+            0%, 100% { opacity: 1; }
+            50%       { opacity: 0.82; }
+        }
+
+        @keyframes float-y {
+            0%, 100% { transform: translateY(0); }
+            50%       { transform: translateY(-8px); }
+        }
+    </style>
+</head>
+<body>
+
+<!-- ===================== INTRO SCREEN ===================== -->
+<div id="intro-screen">
+    <p class="module-tag">// MODULE 1 &middot; LESSON 1</p>
+    <h1>Carbon Gets a <em>Double Date</em></h1>
+    <p class="sub">An introduction to the carbonyl group</p>
+    <div class="carbonyl-symbol">C=O</div>
+    <button class="begin-btn" onclick="beginLesson()">&#x25B6; BEGIN</button>
+</div>
+
+<!-- ===================== PANEL 1: INTRO ===================== -->
+<div id="panel-intro" class="screen">
+    <p class="lesson-tag">// MODULE 1 &middot; LESSON 1</p>
+    <h2 class="lesson-title">Carbon Gets a <em>Double Date</em></h2>
+    <div class="molecule-section">
+        <div class="viewer-wrap">
+            <div class="viewer-label">
+                Acetaldehyde (CH<sub>3</sub>CHO)
+                <button id="cpk-btn" onclick="toggleCPK(event)">CPK COLORS?</button>
+                <div id="cpk-tooltip">
+                    <div class="cpk-row"><div class="cpk-dot" style="background:#888;"></div><span>Carbon</span></div>
+                    <div class="cpk-row"><div class="cpk-dot" style="background:#f0ede6; border:1px solid #444;"></div><span>Hydrogen</span></div>
+                    <div class="cpk-row"><div class="cpk-dot" style="background:#e05252;"></div><span>Oxygen</span></div>
+                    <p>CPK coloring is a standard convention used in chemistry to identify atoms by element at a glance.</p>
+                </div>
+            </div>
+            <div id="viewer-container">
+                <div id="viewer"></div>
+                <div class="co-label">C=O<span>The carbonyl group</span></div>
+            </div>
+        </div>
+        <div class="fact-cards">
+            <div class="fact-card" onclick="toggleFact(this)">
+                <div class="fact-card-header"><span class="fact-card-title">Carbonyl group</span><span class="fact-card-icon">+</span></div>
+                <div class="fact-card-body">A carbon atom double bonded to an oxygen atom (C=O). The most important functional group in organic chemistry. It shows up in aldehydes, ketones, carboxylic acids, and more.</div>
+            </div>
+            <div class="fact-card" onclick="toggleFact(this)">
+                <div class="fact-card-header"><span class="fact-card-title">Sigma bond (σ)</span><span class="fact-card-icon">+</span></div>
+                <div class="fact-card-body">Formed by direct head-on overlap of orbitals. The first bond between any two atoms. Relatively strong and symmetric. In C=O, this is the foundation of the double bond.</div>
+            </div>
+            <div class="fact-card" onclick="toggleFact(this)">
+                <div class="fact-card-header"><span class="fact-card-title">Pi bond (π)</span><span class="fact-card-icon">+</span></div>
+                <div class="fact-card-body">Formed by sideways overlap of p orbitals above and below the bond axis. The second bond in a double bond. More exposed than a sigma bond. This is where the chemistry happens.</div>
+            </div>
+            <div class="fact-card" onclick="toggleFact(this)">
+                <div class="fact-card-header"><span class="fact-card-title">sp² hybridization</span><span class="fact-card-icon">+</span></div>
+                <div class="fact-card-body">The carbonyl carbon uses three hybrid orbitals for sigma bonds, leaving one pure p orbital for the pi bond. This makes the carbonyl group completely flat and planar. The geometry matters for how it reacts.</div>
+            </div>
+            <div class="fact-card" onclick="toggleFact(this)">
+                <div class="fact-card-header"><span class="fact-card-title">Electronegativity</span><span class="fact-card-icon">+</span></div>
+                <div class="fact-card-body">A measure of how strongly an atom pulls electrons toward itself in a bond. Oxygen (3.44) is significantly more electronegative than carbon (2.55). This difference is everything.</div>
+            </div>
+        </div>
+    </div>
+
+    <hr class="section-divider">
+    <p class="section-label">// CARBONYL COMPOUNDS YOU WILL MEET</p>
+    <div class="examples-grid">
+        <div class="example-card">
+            <div class="example-viewer"><div id="viewer-aldehyde"></div></div>
+            <div class="example-info">
+                <p class="example-name">Acetaldehyde</p>
+                <p class="example-iupac">IUPAC: Ethanal</p>
+                <p class="example-formula">CH<sub>3</sub>CHO</p>
+                <div class="example-tags">
+                    <span class="tag highlight">Aldehyde</span>
+                    <span class="tag">C=O at terminal carbon</span>
+                    <span class="tag">RCHO</span>
+                </div>
+            </div>
+        </div>
+        <div class="example-card">
+            <div class="example-viewer"><div id="viewer-ketone"></div></div>
+            <div class="example-info">
+                <p class="example-name">Acetone</p>
+                <p class="example-iupac">IUPAC: Propan-2-one</p>
+                <p class="example-formula">(CH<sub>3</sub>)<sub>2</sub>CO</p>
+                <div class="example-tags">
+                    <span class="tag highlight">Ketone</span>
+                    <span class="tag">C=O between two carbons</span>
+                    <span class="tag">RCOR'</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="next-wrap">
+        <button class="next-btn" onclick="goToMCQ1()">&#x25B6; IS IT REACTIVE?</button>
+    </div>
+</div>
+
+<!-- ===================== PANEL 2: MCQ 1 ===================== -->
+<div id="panel-mcq1" class="screen">
+    <p class="lesson-tag">// MODULE 1 &middot; LESSON 1</p>
+    <h2 class="lesson-title">Carbon Gets a <em>Double Date</em></h2>
+    <div class="mcq-layout">
+        <div class="mcq-molecule">
+            <p class="mcq-viewer-label">// ALDEHYDE VS KETONE</p>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:16px;">
+                <div>
+                    <p style="font-family:'Press Start 2P',monospace; font-size:7px; text-transform:uppercase; letter-spacing:0.1em; color:var(--muted); margin-bottom:8px;">Aldehyde</p>
+                    <div style="height:180px; overflow:hidden; background:var(--bg); position:relative; box-shadow: 0 -3px 0 0 var(--border), 0 3px 0 0 var(--border), -3px 0 0 0 var(--border), 3px 0 0 0 var(--border);">
+                        <div id="viewer-mcq3-ald" style="width:100%; height:100%; position:absolute;"></div>
+                    </div>
+                    <p style="font-family:'VT323',monospace; font-size:15px; color:var(--muted); margin-top:6px; text-align:center;">CH<sub>3</sub>CHO — one H, one CH<sub>3</sub></p>
+                </div>
+                <div>
+                    <p style="font-family:'Press Start 2P',monospace; font-size:7px; text-transform:uppercase; letter-spacing:0.1em; color:var(--muted); margin-bottom:8px;">Ketone</p>
+                    <div style="height:180px; overflow:hidden; background:var(--bg); position:relative; box-shadow: 0 -3px 0 0 var(--border), 0 3px 0 0 var(--border), -3px 0 0 0 var(--border), 3px 0 0 0 var(--border);">
+                        <div id="viewer-mcq3-ket" style="width:100%; height:100%; position:absolute;"></div>
+                    </div>
+                    <p style="font-family:'VT323',monospace; font-size:15px; color:var(--muted); margin-top:6px; text-align:center;">(CH<sub>3</sub>)<sub>2</sub>CO — two CH<sub>3</sub> groups</p>
+                </div>
+            </div>
+            <div class="charge-row">
+                <div class="charge-card"><span class="charge">120°</span><span class="charge-label">sp² bond angles</span></div>
+                <div class="charge-card"><span class="charge">109°</span><span class="charge-label">sp³ bond angles</span></div>
+            </div>
+        </div>
+        <div class="mcq-right">
+            <p class="mcq-progress">// QUESTION 1 OF 2</p>
+            <p class="mcq-question">Compared to a C-C single bond in a hydrocarbon, do you think the C=O double bond is more or less reactive?</p>
+            <div class="mcq-options" id="mcq1-options">
+                <button class="mcq-option" onclick="answerMCQ1(0)">Less reactive. It is a double bond, stronger than a single bond, so it is harder to break.</button>
+                <button class="mcq-option" onclick="answerMCQ1(1)">More reactive. Two bonds means more opportunities to react.</button>
+                <button class="mcq-option" onclick="answerMCQ1(2)">More reactive. The electronegativity difference between C and O creates a polarized bond.</button>
+            </div>
+            <div id="feedback-mcq1" class="feedback-panel">
+                <p class="feedback-verdict" id="verdict-mcq1"></p>
+                <div class="feedback-body" id="body-mcq1"></div>
+                <div class="feedback-actions">
+                    <button class="analogy-toggle" onclick="toggleBox('analogy-mcq1')">&#x25B6; SEE ANALOGY</button>
+                    <button class="notebook-btn" id="notebook-mcq1" onclick="saveToNotebook('mcq1')">+ SAVE TO NOTEBOOK</button>
+                </div>
+                <div class="analogy-box" id="analogy-mcq1">Imagine oxygen as a greedy friend who takes more than their share of money. You had equal stakes in something, but they have pulled the value toward themselves, leaving their side richer and yours poorer. That imbalance is exactly what makes the whole thing interesting.</div>
+            </div>
+            <div id="mcq1-next" style="display:none;" class="next-wrap">
+                <button class="next-btn" onclick="goToMCQ2()">&#x25B6; WHAT DOES THAT LEAVE ON CARBON?</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ===================== PANEL 3: MCQ 2 ===================== -->
+<div id="panel-mcq2" class="screen">
+    <p class="lesson-tag">// MODULE 1 &middot; LESSON 1</p>
+    <h2 class="lesson-title">Carbon Gets a <em>Double Date</em></h2>
+    <div class="mcq-layout">
+        <div class="mcq-molecule">
+            <p class="mcq-viewer-label">// THE CARBONYL GROUP</p>
+            <div class="mcq-viewer"><div id="viewer-mcq2"></div></div>
+            <div class="comparison-row">
+                <div class="comparison-card">
+                    <span class="bond-type" style="color:var(--danger);">δ+</span>
+                    <span class="bond-label">Carbon</span>
+                </div>
+                <div class="comparison-card">
+                    <span class="bond-type" style="color:var(--neon);">δ-</span>
+                    <span class="bond-label">Oxygen</span>
+                </div>
+            </div>
+        </div>
+        <div class="mcq-right">
+            <p class="mcq-progress">// QUESTION 2 OF 2</p>
+            <p class="mcq-question">Oxygen is pulling the π electron density toward itself. What does that leave on carbon?</p>
+            <div class="mcq-options" id="mcq2-options">
+                <button class="mcq-option" onclick="answerMCQ2(0)">A carbocation. Carbon loses an electron and becomes fully positive.</button>
+                <button class="mcq-option" onclick="answerMCQ2(1)">A partial positive charge (δ+). Electron density is lower but carbon has not lost an electron.</button>
+                <button class="mcq-option" onclick="answerMCQ2(2)">Nothing changes on carbon. Only oxygen is affected.</button>
+            </div>
+            <div id="feedback-mcq2" class="feedback-panel">
+                <p class="feedback-verdict" id="verdict-mcq2"></p>
+                <div class="feedback-body" id="body-mcq2"></div>
+                <div class="feedback-actions">
+                    <button class="analogy-toggle" onclick="toggleBox('analogy-mcq2')">&#x25B6; SEE ANALOGY</button>
+                    <button class="notebook-btn" id="notebook-mcq2" onclick="saveToNotebook('mcq2')">+ SAVE TO NOTEBOOK</button>
+                </div>
+                <div class="analogy-box" id="analogy-mcq2">The greedy friend took more than their share, but you are still in the room. You have not left. You are just short on cash. That is the difference between a δ+ and a full carbocation. One is an imbalance. The other is a loss.</div>
+            </div>
+            <div id="mcq2-next" style="display:none;" class="next-wrap">
+                <button class="next-btn" onclick="goToFinal()">&#x25B6; THE FULL PICTURE</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ===================== PANEL 4: FINAL ===================== -->
+<div id="panel-final" class="screen">
+    <p class="lesson-tag">// MODULE 1 &middot; LESSON 1</p>
+    <h2 class="lesson-title">Carbon Gets a <em>Double Date</em></h2>
+    <div class="final-prose">
+        <p class="section-label">// THE FULL PICTURE</p>
+
+        <p class="lead">
+            That δ+ on carbon is the whole story. Carbon is electron-poor, and that makes it an
+            <span class="clickable-term" onclick="toggleBox('info-electrophile')">electrophile</span>.
+            It has an open invitation for anything that can donate electrons.
+        </p>
+        <div class="info-box" id="info-electrophile">An electrophile is an electron-loving species. The name comes from "electro" (electron) and "phile" (loving). Because carbon carries a δ+, it is electron-poor and actively seeks out species that can donate electrons to it. The carbonyl carbon is one of the most important electrophiles in organic chemistry.</div>
+
+        <p>
+            The C=O double bond is both shorter and over twice as strong as a typical C-O single bond. That kind of strength should mean stability. So why does it react so readily? The answer is
+            <span class="clickable-term" onclick="toggleBox('info-polarization')">polarization</span>.
+            The polarized C=O bond gives the carbon atom a degree of positive charge. That charge attracts negatively charged nucleophiles and encourages reaction. Strength and reactivity are simply not the same thing.
+        </p>
+        <div class="info-box" id="info-polarization">Polarization refers to the unequal distribution of electron density across a bond. In C=O, oxygen pulls the shared π electrons toward itself due to its higher electronegativity, creating a δ- on oxygen and a δ+ on carbon. This asymmetry is what drives the reactivity of the carbonyl group.</div>
+
+        <p>
+            Carbon does not need to be weak to be reactive. It just needs to be unequal.
+        </p>
+
+        <hr class="section-divider">
+
+        <div class="final-cliffhanger">
+            <p class="cf-label">// COMING UP</p>
+            <p class="cf-title">Carbon has a δ+. Someone is going to come fill that deficit.</p>
+            <p class="cf-sub">Who, and what happens when they do?</p>
+        </div>
+
+        <div class="next-wrap">
+            <button class="next-btn" onclick="window.location.href='lesson2.html'">&#x25B6; LESSON 2: THE ATTACK</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    const acetaldehydePDB = `
+HETATM    1  C1  UNK     1      -0.506   0.415   0.000  1.00  0.00           C
+HETATM    2  C2  UNK     1       0.920   0.015   0.000  1.00  0.00           C
+HETATM    3  O1  UNK     1       1.816   0.843   0.000  1.00  0.00           O
+HETATM    4  H1  UNK     1      -0.610   1.501   0.000  1.00  0.00           H
+HETATM    5  H2  UNK     1      -1.023  -0.002   0.890  1.00  0.00           H
+HETATM    6  H3  UNK     1      -1.023  -0.002  -0.890  1.00  0.00           H
+HETATM    7  H4  UNK     1       1.094  -1.063   0.000  1.00  0.00           H
+CONECT    1    2    4    5    6
+CONECT    2    1    3    7
+CONECT    3    2
+END`;
+
+    const acetonePDB = `
+HETATM    1  C1  UNK     1      -1.268   0.105   0.000  1.00  0.00           C
+HETATM    2  C2  UNK     1       0.000   0.672   0.000  1.00  0.00           C
+HETATM    3  O1  UNK     1       0.000   1.889   0.000  1.00  0.00           O
+HETATM    4  C3  UNK     1       1.268   0.105   0.000  1.00  0.00           C
+HETATM    5  H1  UNK     1      -1.313  -0.979   0.000  1.00  0.00           H
+HETATM    6  H2  UNK     1      -1.826   0.433   0.890  1.00  0.00           H
+HETATM    7  H3  UNK     1      -1.826   0.433  -0.890  1.00  0.00           H
+HETATM    8  H4  UNK     1       1.313  -0.979   0.000  1.00  0.00           H
+HETATM    9  H5  UNK     1       1.826   0.433   0.890  1.00  0.00           H
+HETATM   10  H6  UNK     1       1.826   0.433  -0.890  1.00  0.00           H
+CONECT    1    2    5    6    7
+CONECT    2    1    3    4
+CONECT    3    2
+CONECT    4    2    8    9   10
+END`;
+
+    let viewers = {};
+
+    function initViewer(id, pdb, spin = 0.4) {
+        if (viewers[id]) return;
+        const v = $3Dmol.createViewer($('#' + id), { backgroundColor: 'oklch(0.10 0.05 265)' });
+        v.addModel(pdb, 'pdb');
+        v.setStyle({}, { stick: { colorscheme: 'Jmol', radius: 0.18 }, sphere: { colorscheme: 'Jmol', radius: 0.38 } });
+        v.zoomTo();
+        v.spin('y', spin);
+        v.render();
+        viewers[id] = v;
+    }
+
+    function showScreen(id) {
+        $('.screen').hide();
+        $('#' + id).fadeIn(400);
+        window.scrollTo(0, 0);
+    }
+
+    function beginLesson() {
+        $('#intro-screen').fadeOut(600, function() {
+            showScreen('panel-intro');
+            initViewer('viewer', acetaldehydePDB);
+            initViewer('viewer-aldehyde', acetaldehydePDB, 0.3);
+            initViewer('viewer-ketone', acetonePDB, 0.3);
+        });
+    }
+
+    function goToMCQ1() {
+        showScreen('panel-mcq1');
+        initViewer('viewer-mcq3-ald', acetaldehydePDB, 0.3);
+        initViewer('viewer-mcq3-ket', acetonePDB, 0.3);
+    }
+
+    function goToMCQ2() {
+        showScreen('panel-mcq2');
+        initViewer('viewer-mcq2', acetaldehydePDB);
+    }
+
+    function goToFinal() { showScreen('panel-final'); }
+
+    function lockOptions(containerId) {
+        $('#' + containerId + ' .mcq-option').prop('disabled', true);
+    }
+
+    function answerMCQ1(index) {
+        lockOptions('mcq1-options');
+        const options = $('#mcq1-options .mcq-option');
+        const feedback = $('#feedback-mcq1');
+        options.each((i, el) => { if (i !== index) $(el).addClass('dimmed'); });
+
+        if (index === 2) {
+            options.eq(2).addClass('correct');
+            $('#verdict-mcq1').text('CORRECT.');
+            $('#body-mcq1').html('The C=O double bond is both stronger and shorter than a C-O single bond. But <span class="ht">polarization</span> is what makes it reactive. Carbon and oxygen do not share the π bond equally. Oxygen is more electronegative, so the electron density in the π bond is skewed toward oxygen. This gives oxygen a <span class="ht">partial negative charge (δ-)</span>.');
+            feedback.addClass('correct').fadeIn(300);
+        } else {
+            options.eq(index).addClass('wrong');
+            $('#verdict-mcq1').text('NOT QUITE.');
+            if (index === 0) {
+                $('#body-mcq1').html('Your instinct makes sense. The C=O double bond is stronger and shorter than a C-O single bond. But <span class="ht">bond strength and reactivity are not the same thing</span>. The C-C bond is strong too, but it is symmetric. Both carbons pull equally. The C=O bond has something the C-C bond does not: two atoms with very different electronegativities sharing a π bond. That asymmetry is everything.');
+            } else {
+                $('#body-mcq1').html('The number of bonds is not what drives reactivity here. A C=C double bond in ethene is also a double bond but it reacts very differently to C=O. The difference is not the number of bonds. It is what those bonds are made of and <span class="ht">who is sharing them</span>.');
+            }
+            feedback.addClass('wrong').fadeIn(300);
+        }
+        setTimeout(() => $('#mcq1-next').fadeIn(300), 600);
+    }
+
+    function answerMCQ2(index) {
+        lockOptions('mcq2-options');
+        const options = $('#mcq2-options .mcq-option');
+        const feedback = $('#feedback-mcq2');
+        options.each((i, el) => { if (i !== index) $(el).addClass('dimmed'); });
+
+        if (index === 1) {
+            options.eq(1).addClass('correct');
+            $('#verdict-mcq2').text('CORRECT.');
+            $('#body-mcq2').html('Carbon is left with a <span class="ht">partial positive charge (δ+)</span>. The π bond still exists. The electrons are just unevenly distributed within it. Carbon is <span class="ht">electron-poor</span>, not electron-absent. That δ+ on carbon is what makes it reactive. It is an open invitation.');
+            feedback.addClass('correct').fadeIn(300);
+        } else {
+            options.eq(index).addClass('wrong');
+            $('#verdict-mcq2').text('NOT QUITE.');
+            if (index === 0) {
+                $('#body-mcq2').html('A <span class="ht">carbocation</span> means carbon has fully lost an electron and carries a complete positive charge. That is a different situation entirely, usually formed by bond breaking in specific reactions. Here, no bond has broken. The π bond still exists. The electrons are just unevenly distributed. Carbon is electron-poor, not electron-absent. That is a <span class="ht">δ+</span>, not a full positive charge.');
+            } else {
+                $('#body-mcq2').html('Bonds are a two-way street. If oxygen pulls electron density toward itself, that density has to come from somewhere. It comes from the shared π bond. Carbon is on the other end of that bond. It <span class="ht">cannot be unaffected</span>.');
+            }
+            feedback.addClass('wrong').fadeIn(300);
+        }
+        setTimeout(() => $('#mcq2-next').fadeIn(300), 600);
+    }
+
+    function toggleFact(card) { $(card).toggleClass('open'); }
+
+    function toggleCPK(e) {
+        e.stopPropagation();
+        $('#cpk-tooltip').toggle();
+    }
+
+    function toggleBox(id) { $('#' + id).slideToggle(200); }
+
+    function saveToNotebook(id) {
+        const btn = $('#notebook-' + id);
+        btn.toggleClass('saved');
+        btn.text(btn.hasClass('saved') ? 'SAVED ✓' : '+ SAVE TO NOTEBOOK');
+    }
+
+    $(document).click(function(e) {
+        if (!$(e.target).closest('#cpk-btn, #cpk-tooltip').length) $('#cpk-tooltip').hide();
+    });
+</script>
+</body>
+</html>

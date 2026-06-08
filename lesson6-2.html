@@ -1,0 +1,906 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Enolate Files</title>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323:wght@400&family=Fraunces:ital,wght@0,300;0,400;0,500;1,300&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg:        oklch(0.10 0.05 265);
+            --bg-card:   oklch(0.24 0.09 265);
+            --bg-card2:  oklch(0.18 0.07 265);
+            --surface:   oklch(0.28 0.07 265);
+            --neon:      oklch(0.85 0.22 210);
+            --primary:   oklch(0.72 0.18 230);
+            --accent:    oklch(0.78 0.2  200);
+            --danger:    oklch(0.65 0.25 25);
+            --text:      oklch(0.95 0.04 230);
+            --muted:     oklch(0.75 0.05 230);
+            --border:    oklch(0.5  0.15 240);
+            --prose:     oklch(0.88 0.03 230);
+            --prose-dim: oklch(0.72 0.04 230);
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        body::before {
+            content: '';
+            position: fixed; inset: 0;
+            background-image:
+                linear-gradient(color-mix(in oklab, var(--neon) 12%, transparent) 1px, transparent 1px),
+                linear-gradient(90deg, color-mix(in oklab, var(--neon) 12%, transparent) 1px, transparent 1px);
+            background-size: 40px 40px;
+            pointer-events: none; z-index: 0;
+        }
+        body::after {
+            content: '';
+            position: fixed; inset: 0;
+            background-image: repeating-linear-gradient(0deg, rgba(0,0,0,0.13) 0px, rgba(0,0,0,0.13) 2px, transparent 2px, transparent 4px);
+            pointer-events: none; z-index: 0;
+        }
+
+        /* ── INTRO ── */
+        #intro-screen {
+            position: fixed; inset: 0; background: var(--bg);
+            display: flex; flex-direction: column; align-items: center;
+            justify-content: center; gap: 20px; z-index: 100;
+        }
+        #intro-screen::after {
+            content: ''; position: absolute; inset: 0;
+            background-image: repeating-linear-gradient(0deg, rgba(0,0,0,0.13) 0px, rgba(0,0,0,0.13) 2px, transparent 2px, transparent 4px);
+            pointer-events: none;
+        }
+        .intro-title {
+            font-family: 'Fraunces', serif;
+            font-size: clamp(3rem, 10vw, 7rem);
+            font-weight: 300; font-style: italic; color: var(--accent);
+            letter-spacing: -0.02em;
+            opacity: 0; animation: fadeUp 0.9s ease 0.4s forwards;
+            position: relative; z-index: 1;
+            text-shadow: 0 0 30px color-mix(in oklab, var(--accent) 30%, transparent);
+        }
+        .intro-btn {
+            padding: 14px 44px; background: var(--primary); border: none;
+            color: oklch(0.12 0.06 265); font-family: 'Press Start 2P', monospace;
+            font-size: 10px; letter-spacing: 0.08em; cursor: pointer;
+            opacity: 0; animation: fadeUp 0.6s ease 1.2s forwards;
+            transition: transform 0.15s; position: relative; z-index: 1;
+            box-shadow: 0 -4px 0 0 var(--neon), 0 4px 0 0 var(--neon), -4px 0 0 0 var(--neon), 4px 0 0 0 var(--neon), 0 0 24px color-mix(in oklab, var(--neon) 50%, transparent);
+        }
+        .intro-btn:hover { transform: translateY(-3px); }
+
+        /* ── LESSON PANEL ── */
+        #lesson-panel {
+            position: fixed; top: 50%; left: 50%;
+            transform: translate(-50%, -50%) translateX(40px);
+            width: min(660px, 95vw); max-height: 90vh;
+            background: var(--bg-card); z-index: 200;
+            display: none; flex-direction: column; overflow: hidden;
+            transition: opacity 0.3s ease, transform 0.3s ease; opacity: 0;
+            box-shadow: 0 -4px 0 0 var(--neon), 0 4px 0 0 var(--neon), -4px 0 0 0 var(--neon), 4px 0 0 0 var(--neon), 0 0 40px color-mix(in oklab, var(--neon) 20%, transparent);
+        }
+        #lesson-panel.open { display: flex; opacity: 1; transform: translate(-50%, -50%); }
+
+        .panel-header {
+            padding: 24px 28px 18px; border-bottom: 4px solid var(--border);
+            display: flex; align-items: flex-start; justify-content: space-between; flex-shrink: 0;
+        }
+        .panel-header-left { display: flex; flex-direction: column; gap: 4px; }
+        .panel-step-tag { font-family: 'Press Start 2P', monospace; font-size: 7px; letter-spacing: 0.15em; color: var(--neon); text-shadow: 0 0 6px var(--neon); }
+        .panel-title { font-family: 'Fraunces', serif; font-size: 1.25rem; font-weight: 300; color: var(--accent); text-shadow: 0 0 10px color-mix(in oklab, var(--accent) 25%, transparent); }
+        .panel-close {
+            background: var(--bg-card2); border: none; width: 30px; height: 30px;
+            flex-shrink: 0; display: flex; align-items: center; justify-content: center;
+            color: var(--muted); cursor: pointer; font-size: 12px; transition: all 0.2s;
+            box-shadow: 0 -2px 0 0 var(--border), 0 2px 0 0 var(--border), -2px 0 0 0 var(--border), 2px 0 0 0 var(--border);
+        }
+        .panel-close:hover { color: var(--danger); box-shadow: 0 -2px 0 0 var(--danger), 0 2px 0 0 var(--danger), -2px 0 0 0 var(--danger), 2px 0 0 0 var(--danger); }
+        .panel-progress { height: 3px; background: var(--border); flex-shrink: 0; }
+        .panel-progress-bar { height: 100%; background: var(--neon); transition: width 0.4s ease; box-shadow: 0 0 8px var(--neon); }
+        .panel-body { flex: 1; overflow-y: auto; padding: 24px 28px; }
+        .panel-footer {
+            padding: 16px 28px; border-top: 4px solid var(--border);
+            display: flex; justify-content: space-between; align-items: center; flex-shrink: 0;
+        }
+        .panel-step-counter { font-family: 'Press Start 2P', monospace; font-size: 7px; color: var(--muted); }
+
+        /* ── BUTTONS ── */
+        .btn-primary {
+            padding: 10px 28px; background: var(--primary); border: none;
+            color: oklch(0.12 0.06 265); font-family: 'Press Start 2P', monospace;
+            font-size: 8px; cursor: pointer; transition: transform 0.15s; letter-spacing: 0.05em;
+            box-shadow: 0 -3px 0 0 var(--neon), 0 3px 0 0 var(--neon), -3px 0 0 0 var(--neon), 3px 0 0 0 var(--neon), 0 0 16px color-mix(in oklab, var(--neon) 30%, transparent);
+        }
+        .btn-primary:hover { transform: translateY(-2px); }
+        .btn-primary:disabled { opacity: 0.3; cursor: default; transform: none; }
+        .btn-ghost {
+            padding: 8px 18px; background: var(--bg-card2); border: none;
+            color: var(--muted); font-family: 'Press Start 2P', monospace;
+            font-size: 7px; cursor: pointer; transition: all 0.15s; letter-spacing: 0.04em;
+            box-shadow: 0 -2px 0 0 var(--border), 0 2px 0 0 var(--border), -2px 0 0 0 var(--border), 2px 0 0 0 var(--border);
+        }
+        .btn-ghost:hover { color: var(--text); }
+
+        /* ── STEP CONTENT ── */
+        .step-screen { display: none; animation: fadeUp 0.3s ease; }
+        .step-screen.active { display: block; }
+        .step-section-label { font-family: 'Press Start 2P', monospace; font-size: 7px; letter-spacing: 0.15em; color: var(--neon); margin-bottom: 10px; text-shadow: 0 0 6px var(--neon); }
+        .step-heading { font-family: 'Fraunces', serif; font-size: 1.4rem; font-weight: 300; color: var(--text); margin-bottom: 10px; line-height: 1.3; }
+        .step-heading em { font-style: italic; color: var(--neon); -webkit-text-fill-color: var(--neon); text-shadow: 0 0 8px var(--neon); }
+        .step-body-text { font-family: 'DM Sans', sans-serif; font-size: 13px; color: var(--prose); line-height: 1.8; margin-bottom: 18px; }
+        .step-body-text .ht { color: var(--neon); font-weight: 500; }
+        .step-body-text .ht2 { color: var(--accent); font-weight: 500; }
+
+        .diagram-wrap {
+            background: var(--bg); padding: 24px 16px;
+            display: flex; align-items: center; justify-content: center;
+            margin: 16px 0; overflow-x: auto;
+            box-shadow: 0 -3px 0 0 var(--border), 0 3px 0 0 var(--border), -3px 0 0 0 var(--border), 3px 0 0 0 var(--border);
+        }
+        .diagram-wrap svg { max-width: 100%; height: auto; display: block; }
+
+        .equation-box {
+            background: var(--bg-card2); padding: 16px 20px; margin: 14px 0;
+            font-family: 'VT323', monospace; font-size: 16px; color: var(--text); line-height: 1.8;
+            box-shadow: 0 -3px 0 0 var(--border), 0 3px 0 0 var(--border), -3px 0 0 0 var(--border), 3px 0 0 0 var(--border);
+        }
+        .eq-label { font-family: 'Press Start 2P', monospace; font-size: 7px; letter-spacing: 0.1em; color: var(--muted); margin-bottom: 6px; }
+
+        /* ── MCQ ── */
+        .mcq-question { font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 500; color: var(--text); margin-bottom: 14px; line-height: 1.5; }
+        .mcq-options { display: flex; flex-direction: column; gap: 9px; margin-bottom: 18px; }
+        .mcq-option {
+            padding: 11px 16px; background: var(--bg-card2); border: none;
+            font-family: 'DM Sans', sans-serif; font-size: 13px; color: var(--text);
+            cursor: pointer; transition: all 0.15s; text-align: left; line-height: 1.5;
+            box-shadow: 0 -3px 0 0 var(--border), 0 3px 0 0 var(--border), -3px 0 0 0 var(--border), 3px 0 0 0 var(--border);
+        }
+        .mcq-option:hover:not(:disabled) { box-shadow: 0 -3px 0 0 var(--neon), 0 3px 0 0 var(--neon), -3px 0 0 0 var(--neon), 3px 0 0 0 var(--neon); color: var(--neon); }
+        .mcq-option.correct { color: oklch(0.12 0.06 265); background: var(--neon); box-shadow: 0 -3px 0 0 var(--neon), 0 3px 0 0 var(--neon), -3px 0 0 0 var(--neon), 3px 0 0 0 var(--neon), 0 0 16px color-mix(in oklab, var(--neon) 40%, transparent); }
+        .mcq-option.wrong { color: oklch(0.98 0 0); background: oklch(0.3 0.1 25); box-shadow: 0 -3px 0 0 var(--danger), 0 3px 0 0 var(--danger), -3px 0 0 0 var(--danger), 3px 0 0 0 var(--danger); }
+        .mcq-option:disabled { cursor: default; }
+
+        .reveal-block {
+            display: none; margin-top: 14px; padding: 15px 18px;
+            background: var(--bg-card2); border-left: 4px solid var(--accent);
+            font-family: 'DM Sans', sans-serif; font-size: 13px; color: var(--prose); line-height: 1.75;
+        }
+        .reveal-block.show { display: block; animation: fadeUp 0.3s ease; }
+        .reveal-block .ht { color: var(--neon); font-weight: 500; }
+        .reveal-block .ht2 { color: var(--accent); font-weight: 500; }
+        .intuition-note { margin-top: 10px; padding: 10px 13px; background: var(--bg); border-left: 3px solid var(--accent); font-family: 'DM Sans', sans-serif; font-size: 12px; color: var(--muted); font-style: italic; }
+
+        .scope-list { display: flex; flex-direction: column; gap: 8px; margin: 14px 0; }
+        .scope-item {
+            display: flex; align-items: flex-start; gap: 11px; padding: 11px 15px;
+            background: var(--bg-card2); font-family: 'DM Sans', sans-serif; font-size: 13px; color: var(--prose);
+            box-shadow: 0 -2px 0 0 var(--border), 0 2px 0 0 var(--border), -2px 0 0 0 var(--border), 2px 0 0 0 var(--border);
+        }
+        .scope-item-num { color: var(--neon); font-weight: 500; font-family: 'Press Start 2P', monospace; font-size: 9px; flex-shrink: 0; text-shadow: 0 0 6px var(--neon); padding-top: 2px; }
+
+        .feature-list { display: flex; flex-direction: column; gap: 10px; margin: 14px 0; }
+        .feature-item { padding: 12px 15px; background: var(--bg-card2); border-left: 4px solid var(--accent); font-family: 'DM Sans', sans-serif; font-size: 13px; color: var(--prose); line-height: 1.7; }
+        .feature-item .ht { color: var(--neon); font-weight: 500; }
+
+        .section-divider { border: none; border-top: 4px solid var(--border); margin: 24px 0; }
+
+        /* ── RESONANCE MODAL ── */
+        .resonance-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.88); backdrop-filter: blur(8px); z-index: 400; align-items: center; justify-content: center; padding: 24px; }
+        .resonance-overlay.open { display: flex; animation: fadeIn 0.2s ease; }
+        .resonance-modal {
+            background: var(--bg-card); width: 100%; max-width: 760px;
+            max-height: 90vh; overflow-y: auto; position: relative;
+            animation: slideUp 0.25s ease;
+            box-shadow: 0 -4px 0 0 var(--neon), 0 4px 0 0 var(--neon), -4px 0 0 0 var(--neon), 4px 0 0 0 var(--neon), 0 0 40px color-mix(in oklab, var(--neon) 15%, transparent);
+        }
+        .resonance-modal-header {
+            padding: 26px 30px 18px; border-bottom: 4px solid var(--border);
+            display: flex; align-items: flex-start; justify-content: space-between;
+        }
+        .resonance-modal-title { font-family: 'Fraunces', serif; font-size: 1.5rem; font-weight: 300; color: var(--neon); text-shadow: 0 0 10px color-mix(in oklab, var(--neon) 30%, transparent); }
+        .resonance-modal-tag { font-family: 'Press Start 2P', monospace; font-size: 7px; letter-spacing: 0.1em; color: var(--muted); margin-top: 4px; }
+        .resonance-modal-close {
+            background: var(--bg-card2); border: none; width: 30px; height: 30px;
+            flex-shrink: 0; display: flex; align-items: center; justify-content: center;
+            color: var(--muted); cursor: pointer; font-size: 12px; transition: all 0.2s;
+            box-shadow: 0 -2px 0 0 var(--border), 0 2px 0 0 var(--border), -2px 0 0 0 var(--border), 2px 0 0 0 var(--border);
+        }
+        .resonance-modal-close:hover { color: var(--danger); box-shadow: 0 -2px 0 0 var(--danger), 0 2px 0 0 var(--danger), -2px 0 0 0 var(--danger), 2px 0 0 0 var(--danger); }
+        .resonance-modal-body { padding: 26px 30px; display: flex; flex-direction: column; gap: 20px; }
+
+        /* ── MAIN SCREEN ── */
+        #main-screen { display: none; min-height: 100vh; position: relative; z-index: 1; }
+        #main-screen.visible { display: block; }
+        .main-wrap { max-width: 1200px; margin: 0 auto; padding: 48px 24px 80px; }
+        .main-header { margin-bottom: 40px; }
+        .main-tag { font-family: 'Press Start 2P', monospace; font-size: 7px; letter-spacing: 0.15em; color: var(--neon); margin-bottom: 8px; text-shadow: 0 0 6px var(--neon); }
+        .main-title { font-family: 'Fraunces', serif; font-size: 2.4rem; font-weight: 300; color: var(--text); margin-bottom: 8px; }
+        .main-title em { font-style: italic; color: var(--neon); -webkit-text-fill-color: var(--neon); text-shadow: 0 0 10px var(--neon); }
+        .main-intro { font-family: 'DM Sans', sans-serif; font-size: 14px; color: var(--muted); max-width: 620px; line-height: 1.75; }
+
+        /* ── DASHBOARD ── */
+        .dashboard-layout { display: grid; grid-template-columns: 1.2fr 1fr; gap: 26px; margin-bottom: 60px; align-items: start; }
+        @media (max-width: 860px) { .dashboard-layout { grid-template-columns: 1fr; } }
+        .dashboard-cards { display: flex; flex-direction: column; gap: 12px; }
+        .dash-card {
+            background: var(--bg-card); cursor: pointer; transition: transform 0.15s;
+            box-shadow: 0 -3px 0 0 var(--border), 0 3px 0 0 var(--border), -3px 0 0 0 var(--border), 3px 0 0 0 var(--border);
+        }
+        .dash-card:hover { transform: translateX(4px); box-shadow: 0 -3px 0 0 var(--accent), 0 3px 0 0 var(--accent), -3px 0 0 0 var(--accent), 3px 0 0 0 var(--accent); }
+        .dash-card.active { box-shadow: 0 -3px 0 0 var(--neon), 0 3px 0 0 var(--neon), -3px 0 0 0 var(--neon), 3px 0 0 0 var(--neon), 0 0 12px color-mix(in oklab, var(--neon) 20%, transparent); }
+        .dash-card-header { padding: 15px 18px; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+        .dash-card-name { font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 500; color: var(--text); }
+        .dash-card-tag { font-family: 'VT323', monospace; font-size: 14px; color: var(--muted); margin-top: 2px; }
+        .dash-card-chevron { color: var(--muted); font-size: 11px; transition: transform 0.2s; flex-shrink: 0; }
+        .dash-card.active .dash-card-chevron { transform: rotate(180deg); color: var(--neon); }
+
+        .dash-explorer {
+            background: var(--bg-card); padding: 22px; position: sticky; top: 24px;
+            box-shadow: 0 -4px 0 0 var(--border), 0 4px 0 0 var(--border), -4px 0 0 0 var(--border), 4px 0 0 0 var(--border);
+        }
+        .dash-explorer-placeholder { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 280px; text-align: center; color: var(--muted); gap: 12px; }
+        .dash-explorer-content { display: none; flex-direction: column; gap: 16px; }
+        .dash-explorer-content.visible { display: flex; animation: fadeUp 0.25s ease; }
+        .exp-name { font-family: 'Fraunces', serif; font-size: 1.4rem; font-weight: 300; color: var(--neon); text-shadow: 0 0 10px color-mix(in oklab, var(--neon) 30%, transparent); }
+        .exp-formula { font-family: 'VT323', monospace; font-size: 16px; color: var(--muted); margin-top: 2px; }
+        .exp-section { font-family: 'Press Start 2P', monospace; font-size: 7px; letter-spacing: 0.1em; color: var(--muted); margin-bottom: 8px; }
+        .exp-text { font-family: 'DM Sans', sans-serif; font-size: 13px; color: var(--prose); line-height: 1.75; }
+        .exp-text .ht { color: var(--neon); font-weight: 500; }
+        .exp-conditions { display: flex; flex-wrap: wrap; gap: 7px; }
+        .exp-pill {
+            padding: 4px 12px; border: none;
+            font-family: 'VT323', monospace; font-size: 15px; color: var(--text);
+            background: var(--bg-card2);
+            box-shadow: 0 -2px 0 0 var(--border), 0 2px 0 0 var(--border), -2px 0 0 0 var(--border), 2px 0 0 0 var(--border);
+        }
+        .exp-pill.green { color: var(--neon); box-shadow: 0 -2px 0 0 color-mix(in oklab, var(--neon) 40%, transparent), 0 2px 0 0 color-mix(in oklab, var(--neon) 40%, transparent), -2px 0 0 0 color-mix(in oklab, var(--neon) 40%, transparent), 2px 0 0 0 color-mix(in oklab, var(--neon) 40%, transparent); }
+        .exp-pill.red { color: var(--danger); box-shadow: 0 -2px 0 0 color-mix(in oklab, var(--danger) 40%, transparent), 0 2px 0 0 color-mix(in oklab, var(--danger) 40%, transparent), -2px 0 0 0 color-mix(in oklab, var(--danger) 40%, transparent), 2px 0 0 0 color-mix(in oklab, var(--danger) 40%, transparent); }
+        .exp-note { padding: 11px 15px; background: var(--bg-card2); border-left: 4px solid var(--accent); font-family: 'DM Sans', sans-serif; font-size: 12px; color: var(--muted); line-height: 1.6; }
+
+        /* ── APPLICATIONS ── */
+        .apps-section { margin-top: 16px; }
+        .apps-title { font-family: 'Fraunces', serif; font-size: 1.8rem; font-weight: 300; color: var(--text); margin-bottom: 6px; }
+        .apps-title em { font-style: italic; color: var(--neon); -webkit-text-fill-color: var(--neon); text-shadow: 0 0 8px var(--neon); }
+        .apps-subtitle { font-family: 'VT323', monospace; font-size: 18px; color: var(--muted); margin-bottom: 26px; }
+        .apps-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+        @media (max-width: 860px) { .apps-grid { grid-template-columns: repeat(2, 1fr); } }
+        @media (max-width: 560px) { .apps-grid { grid-template-columns: 1fr; } }
+
+        .app-card {
+            background: var(--bg-card); overflow: hidden; cursor: pointer; transition: transform 0.15s;
+            box-shadow: 0 -3px 0 0 var(--border), 0 3px 0 0 var(--border), -3px 0 0 0 var(--border), 3px 0 0 0 var(--border);
+        }
+        .app-card:hover { transform: translateY(-3px); box-shadow: 0 -3px 0 0 var(--accent), 0 3px 0 0 var(--accent), -3px 0 0 0 var(--accent), 3px 0 0 0 var(--accent); }
+        .app-card.open { box-shadow: 0 -3px 0 0 var(--neon), 0 3px 0 0 var(--neon), -3px 0 0 0 var(--neon), 3px 0 0 0 var(--neon); transform: none; }
+        .app-card-header { padding: 16px 18px; }
+        .app-card-num { font-family: 'Press Start 2P', monospace; font-size: 7px; letter-spacing: 0.1em; color: var(--neon); margin-bottom: 5px; text-shadow: 0 0 6px var(--neon); }
+        .app-card-name { font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 500; color: var(--text); margin-bottom: 4px; }
+        .app-card-product { font-family: 'VT323', monospace; font-size: 15px; color: var(--muted); }
+        .app-card-body { display: none; border-top: 3px solid var(--border); padding: 16px 18px; font-family: 'DM Sans', sans-serif; font-size: 13px; color: var(--prose); line-height: 1.75; }
+        .app-card.open .app-card-body { display: block; animation: fadeUp 0.2s ease; }
+        .app-card-body .ht { color: var(--neon); font-weight: 500; }
+        .app-diagram { background: var(--bg); padding: 18px 12px; margin: 12px 0; display: flex; align-items: center; justify-content: center; overflow-x: auto; box-shadow: 0 -2px 0 0 var(--border), 0 2px 0 0 var(--border), -2px 0 0 0 var(--border), 2px 0 0 0 var(--border); }
+        .app-diagram svg { max-width: 100%; height: auto; display: block; }
+
+        /* ── ANIMATIONS ── */
+        @keyframes fadeUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes flicker { 0%, 100% { opacity: 1; } 50% { opacity: 0.82; } }
+    </style>
+</head>
+<body>
+
+<!-- INTRO -->
+<div id="intro-screen">
+    <h1 class="intro-title">The Enolate Files</h1>
+    <button class="intro-btn" onclick="openPanel()">&#x25B6; OPEN THE FILES</button>
+</div>
+
+<!-- LESSON PANEL -->
+<div id="lesson-panel">
+    <div class="panel-header">
+        <div class="panel-header-left">
+            <p class="panel-step-tag" id="panel-step-tag">// INTRODUCTION</p>
+            <p class="panel-title" id="panel-title">Aldol Condensation</p>
+        </div>
+        <button class="panel-close" onclick="closePanel()">&#x2715;</button>
+    </div>
+    <div class="panel-progress"><div class="panel-progress-bar" id="progress-bar" style="width:0%"></div></div>
+    <div class="panel-body" id="panel-body">
+
+        <!-- STEP 0: BASICS -->
+        <div class="step-screen active" id="step-0">
+            <p class="step-section-label">// THE REACTION</p>
+            <h2 class="step-heading">What is <em>Aldol Condensation</em>?</h2>
+            <p class="step-body-text">
+                The name is a portmanteau: <span class="ht">ald</span>ehyde plus alc<span class="ht">ol</span>. When an aldehyde carrying at least one alpha-hydrogen reacts with dilute base under mild warming, two molecules couple at the alpha-carbon of one and the carbonyl carbon of the other. A carbon-carbon bond forms — one of the most fundamental bond constructions in organic chemistry.
+            </p>
+            <div class="diagram-wrap">
+                <svg viewBox="0 0 560 120" width="520" xmlns="http://www.w3.org/2000/svg">
+                    <defs>
+                        <marker id="a0" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#888"/></marker>
+                        <marker id="a0r" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#e07070"/></marker>
+                    </defs>
+                    <text x="16" y="58" fill="#888" font-family="monospace" font-size="14">2</text>
+                    <text x="28" y="58" fill="#c8b89a" font-family="monospace" font-size="14">CH₃CHO</text>
+                    <line x1="118" y1="54" x2="162" y2="54" stroke="#888" stroke-width="1.5"/>
+                    <polygon points="162,49 172,54 162,59" fill="#888"/>
+                    <text x="126" y="44" fill="#e07070" font-family="monospace" font-size="11">OH⁻</text>
+                    <text x="124" y="67" fill="#888" font-family="monospace" font-size="10">mild, warm</text>
+                    <line x1="158" y1="60" x2="118" y2="60" stroke="#e07070" stroke-width="1" stroke-dasharray="3,2"/>
+                    <polygon points="118,55 108,60 118,65" fill="#e07070"/>
+                    <text x="178" y="58" fill="#c8b89a" font-family="monospace" font-size="14">CH₃CH(OH)CH₂CHO</text>
+                    <text x="178" y="84" fill="#7ec8a4" font-family="monospace" font-size="11">Acetaldol (3-hydroxybutanal)</text>
+                </svg>
+            </div>
+            <p class="step-body-text">
+                The alpha-hydrogen is essential. Without a hydrogen on the carbon adjacent to the carbonyl, the reaction cannot proceed. Ketones can react too, but the equilibrium is far less favourable — their carbonyl carbon is more hindered and less electrophilic due to two electron-donating alkyl groups.
+            </p>
+            <p class="step-section-label" style="margin-top:22px;">// SCOPE</p>
+            <div class="scope-list">
+                <div class="scope-item"><span class="scope-item-num">1</span><span>Two identical or different aldehydes with alpha-H (self-condensation or mixed)</span></div>
+                <div class="scope-item"><span class="scope-item-num">2</span><span>Two identical or different ketones (less favourable, equilibrium lies left)</span></div>
+                <div class="scope-item"><span class="scope-item-num">3</span><span>One aldehyde and one ketone</span></div>
+                <div class="scope-item"><span class="scope-item-num">4</span><span>Crossed aldol: one partner has no alpha-H and acts only as the electrophile</span></div>
+            </div>
+            <div class="equation-box">
+                <div class="eq-label">// BASE OPTIONS</div>
+                Dilute NaOH | Aqueous K₂CO₃ | Alkali metal alkoxides | Alkali carbonate
+            </div>
+        </div>
+
+        <!-- STEP 1 -->
+        <div class="step-screen" id="step-1">
+            <p class="step-section-label">// MECHANISM — STEP 1</p>
+            <h2 class="step-heading">OH⁻ is added. What does it do?</h2>
+            <p class="step-body-text">
+                Hydroxide is added to acetaldehyde. It carries a lone pair and a full negative charge. In this system it can play two roles: <span class="ht">nucleophile</span> (attacks the electrophilic carbonyl carbon directly) or <span class="ht">base</span> (abstracts a proton from the molecule).
+            </p>
+            <div class="diagram-wrap">
+                <svg viewBox="0 0 480 130" width="450" xmlns="http://www.w3.org/2000/svg">
+                    <defs>
+                        <marker id="a1g" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#7ec8a4"/></marker>
+                        <marker id="a1a" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#c8b89a"/></marker>
+                    </defs>
+                    <text x="40" y="68" fill="#c8b89a" font-family="monospace" font-size="14">CH₃</text>
+                    <line x1="67" y1="65" x2="85" y2="65" stroke="#888" stroke-width="1.8"/>
+                    <text x="87" y="68" fill="#c8b89a" font-family="monospace" font-size="14">C</text>
+                    <line x1="96" y1="58" x2="114" y2="58" stroke="#e07070" stroke-width="2"/>
+                    <line x1="96" y1="64" x2="114" y2="64" stroke="#e07070" stroke-width="2"/>
+                    <text x="116" y="68" fill="#e07070" font-family="monospace" font-size="14">O</text>
+                    <line x1="91" y1="70" x2="91" y2="85" stroke="#888" stroke-width="1.8"/>
+                    <text x="85" y="98" fill="#888" font-family="monospace" font-size="13">H</text>
+                    <text x="34" y="88" fill="#e07070" font-size="10">alpha-H</text>
+                    <text x="240" y="58" fill="#7ec8a4" font-family="monospace" font-size="14">OH⁻</text>
+                    <path d="M 244 62 Q 190 38 68 60" stroke="#7ec8a4" stroke-width="1.5" fill="none" stroke-dasharray="5,3" marker-end="url(#a1g)"/>
+                    <text x="128" y="32" fill="#7ec8a4" font-size="11">as base: abstracts alpha-H</text>
+                    <path d="M 244 68 Q 200 95 105 68" stroke="#c8b89a" stroke-width="1.5" fill="none" stroke-dasharray="5,3" marker-end="url(#a1a)"/>
+                    <text x="148" y="104" fill="#c8b89a" font-size="11">as nucleophile: attacks C=O</text>
+                </svg>
+            </div>
+            <p class="mcq-question">Which role does OH⁻ take in this reaction?</p>
+            <div class="mcq-options" id="mcq-1">
+                <button class="mcq-option" onclick="answerMCQ(1,this,false)">Nucleophile — it attacks the electrophilic carbonyl carbon directly</button>
+                <button class="mcq-option" onclick="answerMCQ(1,this,true)">Base — it abstracts the alpha-hydrogen from the carbon adjacent to the carbonyl</button>
+                <button class="mcq-option" onclick="answerMCQ(1,this,false)">Both simultaneously in a concerted step</button>
+            </div>
+            <div class="reveal-block" id="reveal-1">
+                OH⁻ acts as a base here. Proton transfer is kinetically preferred — the activation energy for abstracting the alpha-H is lower than for nucleophilic addition to the carbonyl. The alpha-H is unusually acidic (pKa ~17-20) because loss of the alpha-H generates a carbanion that is immediately stabilised by the adjacent carbonyl through resonance — the electrons delocalise into the pi system. The base abstracts that proton because it can, and because the resulting anion is stable enough to persist.
+                <div class="intuition-note">The alpha-H is the weak link in the chain. The carbonyl next door turns an ordinary C-H into an acidic one by giving the resulting anion somewhere to put its electrons.</div>
+            </div>
+        </div>
+
+        <!-- STEP 2 -->
+        <div class="step-screen" id="step-2">
+            <p class="step-section-label">// MECHANISM — STEP 2</p>
+            <h2 class="step-heading">The carbanion stabilises. How?</h2>
+            <p class="step-body-text">
+                After OH⁻ abstracts the alpha-H from CH₃CHO, a lone pair appears on the alpha carbon. This carbanion would be highly unstable in isolation. But it is not isolated — it sits directly next to a C=O group.
+            </p>
+            <p class="step-body-text">
+                The lone pair on the alpha carbon is in a p-orbital that is perfectly aligned with the pi system of the adjacent carbonyl. The electrons delocalise into the pi* antibonding orbital of C=O. The negative charge spreads across two atoms simultaneously.
+            </p>
+            <div style="display:flex;justify-content:center;margin:16px 0;">
+                <button class="btn-primary" onclick="openResonanceModal()">SEE RESONANCE STRUCTURES &#x2192;</button>
+            </div>
+            <p class="step-body-text" style="margin-top:8px;">
+                The result is the <span class="ht">enolate anion</span>. It has two resonance forms: one with the charge on the alpha carbon (the carbanion form, which drives reactivity) and one with the charge on the oxygen (more stable, since oxygen is more electronegative and better accommodates negative charge). The true structure is a hybrid of both.
+            </p>
+            <p class="mcq-question">In the enolate, where does the negative charge sit in the more stable resonance form?</p>
+            <div class="mcq-options" id="mcq-2">
+                <button class="mcq-option" onclick="answerMCQ(2,this,false)">On the alpha carbon — carbon holds the charge more tightly</button>
+                <button class="mcq-option" onclick="answerMCQ(2,this,true)">On the oxygen — oxygen is more electronegative and stabilises negative charge better than carbon</button>
+                <button class="mcq-option" onclick="answerMCQ(2,this,false)">Equally on both atoms — no preference</button>
+            </div>
+            <div class="reveal-block" id="reveal-2">
+                The negative charge in the enolate rests predominantly on <span class="ht">oxygen</span> in the more stable form. Oxygen has a higher electronegativity than carbon — its nucleus pulls electron density more strongly, making it a better home for a lone pair. The enolate is written with O⁻ in the more stable resonance structure. But — the <span class="ht2">carbon form is where nucleophilic reactivity comes from</span>. The enolate attacks through carbon in the next step.
+                <div class="intuition-note">Stability and reactivity live at different ends of the enolate. Oxygen stabilises the charge. Carbon does the attacking. The two resonance forms tell you both stories at once.</div>
+            </div>
+        </div>
+
+        <!-- STEP 3 -->
+        <div class="step-screen" id="step-3">
+            <p class="step-section-label">// MECHANISM — STEP 3</p>
+            <h2 class="step-heading">The enolate attacks. Where?</h2>
+            <p class="step-body-text">
+                The enolate of acetaldehyde is <span class="ht">CH₂=CH-O⁻</span> (oxygen form) or equivalently <span class="ht">⁻CH₂-CHO</span> (carbon form). The nucleophilic carbon of the enolate will attack a second molecule of acetaldehyde.
+            </p>
+            <p class="mcq-question">Which site of the second acetaldehyde does the enolate carbon attack?</p>
+            <div class="mcq-options" id="mcq-3">
+                <button class="mcq-option" onclick="answerMCQ(3,this,false)">The alpha carbon of the second aldehyde</button>
+                <button class="mcq-option" onclick="answerMCQ(3,this,true)">The carbonyl carbon (C=O carbon) of the second aldehyde</button>
+                <button class="mcq-option" onclick="answerMCQ(3,this,false)">The oxygen of the second aldehyde's carbonyl</button>
+            </div>
+            <div class="reveal-block" id="reveal-3">
+                The carbonyl carbon of the second aldehyde carries a <span class="ht">delta+ charge</span> because the electronegative oxygen pulls electron density through the C=O bond. It is the electrophilic site. The enolate carbon attacks this carbon. The enolate HOMO attacks the carbonyl pi* LUMO of the second aldehyde molecule. A new <span class="ht">C-C bond</span> forms and the carbonyl pi bond breaks, with electrons moving onto the oxygen to give an alkoxide intermediate.
+                <div class="diagram-wrap" style="margin-top:14px;">
+                    <svg viewBox="0 0 560 150" width="530" xmlns="http://www.w3.org/2000/svg">
+                        <defs>
+                            <marker id="a3g" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#7ec8a4"/></marker>
+                            <marker id="a3b" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#4a9eff"/></marker>
+                        </defs>
+                        <text x="10" y="72" fill="#7ec8a4" font-family="monospace" font-size="13">⁻</text>
+                        <text x="20" y="72" fill="#c8b89a" font-family="monospace" font-size="13">CH₂</text>
+                        <line x1="44" y1="69" x2="60" y2="69" stroke="#888" stroke-width="1.8"/>
+                        <text x="61" y="72" fill="#c8b89a" font-family="monospace" font-size="13">CHO</text>
+                        <text x="14" y="92" fill="#7ec8a4" font-size="10">enolate (carbon form)</text>
+                        <path d="M 24 65 Q 80 38 138 62" stroke="#7ec8a4" stroke-width="1.5" fill="none" marker-end="url(#a3g)"/>
+                        <text x="158" y="72" fill="#c8b89a" font-family="monospace" font-size="13">CH₃</text>
+                        <line x1="180" y1="69" x2="196" y2="69" stroke="#888" stroke-width="1.8"/>
+                        <text x="198" y="72" fill="#c8b89a" font-family="monospace" font-size="13">C</text>
+                        <line x1="207" y1="62" x2="225" y2="62" stroke="#e07070" stroke-width="2"/>
+                        <line x1="207" y1="68" x2="225" y2="68" stroke="#e07070" stroke-width="2"/>
+                        <text x="227" y="72" fill="#e07070" font-family="monospace" font-size="13">O</text>
+                        <line x1="202" y1="75" x2="202" y2="89" stroke="#888" stroke-width="1.8"/>
+                        <text x="196" y="101" fill="#888" font-family="monospace" font-size="12">H</text>
+                        <text x="206" y="64" fill="#e07070" font-size="10">δ+</text>
+                        <path d="M 218 60 Q 230 40 242 56" stroke="#4a9eff" stroke-width="1.5" fill="none" marker-end="url(#a3b)"/>
+                        <line x1="275" y1="68" x2="315" y2="68" stroke="#888" stroke-width="1.5"/>
+                        <polygon points="315,63 325,68 315,73" fill="#888"/>
+                        <text x="330" y="58" fill="#c8b89a" font-family="monospace" font-size="12">CH₃</text>
+                        <line x1="352" y1="55" x2="366" y2="55" stroke="#888" stroke-width="1.8"/>
+                        <text x="368" y="58" fill="#c8b89a" font-family="monospace" font-size="12">CH</text>
+                        <line x1="383" y1="55" x2="397" y2="55" stroke="#888" stroke-width="1.8"/>
+                        <text x="399" y="58" fill="#c8b89a" font-family="monospace" font-size="12">CH₃</text>
+                        <line x1="374" y1="58" x2="374" y2="72" stroke="#888" stroke-width="1.8"/>
+                        <text x="368" y="84" fill="#e07070" font-family="monospace" font-size="12">O⁻</text>
+                        <text x="330" y="112" fill="#7ec8a4" font-size="10">new C-C bond formed, alkoxide intermediate</text>
+                    </svg>
+                </div>
+                <div class="intuition-note">The enolate is ambident — it can react at carbon or oxygen. In aldol, carbon does the attacking because hard electrophiles (like the carbonyl carbon) prefer hard nucleophiles, and the carbon end is the harder nucleophilic site.</div>
+            </div>
+        </div>
+
+        <!-- STEP 4 -->
+        <div class="step-screen" id="step-4">
+            <p class="step-section-label">// MECHANISM — STEP 4</p>
+            <h2 class="step-heading">Protonation gives the <em>aldol product</em></h2>
+            <p class="step-body-text">
+                After C-C bond formation, the intermediate is an alkoxide (O⁻). Water in the reaction mixture donates a proton to this oxygen. The product is the <span class="ht">aldol</span> — a beta-hydroxy aldehyde. No atoms have been lost yet. This step completes the addition phase.
+            </p>
+            <div class="diagram-wrap">
+                <svg viewBox="0 0 560 120" width="530" xmlns="http://www.w3.org/2000/svg">
+                    <defs><marker id="a4g" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#7ec8a4"/></marker></defs>
+                    <text x="10" y="58" fill="#c8b89a" font-family="monospace" font-size="12">CH₃</text>
+                    <line x1="31" y1="55" x2="45" y2="55" stroke="#888" stroke-width="1.8"/>
+                    <text x="46" y="58" fill="#c8b89a" font-family="monospace" font-size="12">CH</text>
+                    <line x1="61" y1="55" x2="75" y2="55" stroke="#888" stroke-width="1.8"/>
+                    <text x="76" y="58" fill="#c8b89a" font-family="monospace" font-size="12">CH₃</text>
+                    <line x1="55" y1="58" x2="55" y2="72" stroke="#888" stroke-width="1.8"/>
+                    <text x="49" y="84" fill="#e07070" font-family="monospace" font-size="12">O⁻</text>
+                    <line x1="98" y1="55" x2="112" y2="55" stroke="#888" stroke-width="1.8"/>
+                    <text x="113" y="58" fill="#c8b89a" font-family="monospace" font-size="12">CHO</text>
+                    <text x="155" y="58" fill="#888" font-size="13">+</text>
+                    <text x="167" y="58" fill="#7ec8a4" font-family="monospace" font-size="12">H₂O</text>
+                    <path d="M 170 50 Q 100 28 57 68" stroke="#7ec8a4" stroke-width="1.5" fill="none" marker-end="url(#a4g)"/>
+                    <line x1="216" y1="52" x2="255" y2="52" stroke="#888" stroke-width="1.5"/>
+                    <polygon points="255,47 265,52 255,57" fill="#888"/>
+                    <text x="268" y="58" fill="#c8b89a" font-family="monospace" font-size="12">CH₃CH(OH)CH₂CHO</text>
+                    <text x="268" y="88" fill="#7ec8a4" font-size="11">Acetaldol — beta-hydroxy aldehyde</text>
+                </svg>
+            </div>
+            <p class="mcq-question">What type of reaction has occurred up to this point, before any heating?</p>
+            <div class="mcq-options" id="mcq-4">
+                <button class="mcq-option" onclick="answerMCQ(4,this,false)">Condensation — water was eliminated</button>
+                <button class="mcq-option" onclick="answerMCQ(4,this,true)">Nucleophilic addition — a C-C bond formed and no atoms were lost from the system</button>
+                <button class="mcq-option" onclick="answerMCQ(4,this,false)">Substitution — one group replaced another at the carbonyl</button>
+            </div>
+            <div class="reveal-block" id="reveal-4">
+                No atoms have left the molecule at this stage. The enolate added across the carbonyl pi bond of the second aldehyde. Both starting molecules are fully incorporated into the product. This is a <span class="ht">nucleophilic addition</span>. The term condensation is often misapplied to this step. The aldol product can be isolated cleanly using mild conditions such as aqueous K₂CO₃ at low temperature.
+                <div class="intuition-note">Addition and condensation are two different events. Addition: atoms joined, nothing lost. Condensation: atoms joined, water lost. These are separable under the right conditions.</div>
+            </div>
+        </div>
+
+        <!-- STEP 5 -->
+        <div class="step-screen" id="step-5">
+            <p class="step-section-label">// MECHANISM — STEP 5</p>
+            <h2 class="step-heading">Apply heat. The aldol <em>loses water</em>.</h2>
+            <p class="step-body-text">
+                The aldol (3-hydroxybutanal) has an OH on the beta carbon and a hydrogen on the alpha carbon. On heating with acid or base, these are eliminated as water. This dehydration is the <span class="ht">condensation step</span> — the event that gives the full reaction its name.
+            </p>
+            <p class="mcq-question">What forms when the aldol is heated, and why is that product thermodynamically stable?</p>
+            <div class="mcq-options" id="mcq-5">
+                <button class="mcq-option" onclick="answerMCQ(5,this,false)">An alcohol — the carbonyl is reduced by the heat energy</button>
+                <button class="mcq-option" onclick="answerMCQ(5,this,true)">Crotonaldehyde (CH₃-CH=CH-CHO) — the new C=C is conjugated with C=O, giving extended pi delocalisation that lowers the energy of the product</button>
+                <button class="mcq-option" onclick="answerMCQ(5,this,false)">A cyclic hemiacetal — the OH loops back to attack its own CHO</button>
+            </div>
+            <div class="reveal-block" id="reveal-5">
+                The beta-OH and the alpha-H are eliminated as water in an E1cb-type process under basic conditions. The product is <span class="ht">crotonaldehyde</span> (but-2-enal, CH₃-CH=CH-CHO). The C=C double bond sits between C2 and C3, directly conjugated with the C=O at C1. This extended conjugation delocalises pi electrons across all four atoms, significantly lowering the energy relative to the unconjugated aldol.
+                <div class="diagram-wrap" style="margin-top:14px;">
+                    <svg viewBox="0 0 520 100" width="490" xmlns="http://www.w3.org/2000/svg">
+                        <text x="10" y="52" fill="#c8b89a" font-family="monospace" font-size="12">CH₃CH(OH)CH₂CHO</text>
+                        <line x1="196" y1="46" x2="234" y2="46" stroke="#888" stroke-width="1.5"/>
+                        <polygon points="234,41 244,46 234,51" fill="#888"/>
+                        <text x="200" y="38" fill="#888" font-family="monospace" font-size="10">H or OH, heat</text>
+                        <text x="250" y="52" fill="#c8b89a" font-family="monospace" font-size="12">CH₃</text>
+                        <line x1="272" y1="49" x2="286" y2="49" stroke="#888" stroke-width="1.8"/>
+                        <text x="288" y="52" fill="#c8b89a" font-family="monospace" font-size="12">CH</text>
+                        <line x1="302" y1="43" x2="318" y2="43" stroke="#c8b89a" stroke-width="2.2"/>
+                        <line x1="302" y1="49" x2="318" y2="49" stroke="#c8b89a" stroke-width="2.2"/>
+                        <text x="320" y="52" fill="#c8b89a" font-family="monospace" font-size="12">CH</text>
+                        <line x1="334" y1="49" x2="348" y2="49" stroke="#888" stroke-width="1.8"/>
+                        <text x="350" y="52" fill="#c8b89a" font-family="monospace" font-size="12">C</text>
+                        <line x1="358" y1="42" x2="376" y2="42" stroke="#e07070" stroke-width="2.2"/>
+                        <line x1="358" y1="48" x2="376" y2="48" stroke="#e07070" stroke-width="2.2"/>
+                        <text x="377" y="52" fill="#e07070" font-family="monospace" font-size="12">O</text>
+                        <line x1="354" y1="54" x2="354" y2="69" stroke="#888" stroke-width="1.8"/>
+                        <text x="348" y="81" fill="#888" font-family="monospace" font-size="12">H</text>
+                        <rect x="300" y="37" width="84" height="18" fill="none" stroke="#7ec8a4" stroke-width="1" stroke-dasharray="3,2" rx="3"/>
+                        <text x="250" y="96" fill="#7ec8a4" font-size="11">Crotonaldehyde — conjugated system</text>
+                    </svg>
+                </div>
+                The reaction is now called <span class="ht">aldol condensation</span>. Condensation = addition followed by elimination of water.
+                <div class="intuition-note">Conjugation is the thermodynamic engine of the dehydration. Every pi overlap between adjacent orbitals lowers energy. The product wants to be conjugated — that is why water loss is spontaneous on heating.</div>
+            </div>
+        </div>
+
+        <!-- STEP 6: BONUS crossed aldol -->
+        <div class="step-screen" id="step-6">
+            <p class="step-section-label">// BONUS QUESTION</p>
+            <h2 class="step-heading">Crossed aldol: <em>benzaldehyde + acetaldehyde</em></h2>
+            <p class="step-body-text">
+                Benzaldehyde (C₆H₅CHO) has no alpha-hydrogen. The carbon attached to its CHO is part of the aromatic ring — those C-H bonds are not alpha-H in the aldol sense. Acetaldehyde (CH₃CHO) has three alpha-H atoms on its methyl group.
+            </p>
+            <div class="diagram-wrap">
+                <svg viewBox="0 0 540 100" width="510" xmlns="http://www.w3.org/2000/svg">
+                    <text x="8" y="55" fill="#888" font-family="monospace" font-size="13">C₆H₅CHO</text>
+                    <text x="94" y="55" fill="#888" font-size="12">+</text>
+                    <text x="108" y="55" fill="#c8b89a" font-family="monospace" font-size="13">CH₃CHO</text>
+                    <line x1="190" y1="51" x2="232" y2="51" stroke="#888" stroke-width="1.5"/>
+                    <polygon points="232,46 242,51 232,56" fill="#888"/>
+                    <text x="194" y="41" fill="#e07070" font-family="monospace" font-size="10">1. OH⁻</text>
+                    <text x="194" y="65" fill="#888" font-family="monospace" font-size="10">2. H or OH, heat</text>
+                    <text x="250" y="55" fill="#888" font-family="monospace" font-size="13">C₆H₅</text>
+                    <line x1="282" y1="52" x2="296" y2="52" stroke="#888" stroke-width="1.8"/>
+                    <text x="298" y="55" fill="#c8b89a" font-family="monospace" font-size="13">CH</text>
+                    <line x1="312" y1="46" x2="328" y2="46" stroke="#c8b89a" stroke-width="2.2"/>
+                    <line x1="312" y1="52" x2="328" y2="52" stroke="#c8b89a" stroke-width="2.2"/>
+                    <text x="330" y="55" fill="#c8b89a" font-family="monospace" font-size="13">CH</text>
+                    <line x1="344" y1="52" x2="358" y2="52" stroke="#888" stroke-width="1.8"/>
+                    <text x="360" y="55" fill="#c8b89a" font-family="monospace" font-size="13">CHO</text>
+                    <text x="250" y="82" fill="#7ec8a4" font-size="11">Cinnamaldehyde</text>
+                </svg>
+            </div>
+            <p class="mcq-question">Where does the enolate form, and why does it attack benzaldehyde specifically?</p>
+            <div class="mcq-options" id="mcq-6">
+                <button class="mcq-option" onclick="answerMCQ(6,this,false)">Benzaldehyde forms the enolate — the aromatic ring stabilises the carbanion through conjugation</button>
+                <button class="mcq-option" onclick="answerMCQ(6,this,true)">Acetaldehyde forms the enolate (it has alpha-H). Benzaldehyde is the electrophile — its carbonyl carbon is more electrophilic because there is no alkyl group donating electron density, and the aromatic ring withdraws through conjugation</button>
+                <button class="mcq-option" onclick="answerMCQ(6,this,false)">Either can form the enolate — the outcome is statistical</button>
+            </div>
+            <div class="reveal-block" id="reveal-6">
+                Enolate formation requires an alpha-H. Benzaldehyde has none, so it cannot form an enolate. The enolate always comes from <span class="ht">acetaldehyde</span>. Benzaldehyde acts purely as the electrophile. Its carbonyl carbon is actually <span class="ht">more electrophilic</span> than acetaldehyde's because there is no alkyl group providing electron donation, and the aromatic ring withdraws electron density through the pi system. After dehydration, the product is <span class="ht2">cinnamaldehyde</span> — a fully conjugated system with the phenyl, the vinyl bridge, and the carbonyl all in one connected pi network.
+                <div class="intuition-note">Crossed aldol gives a clean product only when one partner cannot form an enolate. Aryl aldehydes and formaldehyde are the standard enolate-free electrophiles used in synthesis for exactly this reason.</div>
+            </div>
+        </div>
+
+        <!-- STEP 7: SUMMARY -->
+        <div class="step-screen" id="step-7">
+            <p class="step-section-label">// SUMMARY</p>
+            <h2 class="step-heading">Salient features of <em>aldol condensation</em></h2>
+            <div class="feature-list">
+                <div class="feature-item"><span class="ht">Dehydration on heating:</span> Aldols dehydrate readily to alpha,beta-unsaturated carbonyl compounds on heating with acid or base. The product is stabilised by extended conjugation between C=C and C=O.</div>
+                <div class="feature-item"><span class="ht">Strong alkali causes resin formation:</span> In concentrated NaOH, repeated condensation and dehydration chain together, building long conjugated polymers called resins. The newly formed alpha,beta-unsaturated product undergoes further Michael-type additions.</div>
+                <div class="feature-item"><span class="ht">Electronic effects on the carbonyl:</span> Electron-withdrawing groups on the carbonyl carbon promote the condensation by increasing electrophilicity. Electron-donating groups (such as alkyl) reduce it. This is why ketones are less reactive than aldehydes.</div>
+                <div class="feature-item"><span class="ht">Equilibrium favours aldehydes over ketones:</span> For ketone self-condensation, the equilibrium lies far to the left. Diacetone alcohol from acetone requires boiling with solid Ba(OH)₂ in an apparatus that continuously removes the product to shift the equilibrium.</div>
+            </div>
+        </div>
+
+    </div>
+    <div class="panel-footer">
+        <span class="panel-step-counter" id="step-counter">// STEP 1 OF 8</span>
+        <div style="display:flex;gap:10px;">
+            <button class="btn-ghost" id="btn-back" onclick="prevStep()" style="display:none;">&#x2190; BACK</button>
+            <button class="btn-primary" id="btn-next" onclick="nextStep()">NEXT &#x2192;</button>
+        </div>
+    </div>
+</div>
+
+<!-- RESONANCE MODAL -->
+<div class="resonance-overlay" id="resonance-overlay">
+    <div class="resonance-modal">
+        <div class="resonance-modal-header">
+            <div>
+                <div class="resonance-modal-title">Enolate Resonance Structures</div>
+                <div class="resonance-modal-tag">// ACETALDEHYDE — AFTER ALPHA-H ABSTRACTION</div>
+            </div>
+            <button class="resonance-modal-close" onclick="closeResonanceModal()">&#x2715;</button>
+        </div>
+        <div class="resonance-modal-body">
+            <p style="font-family:'DM Sans',sans-serif;font-size:13px;color:var(--prose);line-height:1.75;">
+                When OH⁻ removes the alpha-H from CH₃CHO, a lone pair appears on the alpha carbon. That lone pair is in a p-orbital directly aligned with the pi system of the adjacent C=O. The electrons immediately delocalise. Below are the two resonance forms of the resulting enolate.
+            </p>
+            <div class="diagram-wrap">
+                <svg viewBox="0 0 620 160" width="590" xmlns="http://www.w3.org/2000/svg">
+                    <defs>
+                        <marker id="rm1" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#7ec8a4"/></marker>
+                        <marker id="rm2" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#7ec8a4"/></marker>
+                    </defs>
+                    <!-- LEFT: carbanion form -->
+                    <text x="20" y="88" fill="#7ec8a4" font-family="monospace" font-size="15">⁻</text>
+                    <text x="32" y="88" fill="#c8b89a" font-family="monospace" font-size="15">CH₂</text>
+                    <line x1="60" y1="85" x2="78" y2="85" stroke="#888" stroke-width="1.8"/>
+                    <text x="79" y="88" fill="#c8b89a" font-family="monospace" font-size="15">C</text>
+                    <line x1="88" y1="77" x2="108" y2="77" stroke="#e07070" stroke-width="2.2"/>
+                    <line x1="88" y1="83" x2="108" y2="83" stroke="#e07070" stroke-width="2.2"/>
+                    <text x="110" y="88" fill="#e07070" font-family="monospace" font-size="15">O</text>
+                    <line x1="83" y1="90" x2="83" y2="106" stroke="#888" stroke-width="1.8"/>
+                    <text x="77" y="118" fill="#888" font-family="monospace" font-size="14">H</text>
+                    <text x="23" y="72" fill="#7ec8a4" font-size="10">lone pair</text>
+                    <path d="M 36 82 Q 60 58 88 74" stroke="#7ec8a4" stroke-width="1.5" fill="none" marker-end="url(#rm1)"/>
+                    <text x="8" y="140" fill="#7ec8a4" font-size="11">carbanion form</text>
+                    <text x="8" y="153" fill="#888" font-size="10">nucleophilic reactivity here</text>
+                    <!-- double headed arrow -->
+                    <text x="152" y="90" fill="#888" font-size="22">&#x21cc;</text>
+                    <!-- RIGHT: enolate form -->
+                    <text x="200" y="88" fill="#c8b89a" font-family="monospace" font-size="15">CH₂</text>
+                    <line x1="228" y1="77" x2="248" y2="77" stroke="#c8b89a" stroke-width="2.2"/>
+                    <line x1="228" y1="83" x2="248" y2="83" stroke="#c8b89a" stroke-width="2.2"/>
+                    <text x="249" y="88" fill="#c8b89a" font-family="monospace" font-size="15">CH</text>
+                    <line x1="267" y1="85" x2="285" y2="85" stroke="#888" stroke-width="1.8"/>
+                    <text x="286" y="88" fill="#e07070" font-family="monospace" font-size="15">O⁻</text>
+                    <path d="M 290 80 Q 268 56 248 74" stroke="#7ec8a4" stroke-width="1.5" fill="none" marker-end="url(#rm2)"/>
+                    <text x="200" y="140" fill="#e07070" font-size="11">enolate oxygen form</text>
+                    <text x="200" y="153" fill="#888" font-size="10">more stable, charge on O</text>
+                    <text x="225" y="68" fill="#c8b89a" font-size="10">new pi bond</text>
+                    <text x="225" y="58" fill="#c8b89a" font-size="10">between C-C</text>
+                    <!-- info box -->
+                    <rect x="370" y="60" width="230" height="80" fill="oklch(0.18 0.07 265)" rx="4" stroke="oklch(0.5 0.15 240)" stroke-width="1"/>
+                    <text x="383" y="82" fill="#c8b89a" font-size="12" font-weight="500">Why oxygen is more stable:</text>
+                    <text x="383" y="100" fill="#888" font-size="11">Electronegativity of O > C</text>
+                    <text x="383" y="116" fill="#888" font-size="11">O accommodates negative charge better</text>
+                    <text x="383" y="130" fill="#7ec8a4" font-size="11">True structure is a hybrid of both</text>
+                </svg>
+            </div>
+            <p style="font-family:'DM Sans',sans-serif;font-size:13px;color:var(--prose);line-height:1.75;">
+                In the carbanion form (⁻CH₂-CHO), the negative charge sits on carbon and the C=O double bond remains intact. In the oxygen form (CH₂=CH-O⁻), the negative charge has moved onto oxygen and a new C=C pi bond has formed between the alpha carbon and the carbonyl carbon. The true enolate is a resonance hybrid. The C-C bond has partial double bond character and the C-O bond has partial single bond character.
+            </p>
+            <div style="display:flex;justify-content:flex-end;margin-top:8px;">
+                <button class="btn-primary" onclick="closeResonanceModal()">GOT IT &#x2192;</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MAIN SCREEN -->
+<div id="main-screen">
+    <div class="main-wrap">
+        <div class="main-header">
+            <p class="main-tag">// MODULE 1 / LESSON 7</p>
+            <h1 class="main-title">The <em>Enolate</em> Files</h1>
+            <p class="main-intro">Aldol condensation builds carbon-carbon bonds by generating an enolate from one carbonyl compound and directing it to attack the carbonyl of another. Full reference and applications below.</p>
+        </div>
+
+        <div style="margin-bottom:14px;"><p class="step-section-label" style="font-family:'Press Start 2P',monospace;font-size:7px;letter-spacing:0.15em;color:var(--neon);text-shadow:0 0 6px var(--neon);">// REACTION DASHBOARD</p></div>
+        <div class="dashboard-layout">
+            <div class="dashboard-cards">
+                <div class="dash-card" id="dcard-self" onclick="selectDashCard('self',this)">
+                    <div class="dash-card-header"><div><div class="dash-card-name">Self-condensation</div><div class="dash-card-tag">2 RCHO → beta-hydroxy aldehyde → alpha,beta-unsat. aldehyde</div></div><span class="dash-card-chevron">&#x25BC;</span></div>
+                </div>
+                <div class="dash-card" id="dcard-crossed" onclick="selectDashCard('crossed',this)">
+                    <div class="dash-card-header"><div><div class="dash-card-name">Crossed aldol condensation</div><div class="dash-card-tag">ArCHO (no alpha-H) + alpha-H donor</div></div><span class="dash-card-chevron">&#x25BC;</span></div>
+                </div>
+                <div class="dash-card" id="dcard-ketone" onclick="selectDashCard('ketone',this)">
+                    <div class="dash-card-header"><div><div class="dash-card-name">Ketone aldol</div><div class="dash-card-tag">Less favourable equilibrium, special conditions</div></div><span class="dash-card-chevron">&#x25BC;</span></div>
+                </div>
+                <div class="dash-card" id="dcard-addvscond" onclick="selectDashCard('addvscond',this)">
+                    <div class="dash-card-header"><div><div class="dash-card-name">Addition vs Condensation</div><div class="dash-card-tag">Two separable stages under mild conditions</div></div><span class="dash-card-chevron">&#x25BC;</span></div>
+                </div>
+            </div>
+            <div class="dash-explorer">
+                <div class="dash-explorer-placeholder" id="exp-placeholder">
+                    <div style="font-size:2rem;opacity:0.4;">&#x2697;&#xFE0F;</div>
+                    <p style="font-family:'VT323',monospace;font-size:18px;color:var(--muted);max-width:200px;line-height:1.6;">Select a reaction type to see conditions, products, and key notes.</p>
+                </div>
+                <div class="dash-explorer-content" id="exp-content">
+                    <div><div class="exp-name" id="exp-name"></div><div class="exp-formula" id="exp-formula"></div></div>
+                    <div><p class="exp-section">// CONDITIONS</p><div class="exp-conditions" id="exp-conditions"></div></div>
+                    <div><p class="exp-section">// PRODUCTS</p><div class="exp-text" id="exp-products"></div></div>
+                    <div><p class="exp-section">// KEY NOTE</p><div class="exp-note" id="exp-note"></div></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- APPLICATIONS -->
+        <div class="apps-section">
+            <h2 class="apps-title">Industrial <em>Applications</em></h2>
+            <p class="apps-subtitle">Aldol condensation builds molecules that matter at scale.</p>
+            <div class="apps-grid">
+                <div class="app-card" id="app-0" onclick="toggleApp(0)">
+                    <div class="app-card-header"><p class="app-card-num">// APPLICATION 01</p><p class="app-card-name">Beta-ionone (Vitamin A precursor)</p><p class="app-card-product">Citral + acetone → psi-ionone → beta-ionone</p></div>
+                    <div class="app-card-body">Citral (an alpha,beta-unsaturated aldehyde from lemongrass) undergoes <span class="ht">crossed aldol condensation</span> with acetone in sodium ethoxide to give psi-ionone. Treatment with BF₃ in acetic acid triggers ring closure to give <span class="ht">beta-ionone</span>, the key intermediate in industrial Vitamin A synthesis. Beta-ionone also gives violets their characteristic scent.</div>
+                </div>
+                <div class="app-card" id="app-1" onclick="toggleApp(1)">
+                    <div class="app-card-header"><p class="app-card-num">// APPLICATION 02</p><p class="app-card-name">2-Ethylhexanol</p><p class="app-card-product">Plasticiser precursor, millions of tonnes annually</p></div>
+                    <div class="app-card-body">n-Butanal undergoes self-aldol condensation to give 2-ethylhex-2-enal, which is hydrogenated over Ni to give <span class="ht">2-ethylhexanol</span>. This is esterified with phthalic acid to make dioctyl phthalate (DOP), the plasticiser in PVC. Global production exceeds 2 million tonnes per year.
+                        <div class="app-diagram">
+                            <svg viewBox="0 0 500 80" width="480" xmlns="http://www.w3.org/2000/svg">
+                                <text x="4" y="42" fill="#c8b89a" font-family="monospace" font-size="12">2 C₃H₇CHO</text>
+                                <line x1="95" y1="38" x2="130" y2="38" stroke="#888" stroke-width="1.5"/>
+                                <polygon points="130,33 140,38 130,43" fill="#888"/>
+                                <text x="98" y="28" fill="#e07070" font-family="monospace" font-size="10">OH, -H₂O</text>
+                                <text x="144" y="42" fill="#c8b89a" font-family="monospace" font-size="12">2-ethylhex-2-enal</text>
+                                <line x1="290" y1="38" x2="328" y2="38" stroke="#888" stroke-width="1.5"/>
+                                <polygon points="328,33 338,38 328,43" fill="#888"/>
+                                <text x="295" y="28" fill="#7ec8a4" font-family="monospace" font-size="10">H₂/Ni</text>
+                                <text x="342" y="42" fill="#c8b89a" font-family="monospace" font-size="12">2-ethylhexanol</text>
+                                <text x="342" y="62" fill="#7ec8a4" font-size="10">DOP plasticiser precursor</text>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+                <div class="app-card" id="app-2" onclick="toggleApp(2)">
+                    <div class="app-card-header"><p class="app-card-num">// APPLICATION 03</p><p class="app-card-name">Mesityl oxide and Phorone</p><p class="app-card-product">Acid-catalysed acetone condensation</p></div>
+                    <div class="app-card-body">Acetone with dry HCl gives <span class="ht">mesityl oxide</span> [(CH₃)₂C=CH-CO-CH₃]. A second condensation with another acetone molecule gives <span class="ht">phorone</span> [(CH₃)₂C=CH-CO-CH=C(CH₃)₂] — a doubly unsaturated diketone. Distilling acetone over H₂SO₄ gives mesitylene (1,3,5-trimethylbenzene) via trimerisation and aromatisation.</div>
+                </div>
+                <div class="app-card" id="app-3" onclick="toggleApp(3)">
+                    <div class="app-card-header"><p class="app-card-num">// APPLICATION 04</p><p class="app-card-name">Monosaccharide formation</p><p class="app-card-product">Glycolaldehyde self-condensation under base</p></div>
+                    <div class="app-card-body">Glycolaldehyde (HOCH₂CHO) undergoes repeated aldol-type condensation under basic conditions to give <span class="ht">monosaccharides</span> including glyceraldehyde, erythrose, and tetroses. This reaction has significant prebiotic chemistry relevance — it demonstrates how simple two-carbon units could have assembled into sugars on early Earth.</div>
+                </div>
+                <div class="app-card" id="app-4" onclick="toggleApp(4)">
+                    <div class="app-card-header"><p class="app-card-num">// APPLICATION 05</p><p class="app-card-name">n-Butanol synthesis</p><p class="app-card-product">2 CH₃CHO → crotonaldehyde → n-C₄H₉OH</p></div>
+                    <div class="app-card-body">Two molecules of acetaldehyde undergo aldol condensation to give crotonaldehyde (CH₃-CH=CH-CHO), which is then <span class="ht">catalytically hydrogenated</span> over Ni to give n-butanol. Industrially, acetaldehyde comes from ethylene oxidation (Wacker process). n-Butanol is a solvent and fuel additive.</div>
+                </div>
+                <div class="app-card" id="app-5" onclick="toggleApp(5)">
+                    <div class="app-card-header"><p class="app-card-num">// APPLICATION 06</p><p class="app-card-name">Resin formation</p><p class="app-card-product">Strong alkali, repeated condensation chain</p></div>
+                    <div class="app-card-body">In concentrated NaOH, the alpha,beta-unsaturated aldol product undergoes further Michael-type addition with more enolate. Repeated cycles chain molecules into long conjugated polymers — <span class="ht">resins</span>. Acetaldehyde under strong OH⁻ gives a dark sticky resin rapidly. This is why industrial aldol reactions are run with dilute base, controlled temperature, and often continuous product removal.</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    var currentStep = 0;
+    var totalSteps = 8;
+    var mcqAnswered = {};
+
+    var dashData = {
+        self: {
+            name: 'Self-condensation', formula: '2 RCHO (with alpha-H)',
+            conditions: ['Dilute NaOH','K₂CO₃ (aq)','Alkali metal alkoxide','Mild warming'],
+            conditionType: ['green','green','green',''],
+            products: 'Beta-hydroxy aldehyde (aldol) at low temperature. Alpha,beta-unsaturated aldehyde on heating. Both are accessible selectively by controlling temperature and base concentration.',
+            note: 'Dilute aqueous K₂CO₃ at room temperature gives the aldol addition product. Heating or stronger base gives the dehydrated condensation product.'
+        },
+        crossed: {
+            name: 'Crossed aldol condensation', formula: 'ArCHO + R-CH₂-CHO or ketone',
+            conditions: ['Dilute NaOH','Piperidine (some substrates)','Heat for condensation step'],
+            conditionType: ['green','green',''],
+            products: 'Single clean product because only the alpha-H donor forms the enolate. The aryl aldehyde is the electrophile exclusively. After dehydration: alpha,beta-unsaturated aldehyde. Example: cinnamaldehyde from benzaldehyde and acetaldehyde.',
+            note: 'Crossed aldol gives a clean product only when one partner has no alpha-H. Use aromatic aldehydes (benzaldehyde, furfural) or formaldehyde as enolate-free electrophiles.'
+        },
+        ketone: {
+            name: 'Ketone aldol', formula: '2 RCOR\' (with alpha-H)',
+            conditions: ['Ba(OH)₂ solid','Boiling + continuous removal','Acid (dry HCl) for mesityl oxide'],
+            conditionType: ['','red',''],
+            products: 'Beta-hydroxy ketone (diacetone alcohol from acetone). Equilibrium lies far left for most ketones. Alpha,beta-unsaturated ketone on dehydration.',
+            note: 'The ketone carbonyl is less electrophilic (+I effect of two alkyl groups) and more sterically hindered. Useful yield only achieved with Ba(OH)₂ solid and an apparatus that removes product continuously.'
+        },
+        addvscond: {
+            name: 'Addition vs Condensation', formula: 'Two mechanistically distinct steps',
+            conditions: ['Addition: mild base, room temp','Condensation: heat + acid or base','K₂CO₃ (aq) for addition only'],
+            conditionType: ['green','','green'],
+            products: 'Addition product: beta-hydroxy aldehyde or ketone (aldol, no atoms lost). Condensation product: alpha,beta-unsaturated carbonyl (water eliminated from beta-OH and alpha-H).',
+            note: 'Aldol condensation is the full two-step sequence. Aldol addition is step one only. These are separable — the aldol addition product can be isolated under mild conditions before dehydration occurs.'
+        }
+    };
+
+    function openPanel() {
+        document.getElementById('intro-screen').style.display = 'none';
+        document.getElementById('lesson-panel').classList.add('open');
+        updatePanel();
+    }
+
+    function closePanel() {
+        document.getElementById('lesson-panel').classList.remove('open');
+        document.getElementById('intro-screen').style.display = 'flex';
+    }
+
+    function updatePanel() {
+        document.querySelectorAll('.step-screen').forEach(function(s) { s.classList.remove('active'); });
+        document.getElementById('step-' + currentStep).classList.add('active');
+        var pct = ((currentStep + 1) / totalSteps) * 100;
+        document.getElementById('progress-bar').style.width = pct + '%';
+        document.getElementById('step-counter').textContent = '// STEP ' + (currentStep + 1) + ' OF ' + totalSteps;
+        var tags = ['// INTRODUCTION','// MECHANISM 1','// MECHANISM 2','// MECHANISM 3','// MECHANISM 4','// MECHANISM 5','// BONUS','// SUMMARY'];
+        var titles = ['Aldol Condensation','Base: nucleophile or base?','Enolate stabilisation','The enolate attacks','Protonation and addition','Dehydration and condensation','Crossed aldol','Salient Features'];
+        document.getElementById('panel-step-tag').textContent = tags[currentStep];
+        document.getElementById('panel-title').textContent = titles[currentStep];
+        document.getElementById('btn-back').style.display = currentStep === 0 ? 'none' : 'inline-flex';
+        var mcqSteps = [1,2,3,4,5,6];
+        var nextBtn = document.getElementById('btn-next');
+        nextBtn.disabled = mcqSteps.indexOf(currentStep) >= 0 && !mcqAnswered[currentStep];
+        nextBtn.textContent = currentStep === totalSteps - 1 ? 'GO TO DASHBOARD →' : 'NEXT →';
+        document.getElementById('panel-body').scrollTop = 0;
+    }
+
+    function nextStep() {
+        if (currentStep === totalSteps - 1) {
+            document.getElementById('lesson-panel').classList.remove('open');
+            document.getElementById('intro-screen').style.display = 'none';
+            document.getElementById('main-screen').style.display = 'block';
+            selectDashCard('self', document.getElementById('dcard-self'));
+            return;
+        }
+        currentStep++;
+        updatePanel();
+    }
+
+    function prevStep() {
+        if (currentStep > 0) { currentStep--; updatePanel(); }
+    }
+
+    function answerMCQ(stepNum, btn, isCorrect) {
+        var container = document.getElementById('mcq-' + stepNum);
+        container.querySelectorAll('.mcq-option').forEach(function(b) { b.disabled = true; });
+        btn.classList.add(isCorrect ? 'correct' : 'wrong');
+        var reveal = document.getElementById('reveal-' + stepNum);
+        reveal.classList.add('show');
+        mcqAnswered[stepNum] = true;
+        document.getElementById('btn-next').disabled = false;
+        setTimeout(function() { reveal.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); }, 200);
+    }
+
+    function openResonanceModal() {
+        document.getElementById('resonance-overlay').classList.add('open');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeResonanceModal() {
+        document.getElementById('resonance-overlay').classList.remove('open');
+        document.body.style.overflow = '';
+    }
+
+    document.getElementById('resonance-overlay').addEventListener('click', function(e) {
+        if (e.target === this) closeResonanceModal();
+    });
+
+    function selectDashCard(key, el) {
+        document.querySelectorAll('.dash-card').forEach(function(c) { c.classList.remove('active'); });
+        el.classList.add('active');
+        var data = dashData[key];
+        document.getElementById('exp-placeholder').style.display = 'none';
+        document.getElementById('exp-content').classList.add('visible');
+        document.getElementById('exp-name').textContent = data.name;
+        document.getElementById('exp-formula').textContent = data.formula;
+        var condHTML = data.conditions.map(function(c,i) {
+            return '<span class="exp-pill' + (data.conditionType[i] ? ' ' + data.conditionType[i] : '') + '">' + c + '</span>';
+        }).join('');
+        document.getElementById('exp-conditions').innerHTML = condHTML;
+        document.getElementById('exp-products').textContent = data.products;
+        document.getElementById('exp-note').textContent = data.note;
+    }
+
+    function toggleApp(idx) {
+        document.getElementById('app-' + idx).classList.toggle('open');
+    }
+</script>
+</body>
+</html>

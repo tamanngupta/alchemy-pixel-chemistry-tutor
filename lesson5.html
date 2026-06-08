@@ -1,0 +1,1129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reduction Gate</title>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323:wght@400&family=Fraunces:ital,wght@0,300;0,400;0,500;1,300&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg:        oklch(0.10 0.05 265);
+            --bg-card:   oklch(0.24 0.09 265);
+            --bg-card2:  oklch(0.18 0.07 265);
+            --surface:   oklch(0.28 0.07 265);
+            --neon:      oklch(0.85 0.22 210);
+            --primary:   oklch(0.72 0.18 230);
+            --accent:    oklch(0.78 0.2  200);
+            --danger:    oklch(0.65 0.25 25);
+            --text:      oklch(0.95 0.04 230);
+            --muted:     oklch(0.75 0.05 230);
+            --border:    oklch(0.5  0.15 240);
+            --prose:     oklch(0.88 0.03 230);
+            --prose-dim: oklch(0.72 0.04 230);
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        body::before {
+            content: '';
+            position: fixed; inset: 0;
+            background-image:
+                linear-gradient(color-mix(in oklab, var(--neon) 12%, transparent) 1px, transparent 1px),
+                linear-gradient(90deg, color-mix(in oklab, var(--neon) 12%, transparent) 1px, transparent 1px);
+            background-size: 40px 40px;
+            pointer-events: none; z-index: 0;
+        }
+        body::after {
+            content: '';
+            position: fixed; inset: 0;
+            background-image: repeating-linear-gradient(0deg, rgba(0,0,0,0.13) 0px, rgba(0,0,0,0.13) 2px, transparent 2px, transparent 4px);
+            pointer-events: none; z-index: 0;
+        }
+
+        /* ── SCREEN SYSTEM ── */
+        .screen { display: none; position: relative; z-index: 1; }
+        .screen.active { display: flex; }
+
+        /* ── SCREEN 1: SHHH ── */
+        #screen-shh {
+            position: fixed; inset: 0; background: var(--bg);
+            flex-direction: column; align-items: center; justify-content: center;
+            gap: 16px; z-index: 100;
+        }
+        #screen-shh::after {
+            content: ''; position: absolute; inset: 0;
+            background-image: repeating-linear-gradient(0deg, rgba(0,0,0,0.13) 0px, rgba(0,0,0,0.13) 2px, transparent 2px, transparent 4px);
+            pointer-events: none;
+        }
+        .shh-tag {
+            font-family: 'Press Start 2P', monospace; font-size: 9px;
+            letter-spacing: 0.3em; text-transform: uppercase; color: var(--neon);
+            text-shadow: 0 0 8px var(--neon);
+            opacity: 0; animation: fadeUp 0.6s ease 0.3s forwards; position: relative; z-index: 1;
+        }
+        .shh-word {
+            font-family: 'Fraunces', serif; font-size: clamp(4rem, 14vw, 9rem);
+            font-weight: 300; font-style: italic; color: var(--accent);
+            letter-spacing: -0.03em;
+            opacity: 0; animation: fadeUp 0.9s ease 0.8s forwards; position: relative; z-index: 1;
+            text-shadow: 0 0 30px color-mix(in oklab, var(--accent) 30%, transparent);
+        }
+        .shh-sub {
+            font-family: 'DM Sans', sans-serif; font-size: 14px; color: var(--muted);
+            opacity: 0; animation: fadeUp 0.6s ease 1.6s forwards;
+            text-align: center; max-width: 380px; line-height: 1.7; position: relative; z-index: 1;
+        }
+        .shh-btn {
+            margin-top: 8px; padding: 14px 40px; background: var(--bg-card); border: none;
+            color: var(--text); font-family: 'Press Start 2P', monospace; font-size: 9px;
+            cursor: pointer; letter-spacing: 0.06em;
+            opacity: 0; animation: fadeUp 0.6s ease 2.2s forwards;
+            transition: transform 0.15s; position: relative; z-index: 2;
+            box-shadow: 0 -3px 0 0 var(--border), 0 3px 0 0 var(--border), -3px 0 0 0 var(--border), 3px 0 0 0 var(--border);
+            z-index: 101;
+        }
+        .shh-btn:hover { transform: translateY(-2px); box-shadow: 0 -3px 0 0 var(--neon), 0 3px 0 0 var(--neon), -3px 0 0 0 var(--neon), 3px 0 0 0 var(--neon); color: var(--neon); }
+        .shh-skip {
+            font-family: 'Press Start 2P', monospace; font-size: 7px; color: var(--muted);
+            cursor: pointer; letter-spacing: 0.05em;
+            opacity: 0; animation: fadeUp 0.5s ease 2.6s forwards;
+            border-bottom: 1px solid transparent; transition: color 0.2s, border-color 0.2s;
+            position: relative; z-index: 1;
+            z-index: 101;
+        }
+        .shh-skip:hover { color: var(--text); border-color: var(--muted); }
+
+        /* ── SCREEN 2: OBJECTIVE ── */
+       #screen-objective {
+            position: fixed; inset: 0; overflow-y: auto;
+            background: var(--bg);
+            flex-direction: column; align-items: center; justify-content: center;
+            gap: 14px; padding: 24px; z-index: 100;
+        }
+        .obj-tag { font-family: 'Press Start 2P', monospace; font-size: 9px; letter-spacing: 0.2em; color: var(--neon); text-shadow: 0 0 6px var(--neon); }
+        .obj-title { font-family: 'Fraunces', serif; font-size: clamp(1.8rem, 4vw, 3rem); font-weight: 300; text-align: center; line-height: 1.2; }
+        .obj-title em { font-style: italic; color: var(--neon); -webkit-text-fill-color: var(--neon); text-shadow: 0 0 10px var(--neon); }
+        .obj-desc { font-family: 'DM Sans', sans-serif; font-size: 14px; color: var(--muted); text-align: center; max-width: 500px; line-height: 1.75; }
+        .obj-lock { font-size: 2.5rem; margin-bottom: 4px; }
+        .obj-actions { display: flex; flex-direction: column; align-items: center; gap: 10px; margin-top: 12px; }
+
+        /* ── BUTTONS ── */
+        .btn-primary {
+            padding: 12px 36px; background: var(--primary); border: none;
+            color: oklch(0.12 0.06 265); font-family: 'Press Start 2P', monospace;
+            font-size: 9px; cursor: pointer; transition: transform 0.15s; letter-spacing: 0.05em;
+            box-shadow: 0 -3px 0 0 var(--neon), 0 3px 0 0 var(--neon), -3px 0 0 0 var(--neon), 3px 0 0 0 var(--neon), 0 0 16px color-mix(in oklab, var(--neon) 30%, transparent);
+        }
+        .btn-primary:hover { transform: translateY(-2px); }
+        .btn-ghost {
+            padding: 10px 24px; background: var(--bg-card); border: none;
+            color: var(--muted); font-family: 'Press Start 2P', monospace;
+            font-size: 8px; cursor: pointer; transition: all 0.15s; letter-spacing: 0.04em;
+            box-shadow: 0 -2px 0 0 var(--border), 0 2px 0 0 var(--border), -2px 0 0 0 var(--border), 2px 0 0 0 var(--border);
+        }
+        .btn-ghost:hover { color: var(--text); box-shadow: 0 -2px 0 0 var(--border), 0 2px 0 0 var(--border), -2px 0 0 0 var(--border), 2px 0 0 0 var(--border); }
+
+        /* ── SCREEN 3: EXERCISE ── */
+        #screen-exercise {
+            min-height: 100vh; flex-direction: column;
+            max-width: 1000px; margin: 0 auto; padding: 48px 24px 80px;
+        }
+        .ex-tag { font-family: 'Press Start 2P', monospace; font-size: 8px; letter-spacing: 0.15em; color: var(--neon); margin-bottom: 10px; text-shadow: 0 0 6px var(--neon); }
+        .ex-title { font-family: 'Fraunces', serif; font-size: 1.8rem; font-weight: 300; margin-bottom: 6px; }
+        .ex-title em { font-style: italic; color: var(--neon); -webkit-text-fill-color: var(--neon); text-shadow: 0 0 8px var(--neon); }
+        .ex-desc { font-family: 'DM Sans', sans-serif; font-size: 13px; color: var(--muted); margin-bottom: 32px; line-height: 1.7; max-width: 580px; }
+        .ex-skip-bar { display: flex; justify-content: flex-end; margin-bottom: 20px; }
+
+        /* ── NAME BANK ── */
+        .name-bank {
+            display: flex; flex-wrap: wrap; gap: 10px;
+            padding: 20px 24px; margin-bottom: 36px;
+            background: var(--bg-card);
+            box-shadow: 0 -4px 0 0 var(--border), 0 4px 0 0 var(--border), -4px 0 0 0 var(--border), 4px 0 0 0 var(--border);
+        }
+        .name-tag {
+            padding: 8px 16px; background: var(--bg-card2); border: none;
+            font-family: 'DM Sans', sans-serif; font-size: 13px; color: var(--text);
+            cursor: grab; user-select: none; transition: all 0.15s; white-space: nowrap;
+            box-shadow: 0 -2px 0 0 var(--border), 0 2px 0 0 var(--border), -2px 0 0 0 var(--border), 2px 0 0 0 var(--border);
+        }
+        .name-tag:hover { box-shadow: 0 -2px 0 0 var(--neon), 0 2px 0 0 var(--neon), -2px 0 0 0 var(--neon), 2px 0 0 0 var(--neon); color: var(--neon); }
+        .name-tag.dragging { opacity: 0.35; }
+        .name-tag.used { opacity: 0.22; pointer-events: none; }
+
+        /* ── STRUCTURE GRID ── */
+        .structure-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 40px; }
+        .structure-card {
+            background: var(--bg-card); overflow: hidden;
+            box-shadow: 0 -4px 0 0 var(--border), 0 4px 0 0 var(--border), -4px 0 0 0 var(--border), 4px 0 0 0 var(--border);
+        }
+        .structure-svg-wrap { background: var(--bg); padding: 20px; display: flex; align-items: center; justify-content: center; min-height: 140px; }
+        .structure-svg-wrap svg { max-width: 100%; height: auto; }
+        .structure-drop {
+            border-top: 4px solid var(--border); padding: 14px 16px;
+            min-height: 52px; display: flex; align-items: center;
+            transition: all 0.2s;
+        }
+        .structure-drop.dragover { background: color-mix(in oklab, var(--neon) 5%, transparent); border-top-color: var(--neon); }
+        .structure-drop.correct { border-top-color: var(--neon); background: color-mix(in oklab, var(--neon) 6%, transparent); }
+        .structure-drop.wrong { border-top-color: var(--danger); background: color-mix(in oklab, var(--danger) 6%, transparent); }
+        .structure-drop .placeholder { font-family: 'VT323', monospace; font-size: 18px; color: var(--muted); }
+        .structure-drop .filled-name { font-family: 'DM Sans', sans-serif; font-size: 13px; color: var(--text); }
+        .ex-actions { display: flex; gap: 12px; align-items: center; }
+
+        /* ── SCREEN 4: RESULT ── */
+        #screen-result {
+            min-height: 100vh; flex-direction: column;
+            align-items: center; justify-content: center; padding: 48px 24px; text-align: center;
+        }
+        .result-score { font-family: 'Press Start 2P', monospace; font-size: clamp(2.5rem, 8vw, 5rem); color: var(--neon); margin-bottom: 8px; text-shadow: 0 0 20px color-mix(in oklab, var(--neon) 50%, transparent); }
+        .result-label { font-family: 'Press Start 2P', monospace; font-size: 8px; color: var(--muted); letter-spacing: 0.15em; text-transform: uppercase; margin-bottom: 24px; }
+        .result-msg { font-family: 'DM Sans', sans-serif; font-size: 15px; color: var(--text); max-width: 420px; line-height: 1.7; margin-bottom: 36px; }
+        .result-unlocked { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-bottom: 36px; }
+        .unlock-chip {
+            padding: 6px 14px; border: none;
+            font-family: 'Press Start 2P', monospace; font-size: 7px; color: oklch(0.12 0.06 265);
+            background: var(--neon); letter-spacing: 0.05em;
+            box-shadow: 0 -2px 0 0 var(--neon), 0 2px 0 0 var(--neon), -2px 0 0 0 var(--neon), 2px 0 0 0 var(--neon);
+        }
+        .locked-chip {
+            padding: 6px 14px; border: none;
+            font-family: 'Press Start 2P', monospace; font-size: 7px; color: var(--muted);
+            background: var(--bg-card); text-decoration: line-through; letter-spacing: 0.05em;
+            box-shadow: 0 -2px 0 0 var(--border), 0 2px 0 0 var(--border), -2px 0 0 0 var(--border), 2px 0 0 0 var(--border);
+        }
+
+        /* ── LEARN OVERLAY ── */
+        .learn-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.88); backdrop-filter: blur(12px); z-index: 300; align-items: center; justify-content: center; }
+        .learn-overlay.open { display: flex; animation: fadeIn 0.2s ease; }
+        .learn-modal {
+            background: var(--bg-card); padding: 40px; max-width: 520px;
+            width: 92%; position: relative; max-height: 85vh; overflow-y: auto;
+            animation: slideUp 0.25s ease;
+            box-shadow: 0 -4px 0 0 var(--neon), 0 4px 0 0 var(--neon), -4px 0 0 0 var(--neon), 4px 0 0 0 var(--neon), 0 0 40px color-mix(in oklab, var(--neon) 20%, transparent);
+        }
+        .learn-close {
+            position: absolute; top: 16px; right: 20px;
+            background: var(--bg-card2); border: none; width: 30px; height: 30px;
+            display: flex; align-items: center; justify-content: center;
+            color: var(--muted); font-size: 14px; cursor: pointer; transition: all 0.2s;
+            box-shadow: 0 -2px 0 0 var(--border), 0 2px 0 0 var(--border), -2px 0 0 0 var(--border), 2px 0 0 0 var(--border);
+        }
+        .learn-close:hover { color: var(--danger); box-shadow: 0 -2px 0 0 var(--danger), 0 2px 0 0 var(--danger), -2px 0 0 0 var(--danger), 2px 0 0 0 var(--danger); }
+        .learn-svg-wrap {
+            background: var(--bg); padding: 24px;
+            display: flex; align-items: center; justify-content: center;
+            margin-bottom: 20px; min-height: 120px;
+            box-shadow: 0 -3px 0 0 var(--border), 0 3px 0 0 var(--border), -3px 0 0 0 var(--border), 3px 0 0 0 var(--border);
+        }
+        .learn-name { font-family: 'Fraunces', serif; font-size: 1.4rem; font-weight: 300; margin-bottom: 4px; color: var(--text); }
+        .learn-tag { font-family: 'Press Start 2P', monospace; font-size: 7px; letter-spacing: 0.1em; color: var(--neon); margin-bottom: 14px; text-shadow: 0 0 6px var(--neon); }
+        .learn-text { font-family: 'DM Sans', sans-serif; font-size: 13px; color: var(--prose); line-height: 1.7; margin-bottom: 20px; }
+        .learn-counter { font-family: 'Press Start 2P', monospace; font-size: 7px; color: var(--muted); margin-bottom: 16px; letter-spacing: 0.1em; }
+        .learn-nav { display: flex; gap: 10px; justify-content: flex-end; align-items: center; }
+
+        /* ── SCREEN 5: BEGINNER ── */
+        #screen-beginner {
+            min-height: 100vh; flex-direction: column;
+            align-items: center; justify-content: center; padding: 48px 24px; text-align: center;
+        }
+        .beg-icon { font-size: 2.5rem; margin-bottom: 16px; }
+        .beg-title { font-family: 'Fraunces', serif; font-size: 2rem; font-weight: 300; margin-bottom: 12px; }
+        .beg-title em { font-style: italic; color: var(--neon); -webkit-text-fill-color: var(--neon); text-shadow: 0 0 10px var(--neon); }
+        .beg-text { font-family: 'DM Sans', sans-serif; font-size: 14px; color: var(--muted); max-width: 460px; line-height: 1.75; margin-bottom: 32px; }
+
+        /* ── SCREEN 6: MANUAL ── */
+        #screen-manual {
+            min-height: 100vh; flex-direction: column;
+            max-width: 1200px; margin: 0 auto; padding: 40px 24px 80px;
+        }
+        .manual-header {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 30px; padding-bottom: 20px; gap: 16px;
+            border-bottom: 4px solid var(--border);
+        }
+        .manual-title { font-family: 'Fraunces', serif; font-size: 2.2rem; font-weight: 300; color: var(--neon); text-shadow: 0 0 20px color-mix(in oklab, var(--neon) 30%, transparent); }
+        .manual-subtitle { font-family: 'VT323', monospace; font-size: 18px; color: var(--muted); margin-top: 4px; }
+        .manual-layout { display: grid; grid-template-columns: 1.3fr 1fr; gap: 30px; align-items: start; }
+        @media (max-width: 900px) { .manual-layout { grid-template-columns: 1fr; } }
+
+        /* ── SANDBOX ── */
+        .sandbox-container {
+            background: var(--bg-card); padding: 20px; margin-bottom: 24px;
+            box-shadow: 0 -4px 0 0 var(--border), 0 4px 0 0 var(--border), -4px 0 0 0 var(--border), 4px 0 0 0 var(--border);
+        }
+        .sandbox-title { font-family: 'Press Start 2P', monospace; font-size: 8px; letter-spacing: 0.12em; color: var(--neon); margin-bottom: 14px; text-shadow: 0 0 6px var(--neon); }
+        .sandbox-rows { display: flex; flex-direction: column; gap: 10px; }
+        .sandbox-row {
+            display: flex; align-items: center; gap: 10px;
+            background: var(--bg-card2); padding: 12px 16px; flex-wrap: wrap;
+            box-shadow: 0 -2px 0 0 var(--border), 0 2px 0 0 var(--border), -2px 0 0 0 var(--border), 2px 0 0 0 var(--border);
+        }
+        .sandbox-node {
+            padding: 8px 14px; background: var(--bg); border: none;
+            font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500; white-space: nowrap;
+            box-shadow: 0 -2px 0 0 var(--border), 0 2px 0 0 var(--border), -2px 0 0 0 var(--border), 2px 0 0 0 var(--border);
+        }
+        .sandbox-node.reactant { min-width: 100px; color: var(--text); }
+        .sandbox-node.product { color: var(--neon); box-shadow: 0 -2px 0 0 color-mix(in oklab, var(--neon) 40%, transparent), 0 2px 0 0 color-mix(in oklab, var(--neon) 40%, transparent), -2px 0 0 0 color-mix(in oklab, var(--neon) 40%, transparent), 2px 0 0 0 color-mix(in oklab, var(--neon) 40%, transparent); }
+        .sandbox-arrow-wrap { display: flex; flex-direction: column; align-items: center; gap: 3px; flex: 1; min-width: 120px; }
+        .sandbox-arrow-line { font-family: 'VT323', monospace; color: var(--muted); font-size: 14px; }
+        .sandbox-reagents { display: flex; flex-wrap: wrap; gap: 4px; justify-content: center; }
+
+        /* ── ROADMAP ── */
+        .roadmap-container {
+            background: var(--bg-card); padding: 24px;
+            display: flex; flex-direction: column; gap: 20px;
+            box-shadow: 0 -4px 0 0 var(--border), 0 4px 0 0 var(--border), -4px 0 0 0 var(--border), 4px 0 0 0 var(--border);
+        }
+        .roadmap-section-title { font-family: 'Press Start 2P', monospace; font-size: 7px; letter-spacing: 0.12em; color: var(--muted); border-bottom: 2px solid var(--border); padding-bottom: 8px; margin-bottom: 10px; }
+        .roadmap-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+        @media (max-width: 550px) { .roadmap-grid { grid-template-columns: 1fr; } }
+        .roadmap-card {
+            background: var(--bg-card2); padding: 14px; cursor: pointer;
+            transition: transform 0.15s;
+            box-shadow: 0 -3px 0 0 var(--border), 0 3px 0 0 var(--border), -3px 0 0 0 var(--border), 3px 0 0 0 var(--border);
+        }
+        .roadmap-card:hover { transform: translateY(-2px); box-shadow: 0 -3px 0 0 var(--accent), 0 3px 0 0 var(--accent), -3px 0 0 0 var(--accent), 3px 0 0 0 var(--accent); }
+        .roadmap-card.active { box-shadow: 0 -3px 0 0 var(--neon), 0 3px 0 0 var(--neon), -3px 0 0 0 var(--neon), 3px 0 0 0 var(--neon), 0 0 12px color-mix(in oklab, var(--neon) 20%, transparent); }
+        .roadmap-card-name { font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 500; color: var(--text); margin-bottom: 4px; }
+        .roadmap-card-formula { font-family: 'VT323', monospace; font-size: 16px; color: var(--neon); text-shadow: 0 0 6px var(--neon); }
+
+        /* ── REAGENT PILLS ── */
+        .reagent-pill {
+            display: inline-flex; align-items: center; justify-content: center;
+            padding: 4px 10px; background: var(--bg-card2); border: none;
+            font-family: 'VT323', monospace; font-size: 16px; color: var(--text);
+            transition: all 0.15s; margin: 2px;
+            box-shadow: 0 -2px 0 0 var(--border), 0 2px 0 0 var(--border), -2px 0 0 0 var(--border), 2px 0 0 0 var(--border);
+        }
+        .reagent-pill.clickable { cursor: pointer; }
+        .reagent-pill.clickable:hover { background: var(--neon); color: oklch(0.12 0.06 265); transform: scale(1.05); box-shadow: 0 -2px 0 0 var(--neon), 0 2px 0 0 var(--neon), -2px 0 0 0 var(--neon), 2px 0 0 0 var(--neon); }
+        .reagent-pill.wont-work { box-shadow: 0 -2px 0 0 color-mix(in oklab, var(--danger) 40%, transparent), 0 2px 0 0 color-mix(in oklab, var(--danger) 40%, transparent), -2px 0 0 0 color-mix(in oklab, var(--danger) 40%, transparent), 2px 0 0 0 color-mix(in oklab, var(--danger) 40%, transparent); color: var(--danger); font-size: 14px; cursor: default; }
+
+        /* ── EXPLORER ── */
+        .explorer-panel {
+            background: var(--bg-card); padding: 24px;
+            position: sticky; top: 20px; min-height: 400px;
+            box-shadow: 0 -4px 0 0 var(--border), 0 4px 0 0 var(--border), -4px 0 0 0 var(--border), 4px 0 0 0 var(--border);
+        }
+        .explorer-placeholder { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 350px; text-align: center; color: var(--muted); gap: 16px; }
+        .explorer-placeholder-icon { font-size: 3rem; opacity: 0.6; }
+        .explorer-placeholder-text { font-family: 'VT323', monospace; font-size: 18px; max-width: 280px; line-height: 1.6; }
+        .explorer-content { display: flex; flex-direction: column; gap: 20px; }
+        .explorer-group-header { border-bottom: 2px solid var(--border); padding-bottom: 12px; }
+        .explorer-group-name { font-family: 'Fraunces', serif; font-size: 1.6rem; color: var(--neon); font-weight: 300; text-shadow: 0 0 10px color-mix(in oklab, var(--neon) 30%, transparent); }
+        .explorer-group-formula { font-family: 'VT323', monospace; font-size: 16px; color: var(--muted); margin-top: 4px; }
+        .explorer-section-title { font-family: 'Press Start 2P', monospace; font-size: 7px; letter-spacing: 0.1em; color: var(--muted); margin-bottom: 10px; }
+        .explorer-pathways { display: flex; flex-direction: column; gap: 14px; }
+        .pathway-card {
+            background: var(--bg-card2); padding: 14px;
+            display: flex; flex-direction: column; gap: 8px;
+            box-shadow: 0 -3px 0 0 var(--border), 0 3px 0 0 var(--border), -3px 0 0 0 var(--border), 3px 0 0 0 var(--border);
+        }
+        .pathway-target { font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500; color: var(--text); display: flex; align-items: center; gap: 8px; }
+        .pathway-target::before { content: '───>'; font-family: monospace; color: var(--neon); text-shadow: 0 0 6px var(--neon); }
+        .pathway-reagents { display: flex; flex-wrap: wrap; gap: 6px; margin: 4px 0; }
+        .pathway-note { font-family: 'DM Sans', sans-serif; font-size: 12px; color: var(--muted); line-height: 1.5; border-left: 3px solid var(--accent); padding-left: 8px; margin-top: 4px; }
+        .pathway-note.danger { border-color: var(--danger); color: var(--danger); }
+        .wont-work-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 4px; }
+        .wont-work-label { font-family: 'Press Start 2P', monospace; font-size: 7px; color: var(--danger); letter-spacing: 0.08em; text-transform: uppercase; }
+
+        /* ── REAGENT DRAWER ── */
+        .reagent-drawer {
+            position: fixed; top: 0; right: -420px; width: 400px;
+            height: 100vh; background: var(--bg-card); z-index: 400;
+            padding: 30px; overflow-y: auto;
+            transition: right 0.3s cubic-bezier(0.4,0,0.2,1);
+            box-shadow: -6px 0 0 0 var(--border);
+        }
+        @media (max-width: 450px) { .reagent-drawer { width: 100%; right: -100%; } }
+        .reagent-drawer.open { right: 0; }
+        .reagent-drawer-close {
+            position: absolute; top: 20px; right: 20px;
+            background: var(--bg-card2); border: none; width: 32px; height: 32px;
+            display: flex; align-items: center; justify-content: center;
+            color: var(--muted); cursor: pointer; transition: all 0.2s; font-size: 12px;
+            box-shadow: 0 -2px 0 0 var(--border), 0 2px 0 0 var(--border), -2px 0 0 0 var(--border), 2px 0 0 0 var(--border);
+        }
+        .reagent-drawer-close:hover { color: var(--danger); box-shadow: 0 -2px 0 0 var(--danger), 0 2px 0 0 var(--danger), -2px 0 0 0 var(--danger), 2px 0 0 0 var(--danger); }
+        .reagent-drawer-title { font-family: 'Fraunces', serif; font-size: 1.8rem; color: var(--neon); font-weight: 300; margin-bottom: 6px; margin-top: 20px; text-shadow: 0 0 10px color-mix(in oklab, var(--neon) 30%, transparent); }
+        .reagent-drawer-type { font-family: 'Press Start 2P', monospace; font-size: 7px; letter-spacing: 0.1em; color: var(--accent); margin-bottom: 16px; }
+        .reagent-warning {
+            background: var(--bg-card2); padding: 12px 14px; margin-bottom: 20px;
+            font-family: 'DM Sans', sans-serif; font-size: 12px; color: var(--danger); line-height: 1.6;
+            border-left: 4px solid var(--danger);
+        }
+        .reagent-warning-title { font-family: 'Press Start 2P', monospace; font-size: 7px; letter-spacing: 0.1em; color: var(--danger); margin-bottom: 6px; }
+        .reagent-rxn-list { display: flex; flex-direction: column; gap: 12px; }
+        .reagent-rxn-item {
+            background: var(--bg-card2); padding: 12px 14px;
+            display: flex; flex-direction: column; gap: 4px;
+            box-shadow: 0 -2px 0 0 var(--border), 0 2px 0 0 var(--border), -2px 0 0 0 var(--border), 2px 0 0 0 var(--border);
+        }
+        .reagent-rxn-equation { font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 500; color: var(--text); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 4px; }
+        .reagent-rxn-arrow { font-family: 'VT323', monospace; color: var(--neon); margin: 0 4px; font-size: 16px; text-shadow: 0 0 6px var(--neon); }
+        .reagent-rxn-note { font-family: 'DM Sans', sans-serif; font-size: 11px; color: var(--muted); line-height: 1.4; margin-top: 2px; }
+        .reagent-drawer-backdrop { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); z-index: 390; }
+        .reagent-drawer-backdrop.open { display: block; }
+
+        /* ── MECHANISM POPUP ── */
+        .mech-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.88); backdrop-filter: blur(8px); z-index: 500; align-items: center; justify-content: center; padding: 24px; }
+        .mech-overlay.open { display: flex; animation: fadeIn 0.2s ease; }
+        .mech-modal {
+            background: var(--bg-card); width: 100%; max-width: 820px;
+            max-height: 88vh; overflow-y: auto; position: relative;
+            animation: slideUp 0.25s ease;
+            box-shadow: 0 -4px 0 0 var(--neon), 0 4px 0 0 var(--neon), -4px 0 0 0 var(--neon), 4px 0 0 0 var(--neon), 0 0 40px color-mix(in oklab, var(--neon) 15%, transparent);
+        }
+        .mech-modal-header {
+            padding: 28px 32px 20px; border-bottom: 2px solid var(--border);
+            display: flex; align-items: flex-start; justify-content: space-between; gap: 16px;
+        }
+        .mech-modal-title { font-family: 'Fraunces', serif; font-size: 1.6rem; font-weight: 300; color: var(--neon); text-shadow: 0 0 10px color-mix(in oklab, var(--neon) 30%, transparent); }
+        .mech-modal-tag { font-family: 'Press Start 2P', monospace; font-size: 7px; letter-spacing: 0.1em; color: var(--muted); margin-top: 4px; }
+        .mech-modal-close {
+            background: var(--bg-card2); border: none; width: 32px; height: 32px;
+            flex-shrink: 0; display: flex; align-items: center; justify-content: center;
+            color: var(--muted); cursor: pointer; font-size: 14px; transition: all 0.2s;
+            box-shadow: 0 -2px 0 0 var(--border), 0 2px 0 0 var(--border), -2px 0 0 0 var(--border), 2px 0 0 0 var(--border);
+        }
+        .mech-modal-close:hover { color: var(--danger); box-shadow: 0 -2px 0 0 var(--danger), 0 2px 0 0 var(--danger), -2px 0 0 0 var(--danger), 2px 0 0 0 var(--danger); }
+        .mech-modal-body { padding: 28px 32px; display: flex; flex-direction: column; gap: 24px; }
+        .mech-overview {
+            font-family: 'DM Sans', sans-serif; font-size: 13px; color: var(--prose);
+            line-height: 1.75; padding: 16px 20px; background: var(--bg-card2);
+            border-left: 4px solid var(--accent);
+        }
+        .mech-steps { display: flex; flex-direction: column; gap: 12px; }
+        .mech-step {
+            background: var(--bg-card2); overflow: hidden;
+            box-shadow: 0 -3px 0 0 var(--border), 0 3px 0 0 var(--border), -3px 0 0 0 var(--border), 3px 0 0 0 var(--border);
+        }
+        .mech-step-header { padding: 14px 18px; display: flex; align-items: center; gap: 12px; cursor: pointer; transition: background 0.2s; }
+        .mech-step-header:hover { background: rgba(255,255,255,0.03); }
+        .mech-step-num {
+            width: 26px; height: 26px; display: flex; align-items: center;
+            justify-content: center; font-family: 'Press Start 2P', monospace;
+            font-size: 8px; color: var(--muted); flex-shrink: 0;
+            box-shadow: 0 -2px 0 0 var(--border), 0 2px 0 0 var(--border), -2px 0 0 0 var(--border), 2px 0 0 0 var(--border);
+        }
+        .mech-step.open .mech-step-num { box-shadow: 0 -2px 0 0 var(--neon), 0 2px 0 0 var(--neon), -2px 0 0 0 var(--neon), 2px 0 0 0 var(--neon); color: var(--neon); }
+        .mech-step-title { font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500; color: var(--text); }
+        .mech-step-chevron { margin-left: auto; color: var(--muted); font-size: 11px; transition: transform 0.2s; }
+        .mech-step.open .mech-step-chevron { transform: rotate(180deg); color: var(--neon); }
+        .mech-step-body { display: none; border-top: 2px solid var(--border); padding: 16px 18px; font-family: 'DM Sans', sans-serif; font-size: 13px; color: var(--prose); line-height: 1.7; }
+        .mech-step.open .mech-step-body { display: block; }
+        .mech-step-body .ht { color: var(--neon); font-weight: 500; }
+        .mech-step-body .intuition { margin-top: 10px; padding: 10px 14px; background: var(--bg); border-left: 3px solid var(--accent); font-size: 12px; color: var(--muted); font-style: italic; }
+
+        /* ── ANIMATIONS ── */
+        @keyframes fadeUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes flicker { 0%, 100% { opacity: 1; } 50% { opacity: 0.82; } }
+
+        @media (max-width: 680px) { .structure-grid { grid-template-columns: repeat(2, 1fr); } }
+        @media (max-width: 420px) { .structure-grid { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+
+<!-- SCREEN 1: SHHHH -->
+<div id="screen-shh" class="screen active">
+    <p class="shh-tag">// classified</p>
+    <div class="shh-word">shhh.</div>
+    <p class="shh-sub">There's something hidden in this lesson. Don't worry — even if you haven't seen all of this before, give it a shot. You might surprise yourself.</p>
+    <button class="shh-btn" onclick="goToObjective()">what is it &#x2192;</button>
+    <span class="shh-skip" onclick="goToBeginner()">I'm just starting out, skip this</span>
+</div>
+
+<!-- SCREEN 2: OBJECTIVE -->
+<div id="screen-objective" class="screen">
+    <p class="obj-tag">// YOUR MISSION</p>
+    <div class="obj-lock">&#x1F512;</div>
+    <h1 class="obj-title">Unlock the <em>Reduction Manual</em></h1>
+    <p class="obj-desc">The full reduction blueprint — every reagent, every substrate, every selectivity rule — is locked. Identify the functional groups below and you unlock the sections you know. Don't worry if some look unfamiliar — give it your best shot and we'll fill in the gaps on the spot.</p>
+    <div class="obj-actions">
+        <button class="btn-primary" onclick="goToExercise()">I'M READY &#x2192;</button>
+        <button class="btn-ghost" onclick="goToBeginner()">SKIP — TAKE ME TO BASICS</button>
+    </div>
+</div>
+
+<!-- SCREEN 3: EXERCISE -->
+<div id="screen-exercise" class="screen">
+    <p class="ex-tag">// FUNCTIONAL GROUP IDENTIFICATION</p>
+    <h2 class="ex-title">Name the <em>structures</em></h2>
+    <p class="ex-desc">Drag the correct name onto each structure. You've seen some of these already — others might be new. That's completely fine. Give it your best shot, and anything you miss we'll walk you through right after.</p>
+    <div class="ex-skip-bar">
+        <span class="shh-skip" onclick="goToBeginner()" style="opacity:1;">this is too much — take me to basics</span>
+    </div>
+    <div class="name-bank" id="name-bank">
+        <div class="name-tag" draggable="true" data-name="Epoxide">Epoxide</div>
+        <div class="name-tag" draggable="true" data-name="Aldehyde">Aldehyde</div>
+        <div class="name-tag" draggable="true" data-name="Anhydride">Anhydride</div>
+        <div class="name-tag" draggable="true" data-name="Ketone">Ketone</div>
+        <div class="name-tag" draggable="true" data-name="Acyl chloride">Acyl chloride</div>
+        <div class="name-tag" draggable="true" data-name="Lactone">Lactone</div>
+        <div class="name-tag" draggable="true" data-name="Carboxylic acid">Carboxylic acid</div>
+        <div class="name-tag" draggable="true" data-name="Alkene">Alkene</div>
+        <div class="name-tag" draggable="true" data-name="Ester">Ester</div>
+    </div>
+
+    <div class="structure-grid" id="structure-grid">
+        <!-- 1. Carboxylic acid -->
+        <div class="structure-card" data-correct="Carboxylic acid">
+            <div class="structure-svg-wrap">
+                <svg viewBox="0 0 150 110" width="150" xmlns="http://www.w3.org/2000/svg">
+                    <text x="8" y="52" fill="#888" font-family="monospace" font-size="14">R</text>
+                    <line x1="20" y1="48" x2="38" y2="48" stroke="#888" stroke-width="1.8"/>
+                    <text x="40" y="52" fill="#c8b89a" font-family="monospace" font-size="14">C</text>
+                    <line x1="50" y1="44" x2="72" y2="44" stroke="#e07070" stroke-width="2"/>
+                    <line x1="50" y1="50" x2="72" y2="50" stroke="#e07070" stroke-width="2"/>
+                    <text x="74" y="52" fill="#e07070" font-family="monospace" font-size="14">O</text>
+                    <line x1="44" y1="54" x2="44" y2="72" stroke="#888" stroke-width="1.8"/>
+                    <text x="36" y="85" fill="#e07070" font-family="monospace" font-size="13">OH</text>
+                </svg>
+            </div>
+            <div class="structure-drop" data-slot="0"><span class="placeholder">drop name here</span></div>
+        </div>
+        <!-- 2. Ester -->
+        <div class="structure-card" data-correct="Ester">
+            <div class="structure-svg-wrap">
+                <svg viewBox="0 0 170 110" width="160" xmlns="http://www.w3.org/2000/svg">
+                    <text x="8" y="52" fill="#888" font-family="monospace" font-size="14">R</text>
+                    <line x1="20" y1="48" x2="38" y2="48" stroke="#888" stroke-width="1.8"/>
+                    <text x="40" y="52" fill="#c8b89a" font-family="monospace" font-size="14">C</text>
+                    <line x1="50" y1="44" x2="72" y2="44" stroke="#e07070" stroke-width="2"/>
+                    <line x1="50" y1="50" x2="72" y2="50" stroke="#e07070" stroke-width="2"/>
+                    <text x="74" y="52" fill="#e07070" font-family="monospace" font-size="14">O</text>
+                    <line x1="44" y1="54" x2="44" y2="72" stroke="#888" stroke-width="1.8"/>
+                    <text x="36" y="85" fill="#e07070" font-family="monospace" font-size="13">O</text>
+                    <line x1="48" y1="81" x2="66" y2="81" stroke="#888" stroke-width="1.8"/>
+                    <text x="68" y="85" fill="#888" font-family="monospace" font-size="13">R'</text>
+                </svg>
+            </div>
+            <div class="structure-drop" data-slot="1"><span class="placeholder">drop name here</span></div>
+        </div>
+        <!-- 3. Acyl chloride -->
+        <div class="structure-card" data-correct="Acyl chloride">
+            <div class="structure-svg-wrap">
+                <svg viewBox="0 0 150 110" width="150" xmlns="http://www.w3.org/2000/svg">
+                    <text x="8" y="52" fill="#888" font-family="monospace" font-size="14">R</text>
+                    <line x1="20" y1="48" x2="38" y2="48" stroke="#888" stroke-width="1.8"/>
+                    <text x="40" y="52" fill="#c8b89a" font-family="monospace" font-size="14">C</text>
+                    <line x1="50" y1="44" x2="72" y2="44" stroke="#e07070" stroke-width="2"/>
+                    <line x1="50" y1="50" x2="72" y2="50" stroke="#e07070" stroke-width="2"/>
+                    <text x="74" y="52" fill="#e07070" font-family="monospace" font-size="14">O</text>
+                    <line x1="44" y1="54" x2="44" y2="72" stroke="#888" stroke-width="1.8"/>
+                    <text x="36" y="85" fill="#7ec8a4" font-family="monospace" font-size="13">Cl</text>
+                </svg>
+            </div>
+            <div class="structure-drop" data-slot="2"><span class="placeholder">drop name here</span></div>
+        </div>
+        <!-- 4. Anhydride -->
+        <div class="structure-card" data-correct="Anhydride">
+            <div class="structure-svg-wrap">
+                <svg viewBox="0 0 200 75" width="190" xmlns="http://www.w3.org/2000/svg">
+                    <text x="4" y="50" fill="#888" font-family="monospace" font-size="14">R</text>
+                    <line x1="16" y1="46" x2="32" y2="46" stroke="#888" stroke-width="1.8"/>
+                    <text x="34" y="50" fill="#c8b89a" font-family="monospace" font-size="14">C</text>
+                    <line x1="37" y1="34" x2="37" y2="18" stroke="#e07070" stroke-width="2"/>
+                    <line x1="43" y1="34" x2="43" y2="18" stroke="#e07070" stroke-width="2"/>
+                    <text x="37" y="14" fill="#e07070" font-family="monospace" font-size="13">O</text>
+                    <line x1="46" y1="46" x2="62" y2="46" stroke="#888" stroke-width="1.8"/>
+                    <text x="64" y="50" fill="#e07070" font-family="monospace" font-size="14">O</text>
+                    <line x1="76" y1="46" x2="92" y2="46" stroke="#888" stroke-width="1.8"/>
+                    <text x="94" y="50" fill="#c8b89a" font-family="monospace" font-size="14">C</text>
+                    <line x1="97" y1="34" x2="97" y2="18" stroke="#e07070" stroke-width="2"/>
+                    <line x1="103" y1="34" x2="103" y2="18" stroke="#e07070" stroke-width="2"/>
+                    <text x="97" y="14" fill="#e07070" font-family="monospace" font-size="13">O</text>
+                    <line x1="106" y1="46" x2="122" y2="46" stroke="#888" stroke-width="1.8"/>
+                    <text x="124" y="50" fill="#888" font-family="monospace" font-size="14">R'</text>
+                </svg>
+            </div>
+            <div class="structure-drop" data-slot="3"><span class="placeholder">drop name here</span></div>
+        </div>
+        <!-- 5. Lactone -->
+        <div class="structure-card" data-correct="Lactone">
+            <div class="structure-svg-wrap">
+                <svg viewBox="0 0 160 140" width="145" xmlns="http://www.w3.org/2000/svg">
+                    <line x1="80" y1="36" x2="120" y2="62" stroke="#888" stroke-width="1.8"/>
+                    <line x1="120" y1="62" x2="120" y2="102" stroke="#888" stroke-width="1.8"/>
+                    <line x1="120" y1="102" x2="80" y2="126" stroke="#888" stroke-width="1.8"/>
+                    <line x1="80" y1="126" x2="40" y2="102" stroke="#888" stroke-width="1.8"/>
+                    <line x1="40" y1="102" x2="40" y2="72" stroke="#888" stroke-width="1.8"/>
+                    <line x1="48" y1="57" x2="80" y2="36" stroke="#888" stroke-width="1.8"/>
+                    <line x1="77" y1="36" x2="77" y2="18" stroke="#e07070" stroke-width="2"/>
+                    <line x1="83" y1="36" x2="83" y2="18" stroke="#e07070" stroke-width="2"/>
+                    <text x="75" y="14" fill="#e07070" font-family="monospace" font-size="14">O</text>
+                    <text x="35" y="67" fill="#e07070" font-family="monospace" font-size="14">O</text>
+                </svg>
+            </div>
+            <div class="structure-drop" data-slot="4"><span class="placeholder">drop name here</span></div>
+        </div>
+        <!-- 6. Epoxide -->
+        <div class="structure-card" data-correct="Epoxide">
+            <div class="structure-svg-wrap">
+                <svg viewBox="0 0 170 110" width="155" xmlns="http://www.w3.org/2000/svg">
+                    <text x="38" y="72" fill="#c8b89a" font-family="monospace" font-size="14">C</text>
+                    <line x1="48" y1="68" x2="104" y2="68" stroke="#888" stroke-width="1.8"/>
+                    <text x="106" y="72" fill="#c8b89a" font-family="monospace" font-size="14">C</text>
+                    <text x="70" y="32" fill="#e07070" font-family="monospace" font-size="14">O</text>
+                    <line x1="46" y1="64" x2="71" y2="38" stroke="#e07070" stroke-width="1.8"/>
+                    <line x1="106" y1="64" x2="81" y2="38" stroke="#e07070" stroke-width="1.8"/>
+                    <text x="14" y="72" fill="#888" font-family="monospace" font-size="13">R</text>
+                    <line x1="24" y1="68" x2="38" y2="68" stroke="#888" stroke-width="1.5"/>
+                    <text x="124" y="72" fill="#888" font-family="monospace" font-size="13">R'</text>
+                    <line x1="120" y1="68" x2="124" y2="68" stroke="#888" stroke-width="1.5"/>
+                </svg>
+            </div>
+            <div class="structure-drop" data-slot="5"><span class="placeholder">drop name here</span></div>
+        </div>
+        <!-- 7. Alkene -->
+        <div class="structure-card" data-correct="Alkene">
+            <div class="structure-svg-wrap">
+                <svg viewBox="0 0 180 80" width="165" xmlns="http://www.w3.org/2000/svg">
+                    <text x="8" y="48" fill="#888" font-family="monospace" font-size="14">R</text>
+                    <line x1="20" y1="44" x2="38" y2="44" stroke="#888" stroke-width="1.8"/>
+                    <text x="40" y="48" fill="#c8b89a" font-family="monospace" font-size="14">C</text>
+                    <line x1="50" y1="40" x2="78" y2="40" stroke="#c8b89a" stroke-width="2.2"/>
+                    <line x1="50" y1="47" x2="78" y2="47" stroke="#c8b89a" stroke-width="2.2"/>
+                    <text x="80" y="48" fill="#c8b89a" font-family="monospace" font-size="14">C</text>
+                    <line x1="90" y1="44" x2="108" y2="44" stroke="#888" stroke-width="1.8"/>
+                    <text x="110" y="48" fill="#888" font-family="monospace" font-size="14">R'</text>
+                </svg>
+            </div>
+            <div class="structure-drop" data-slot="6"><span class="placeholder">drop name here</span></div>
+        </div>
+        <!-- 8. Aldehyde -->
+        <div class="structure-card" data-correct="Aldehyde">
+            <div class="structure-svg-wrap">
+                <svg viewBox="0 0 150 110" width="140" xmlns="http://www.w3.org/2000/svg">
+                    <text x="8" y="52" fill="#888" font-family="monospace" font-size="14">R</text>
+                    <line x1="20" y1="48" x2="38" y2="48" stroke="#888" stroke-width="1.8"/>
+                    <text x="40" y="52" fill="#c8b89a" font-family="monospace" font-size="14">C</text>
+                    <line x1="50" y1="44" x2="72" y2="44" stroke="#e07070" stroke-width="2.2"/>
+                    <line x1="50" y1="50" x2="72" y2="50" stroke="#e07070" stroke-width="2.2"/>
+                    <text x="74" y="52" fill="#e07070" font-family="monospace" font-size="14">O</text>
+                    <line x1="44" y1="54" x2="44" y2="72" stroke="#888" stroke-width="1.8"/>
+                    <text x="38" y="84" fill="#888" font-family="monospace" font-size="13">H</text>
+                </svg>
+            </div>
+            <div class="structure-drop" data-slot="7"><span class="placeholder">drop name here</span></div>
+        </div>
+        <!-- 9. Ketone -->
+        <div class="structure-card" data-correct="Ketone">
+            <div class="structure-svg-wrap">
+                <svg viewBox="0 0 190 80" width="170" xmlns="http://www.w3.org/2000/svg">
+                    <text x="8" y="48" fill="#888" font-family="monospace" font-size="14">R</text>
+                    <line x1="20" y1="44" x2="38" y2="44" stroke="#888" stroke-width="1.8"/>
+                    <text x="40" y="48" fill="#c8b89a" font-family="monospace" font-size="14">C</text>
+                    <line x1="44" y1="36" x2="44" y2="16" stroke="#e07070" stroke-width="2.2"/>
+                    <line x1="50" y1="36" x2="50" y2="16" stroke="#e07070" stroke-width="2.2"/>
+                    <text x="42" y="12" fill="#e07070" font-family="monospace" font-size="14">O</text>
+                    <line x1="52" y1="44" x2="70" y2="44" stroke="#888" stroke-width="1.8"/>
+                    <text x="72" y="48" fill="#888" font-family="monospace" font-size="14">R'</text>
+                </svg>
+            </div>
+            <div class="structure-drop" data-slot="8"><span class="placeholder">drop name here</span></div>
+        </div>
+    </div>
+
+    <div class="ex-actions">
+        <button class="btn-primary" onclick="submitExercise()">CHECK ANSWERS</button>
+        <button class="btn-ghost" onclick="resetExercise()">RESET</button>
+    </div>
+</div>
+
+<!-- SCREEN 4: RESULT -->
+<div id="screen-result" class="screen">
+    <p class="ex-tag">// RESULTS</p>
+    <div class="result-score" id="result-score">0/9</div>
+    <p class="result-label">functional groups identified</p>
+    <p class="result-msg" id="result-msg"></p>
+    <div class="result-unlocked" id="result-chips"></div>
+    <button class="btn-primary" onclick="goToManual()">UNLOCK THE REDUCTION MANUAL &#x2192;</button>
+</div>
+
+<!-- SCREEN 5: BEGINNER -->
+<div id="screen-beginner" class="screen">
+    <div class="beg-icon">&#x1F4D6;</div>
+    <h2 class="beg-title">No worries — <em>let's start fresh</em></h2>
+    <p class="beg-text">The full reduction manual covers reagents and substrates you haven't met yet. We'll start with what you know — carbonyls — and build from there. You can always come back and unlock more later.</p>
+    <button class="btn-primary" onclick="goToManual()">TAKE ME TO REDUCTION &#x2192;</button>
+</div>
+
+<!-- SCREEN 6: REDUCTION MANUAL -->
+<div id="screen-manual" class="screen">
+    <div class="manual-header">
+        <div>
+            <h1 class="manual-title">The Reduction Manual</h1>
+            <p class="manual-subtitle">Click any functional group to explore its pathways. Click any reagent pill to see all its reactions.</p>
+        </div>
+        <button class="btn-ghost" onclick="showScreen('screen-result')">&#x2190; BACK TO RESULTS</button>
+    </div>
+    <div class="manual-layout">
+        <div>
+            <div class="sandbox-container">
+                <div class="sandbox-title">// REACTION SANDBOX</div>
+                <div class="sandbox-rows" id="sandbox-rows">
+                    <div class="sandbox-row">
+                        <div class="sandbox-node reactant">Select a substrate</div>
+                    </div>
+                </div>
+            </div>
+            <div class="roadmap-container">
+                <div class="roadmap-section-title">// SUBSTRATES &amp; FUNCTIONAL GROUPS</div>
+                <div class="roadmap-grid">
+                    <div class="roadmap-card" onclick="selectManualNode('Acyl chloride')" id="node-acyl-chloride"><div class="roadmap-card-name">Acyl chloride</div><div class="roadmap-card-formula">R–COCl</div></div>
+                    <div class="roadmap-card" onclick="selectManualNode('Anhydride')" id="node-anhydride"><div class="roadmap-card-name">Anhydride</div><div class="roadmap-card-formula">R–CO–O–CO–R'</div></div>
+                    <div class="roadmap-card" onclick="selectManualNode('Ester')" id="node-ester"><div class="roadmap-card-name">Ester</div><div class="roadmap-card-formula">R–COOR'</div></div>
+                    <div class="roadmap-card" onclick="selectManualNode('Lactone')" id="node-lactone"><div class="roadmap-card-name">Lactone</div><div class="roadmap-card-formula">Cyclic ester</div></div>
+                    <div class="roadmap-card" onclick="selectManualNode('Epoxide')" id="node-epoxide"><div class="roadmap-card-name">Epoxide</div><div class="roadmap-card-formula">Three-membered O-ring</div></div>
+                    <div class="roadmap-card" onclick="selectManualNode('Carboxylic acid')" id="node-carboxylic-acid"><div class="roadmap-card-name">Carboxylic acid</div><div class="roadmap-card-formula">R–COOH</div></div>
+                    <div class="roadmap-card" onclick="selectManualNode('Aldehyde / Ketone')" id="node-aldehyde-ketone"><div class="roadmap-card-name">Aldehyde / Ketone</div><div class="roadmap-card-formula">R–CHO / R–CO–R'</div></div>
+                    <div class="roadmap-card" onclick="selectManualNode('Amide')" id="node-amide"><div class="roadmap-card-name">Amide</div><div class="roadmap-card-formula">R–CONR₂</div></div>
+                </div>
+            </div>
+        </div>
+        <div class="explorer-panel" id="manual-explorer-panel">
+            <div class="explorer-placeholder" id="explorer-placeholder">
+                <div class="explorer-placeholder-icon">&#x1F5FA;&#xFE0F;</div>
+                <div class="explorer-placeholder-text">Select any functional group to explore its reduction pathways. Click any reagent pill to see all its reactions.</div>
+            </div>
+            <div class="explorer-content" id="explorer-content" style="display:none;">
+                <div class="explorer-group-header">
+                    <div class="explorer-group-name" id="exp-name"></div>
+                    <div class="explorer-group-formula" id="exp-formula"></div>
+                </div>
+                <div>
+                    <div class="explorer-section-title">// REDUCTION PATHWAYS</div>
+                    <div class="explorer-pathways" id="exp-pathways"></div>
+                </div>
+                <div id="exp-wont-work-section" style="display:none;">
+                    <div class="explorer-section-title" style="margin-top:8px;">// WON'T WORK</div>
+                    <div class="wont-work-row" id="exp-wont-work-pills"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- REAGENT DRAWER BACKDROP -->
+<div class="reagent-drawer-backdrop" id="reagent-backdrop" onclick="closeReagentDrawer()"></div>
+<div class="reagent-drawer" id="reagent-drawer">
+    <button class="reagent-drawer-close" onclick="closeReagentDrawer()">&#x2715;</button>
+    <h2 class="reagent-drawer-title" id="reagent-title"></h2>
+    <div class="reagent-drawer-type" id="reagent-type"></div>
+    <div id="reagent-warnings"></div>
+    <div class="explorer-section-title">// REACTIONS INDEX</div>
+    <div class="reagent-rxn-list" id="reagent-rxn-list"></div>
+</div>
+
+<!-- MECHANISM POPUP -->
+<div class="mech-overlay" id="mech-overlay">
+    <div class="mech-modal">
+        <div class="mech-modal-header">
+            <div>
+                <div class="mech-modal-title" id="mech-title"></div>
+                <div class="mech-modal-tag" id="mech-tag"></div>
+            </div>
+            <button class="mech-modal-close" onclick="closeMechModal()">&#x2715;</button>
+        </div>
+        <div class="mech-modal-body">
+            <div class="mech-overview" id="mech-overview"></div>
+            <div class="mech-steps" id="mech-steps"></div>
+        </div>
+    </div>
+</div>
+
+<!-- LEARN POPUP -->
+<div class="learn-overlay" id="learn-overlay">
+    <div class="learn-modal">
+        <button class="learn-close" onclick="closeLearnModal()">&#x2715;</button>
+        <div class="learn-svg-wrap" id="learn-svg"></div>
+        <p class="learn-name" id="learn-name"></p>
+        <p class="learn-tag" id="learn-tag"></p>
+        <p class="learn-counter" id="learn-counter"></p>
+        <p class="learn-text" id="learn-text"></p>
+        <div class="learn-nav">
+            <button class="btn-ghost" id="learn-prev-btn" onclick="learnNav(-1)">&#x2190; PREV</button>
+            <button class="btn-primary" id="learn-next-btn" onclick="learnNav(1)">NEXT &#x2192;</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    var draggedName = null;
+    var draggedEl = null;
+    var slotState = {};
+    var wrongGroups = [];
+    var learnIndex = 0;
+
+    var groupData = {
+        'Carboxylic acid': { tag: 'R–COOH', intro: 'A carboxylic acid has a carbonyl (C=O) and a hydroxyl (–OH) both on the same carbon. This makes the OH proton quite acidic. LiAlH₄ takes it all the way down to a primary alcohol.', svgKey: 0 },
+        'Ester': { tag: 'R–COO–R\'', intro: 'An ester replaces the –OH of a carboxylic acid with –OR\'. LiAlH₄ reduces esters to two alcohols; NaBH₄ does not touch them under normal conditions.', svgKey: 1 },
+        'Acyl chloride': { tag: 'R–COCl', intro: 'The most reactive carbonyl derivative. Chlorine is an excellent leaving group. In reduction, taken down to aldehydes (Rosenmund) or primary alcohols (LiAlH₄).', svgKey: 2 },
+        'Anhydride': { tag: 'R–CO–O–CO–R\'', intro: 'Two carboxylic acids joined by loss of water. Two carbonyl groups flanking a central oxygen. Reduced by all standard reagents to primary alcohols.', svgKey: 3 },
+        'Lactone': { tag: 'Cyclic ester', intro: 'A cyclic ester — the –OH and the C=O are part of the same ring. LiAlH₄ opens the ring and reduces it to a diol. Vitamin C contains a lactone ring.', svgKey: 4 },
+        'Epoxide': { tag: 'Three-membered O-containing ring', intro: 'A three-membered ring with one oxygen. Ring strain makes it highly reactive. LiAlH₄ opens the ring to give an alcohol.', svgKey: 5 },
+        'Alkene': { tag: 'C=C double bond', intro: 'NaBH₄ and LiAlH₄ do not reduce C=C. They are reduced by H₂ over a metal catalyst. This selectivity is critical in the reduction manual.', svgKey: 6 },
+        'Aldehyde': { tag: 'R–CHO', intro: 'Carbonyl at the end of a chain with one H. More reactive than ketones. Both LiAlH₄ and NaBH₄ reduce aldehydes to primary alcohols.', svgKey: 7 },
+        'Ketone': { tag: 'R–CO–R\'', intro: 'Carbonyl flanked by two carbon groups. Both LiAlH₄ and NaBH₄ reduce ketones to secondary alcohols.', svgKey: 8 }
+    };
+
+    var learnSVGs = [
+        '<svg viewBox="0 0 150 110" width="130" xmlns="http://www.w3.org/2000/svg"><text x="8" y="52" fill="#888" font-family="monospace" font-size="14">R</text><line x1="20" y1="48" x2="38" y2="48" stroke="#888" stroke-width="1.8"/><text x="40" y="52" fill="#c8b89a" font-family="monospace" font-size="14">C</text><line x1="50" y1="44" x2="72" y2="44" stroke="#e07070" stroke-width="2"/><line x1="50" y1="50" x2="72" y2="50" stroke="#e07070" stroke-width="2"/><text x="74" y="52" fill="#e07070" font-family="monospace" font-size="14">O</text><line x1="44" y1="54" x2="44" y2="72" stroke="#888" stroke-width="1.8"/><text x="36" y="85" fill="#e07070" font-family="monospace" font-size="13">OH</text></svg>',
+        '<svg viewBox="0 0 170 110" width="150" xmlns="http://www.w3.org/2000/svg"><text x="8" y="52" fill="#888" font-family="monospace" font-size="14">R</text><line x1="20" y1="48" x2="38" y2="48" stroke="#888" stroke-width="1.8"/><text x="40" y="52" fill="#c8b89a" font-family="monospace" font-size="14">C</text><line x1="50" y1="44" x2="72" y2="44" stroke="#e07070" stroke-width="2"/><line x1="50" y1="50" x2="72" y2="50" stroke="#e07070" stroke-width="2"/><text x="74" y="52" fill="#e07070" font-family="monospace" font-size="14">O</text><line x1="44" y1="54" x2="44" y2="72" stroke="#888" stroke-width="1.8"/><text x="36" y="85" fill="#e07070" font-family="monospace" font-size="13">O</text><line x1="48" y1="81" x2="66" y2="81" stroke="#888" stroke-width="1.8"/><text x="68" y="85" fill="#888" font-family="monospace" font-size="13">R\'</text></svg>',
+        '<svg viewBox="0 0 150 110" width="130" xmlns="http://www.w3.org/2000/svg"><text x="8" y="52" fill="#888" font-family="monospace" font-size="14">R</text><line x1="20" y1="48" x2="38" y2="48" stroke="#888" stroke-width="1.8"/><text x="40" y="52" fill="#c8b89a" font-family="monospace" font-size="14">C</text><line x1="50" y1="44" x2="72" y2="44" stroke="#e07070" stroke-width="2"/><line x1="50" y1="50" x2="72" y2="50" stroke="#e07070" stroke-width="2"/><text x="74" y="52" fill="#e07070" font-family="monospace" font-size="14">O</text><line x1="44" y1="54" x2="44" y2="72" stroke="#888" stroke-width="1.8"/><text x="36" y="85" fill="#7ec8a4" font-family="monospace" font-size="13">Cl</text></svg>',
+        '<svg viewBox="0 0 200 75" width="180" xmlns="http://www.w3.org/2000/svg"><text x="4" y="50" fill="#888" font-family="monospace" font-size="14">R</text><line x1="16" y1="46" x2="32" y2="46" stroke="#888" stroke-width="1.8"/><text x="34" y="50" fill="#c8b89a" font-family="monospace" font-size="14">C</text><line x1="37" y1="34" x2="37" y2="18" stroke="#e07070" stroke-width="2"/><line x1="43" y1="34" x2="43" y2="18" stroke="#e07070" stroke-width="2"/><text x="37" y="14" fill="#e07070" font-family="monospace" font-size="13">O</text><line x1="46" y1="46" x2="62" y2="46" stroke="#888" stroke-width="1.8"/><text x="64" y="50" fill="#e07070" font-family="monospace" font-size="14">O</text><line x1="76" y1="46" x2="92" y2="46" stroke="#888" stroke-width="1.8"/><text x="94" y="50" fill="#c8b89a" font-family="monospace" font-size="14">C</text><line x1="97" y1="34" x2="97" y2="18" stroke="#e07070" stroke-width="2"/><line x1="103" y1="34" x2="103" y2="18" stroke="#e07070" stroke-width="2"/><text x="97" y="14" fill="#e07070" font-family="monospace" font-size="13">O</text><line x1="106" y1="46" x2="122" y2="46" stroke="#888" stroke-width="1.8"/><text x="124" y="50" fill="#888" font-family="monospace" font-size="14">R\'</text></svg>',
+        '<svg viewBox="0 0 160 140" width="130" xmlns="http://www.w3.org/2000/svg"><line x1="80" y1="36" x2="120" y2="62" stroke="#888" stroke-width="1.8"/><line x1="120" y1="62" x2="120" y2="102" stroke="#888" stroke-width="1.8"/><line x1="120" y1="102" x2="80" y2="126" stroke="#888" stroke-width="1.8"/><line x1="80" y1="126" x2="40" y2="102" stroke="#888" stroke-width="1.8"/><line x1="40" y1="102" x2="40" y2="72" stroke="#888" stroke-width="1.8"/><line x1="48" y1="57" x2="80" y2="36" stroke="#888" stroke-width="1.8"/><line x1="77" y1="36" x2="77" y2="18" stroke="#e07070" stroke-width="2"/><line x1="83" y1="36" x2="83" y2="18" stroke="#e07070" stroke-width="2"/><text x="75" y="14" fill="#e07070" font-family="monospace" font-size="14">O</text><text x="35" y="67" fill="#e07070" font-family="monospace" font-size="14">O</text></svg>',
+        '<svg viewBox="0 0 170 110" width="145" xmlns="http://www.w3.org/2000/svg"><text x="38" y="72" fill="#c8b89a" font-family="monospace" font-size="14">C</text><line x1="48" y1="68" x2="104" y2="68" stroke="#888" stroke-width="1.8"/><text x="106" y="72" fill="#c8b89a" font-family="monospace" font-size="14">C</text><text x="70" y="32" fill="#e07070" font-family="monospace" font-size="14">O</text><line x1="46" y1="64" x2="71" y2="38" stroke="#e07070" stroke-width="1.8"/><line x1="106" y1="64" x2="81" y2="38" stroke="#e07070" stroke-width="1.8"/><text x="14" y="72" fill="#888" font-family="monospace" font-size="13">R</text><line x1="24" y1="68" x2="38" y2="68" stroke="#888" stroke-width="1.5"/><text x="124" y="72" fill="#888" font-family="monospace" font-size="13">R\'</text><line x1="120" y1="68" x2="124" y2="68" stroke="#888" stroke-width="1.5"/></svg>',
+        '<svg viewBox="0 0 180 80" width="155" xmlns="http://www.w3.org/2000/svg"><text x="8" y="48" fill="#888" font-family="monospace" font-size="14">R</text><line x1="20" y1="44" x2="38" y2="44" stroke="#888" stroke-width="1.8"/><text x="40" y="48" fill="#c8b89a" font-family="monospace" font-size="14">C</text><line x1="50" y1="40" x2="78" y2="40" stroke="#c8b89a" stroke-width="2.2"/><line x1="50" y1="47" x2="78" y2="47" stroke="#c8b89a" stroke-width="2.2"/><text x="80" y="48" fill="#c8b89a" font-family="monospace" font-size="14">C</text><line x1="90" y1="44" x2="108" y2="44" stroke="#888" stroke-width="1.8"/><text x="110" y="48" fill="#888" font-family="monospace" font-size="14">R\'</text></svg>',
+        '<svg viewBox="0 0 150 110" width="130" xmlns="http://www.w3.org/2000/svg"><text x="8" y="52" fill="#888" font-family="monospace" font-size="14">R</text><line x1="20" y1="48" x2="38" y2="48" stroke="#888" stroke-width="1.8"/><text x="40" y="52" fill="#c8b89a" font-family="monospace" font-size="14">C</text><line x1="50" y1="44" x2="72" y2="44" stroke="#e07070" stroke-width="2.2"/><line x1="50" y1="50" x2="72" y2="50" stroke="#e07070" stroke-width="2.2"/><text x="74" y="52" fill="#e07070" font-family="monospace" font-size="14">O</text><line x1="44" y1="54" x2="44" y2="72" stroke="#888" stroke-width="1.8"/><text x="38" y="84" fill="#888" font-family="monospace" font-size="13">H</text></svg>',
+        '<svg viewBox="0 0 190 80" width="160" xmlns="http://www.w3.org/2000/svg"><text x="8" y="48" fill="#888" font-family="monospace" font-size="14">R</text><line x1="20" y1="44" x2="38" y2="44" stroke="#888" stroke-width="1.8"/><text x="40" y="48" fill="#c8b89a" font-family="monospace" font-size="14">C</text><line x1="44" y1="36" x2="44" y2="16" stroke="#e07070" stroke-width="2.2"/><line x1="50" y1="36" x2="50" y2="16" stroke="#e07070" stroke-width="2.2"/><text x="42" y="12" fill="#e07070" font-family="monospace" font-size="14">O</text><line x1="52" y1="44" x2="70" y2="44" stroke="#888" stroke-width="1.8"/><text x="72" y="48" fill="#888" font-family="monospace" font-size="14">R\'</text></svg>'
+    ];
+
+    var allGroups = ['Carboxylic acid','Ester','Acyl chloride','Anhydride','Lactone','Epoxide','Alkene','Aldehyde','Ketone'];
+
+    var manualData = {
+        'Acyl chloride': { formula: 'R–COCl', wontWork: ['B<sub>2</sub>H<sub>6</sub>'], pathways: [
+            { target: 'Aldehyde (R–CHO)', reagents: ['H<sub>2</sub> / Pd / BaSO<sub>4</sub>'], note: 'Rosenmund Reduction: poisoned catalyst stops reduction at aldehyde.', mechKey: 'rosenmund' },
+            { target: 'Primary Alcohol (R–CH<sub>2</sub>OH)', reagents: ['LiAlH<sub>4</sub>', 'NaBH<sub>4</sub>'], note: 'Rapid reduction via hydride attack. Most reactive carbonyl derivative.' }
+        ]},
+        'Anhydride': { formula: 'R–CO–O–CO–R\'', wontWork: [], pathways: [
+            { target: 'Primary Alcohol (R–CH<sub>2</sub>OH)', reagents: ['LiAlH<sub>4</sub>', 'NaBH<sub>4</sub>', 'B<sub>2</sub>H<sub>6</sub>', 'H<sub>2</sub> / Pd'], note: 'Anhydrides are reactive and reduced by all standard reagents to primary alcohols.' }
+        ]},
+        'Ester': { formula: 'R–COOR\'', wontWork: ['NaBH<sub>4</sub>'], pathways: [
+            { target: 'Aldehyde (R–CHO)', reagents: ['DIBAL-H'], note: 'Exactly 1 equiv DIBAL-H at −78°C stops cleanly at the aldehyde intermediate.' },
+            { target: 'Primary Alcohol (R–CH<sub>2</sub>OH)', reagents: ['LiAlH<sub>4</sub>', 'B<sub>2</sub>H<sub>6</sub>', 'H<sub>2</sub> / Pt'], note: 'Aggressive reduction breaks the ester bond and reduces both sides to alcohols.' }
+        ]},
+        'Lactone': { formula: 'Cyclic ester', wontWork: ['NaBH<sub>4</sub>'], pathways: [
+            { target: 'Diol (HO–R–OH)', reagents: ['LiAlH<sub>4</sub>'], note: 'LiAlH₄ breaks the cyclic ester ring and reduces both junctions into a diol.' }
+        ]},
+        'Epoxide': { formula: 'Three-membered ring', wontWork: ['NaBH<sub>4</sub>', 'B<sub>2</sub>H<sub>6</sub>'], pathways: [
+            { target: 'Alcohol', reagents: ['LiAlH<sub>4</sub>'], note: 'Hydride attack opens the highly strained ring, yielding the corresponding alcohol.' },
+            { target: 'Aldehyde / Ketone', reagents: ['Lewis Acid'], note: 'Meinwald Rearrangement: Lewis acids trigger isomerisation to carbonyl compounds.', mechKey: 'meinwald' }
+        ]},
+        'Carboxylic acid': { formula: 'R–COOH', wontWork: ['NaBH<sub>4</sub>'], pathways: [
+            { target: 'Primary Alcohol (R–CH<sub>2</sub>OH)', reagents: ['LiAlH<sub>4</sub>', 'B<sub>2</sub>H<sub>6</sub>', 'H<sub>2</sub> / Pd'], note: 'B₂H₆ is exceptionally selective — fast for carboxylic acids while leaving esters untouched.' },
+            { target: 'Alkane (R–CH<sub>3</sub>)', reagents: ['Red P + HI', 'Decarboxylation', 'Kolbe Electrolysis'], note: 'Strong conditions remove the carboxylic group completely.', mechKey: 'decarboxylation' }
+        ]},
+        'Aldehyde / Ketone': { formula: 'R–CHO / R–CO–R\'', wontWork: [], pathways: [
+            { target: 'Alcohol', reagents: ['LiAlH<sub>4</sub>', 'NaBH<sub>4</sub>', 'B<sub>2</sub>H<sub>6</sub>', 'H<sub>2</sub> / Pd'], note: 'Primary alcohols from aldehydes, secondary alcohols from ketones.' },
+            { target: 'Alkane', reagents: ['Wolff-Kishner', 'Clemmensen', 'Red P + HI'], note: 'Carbonyl oxygen completely removed. Wolff-Kishner is basic; Clemmensen is acidic [Zn(Hg) + HCl].', mechKey: 'wolff-kishner' }
+        ]},
+        'Amide': { formula: 'R–CONR<sub>2</sub>', wontWork: ['NaBH<sub>4</sub>', 'B<sub>2</sub>H<sub>6</sub>'], pathways: [
+            { target: 'Amine (R–CH<sub>2</sub>NR<sub>2</sub>)', reagents: ['LiAlH<sub>4</sub>'], note: 'Carbonyl oxygen is completely removed as water, converting the amide into an amine.' }
+        ]}
+    };
+
+    var reagentData = {
+        'LiAlH<sub>4</sub>': { title: 'LiAlH₄', type: '// AGGRESSIVE HYDRIDE DONOR', warnings: ['Cannot reduce C=C unsaturation under normal conditions.', 'Exception: will reduce C=C when a phenyl group is at the β-position.'], reactions: [
+            { from: 'Acyl chloride', to: 'Primary Alcohol', note: 'Exothermic, aggressive.' },
+            { from: 'Anhydride', to: 'Primary Alcohol', note: 'Reduces both flanking carbonyls.' },
+            { from: 'Ester', to: 'Primary Alcohol', note: 'Cleaves C–O bond to yield two alcohols.' },
+            { from: 'Lactone', to: 'Diol', note: 'Opens ring to give diol.' },
+            { from: 'Epoxide', to: 'Alcohol', note: 'Opens ring via nucleophilic hydride.' },
+            { from: 'Carboxylic acid', to: 'Primary Alcohol', note: 'Requires excess due to proton release.' },
+            { from: 'Aldehyde / Ketone', to: 'Alcohol', note: 'Fast, quantitative.' },
+            { from: 'Amide', to: 'Amine', note: 'Removes carbonyl O; keeps N.' }
+        ]},
+        'NaBH<sub>4</sub>': { title: 'NaBH₄', type: '// MILD SELECTIVE HYDRIDE DONOR', warnings: [], reactions: [
+            { from: 'Acyl chloride', to: 'Primary Alcohol', note: 'Reduces without affecting esters or acids.' },
+            { from: 'Anhydride', to: 'Primary Alcohol', note: 'Reduces anhydride groups.' },
+            { from: 'Aldehyde / Ketone', to: 'Alcohol', note: 'Standard benchtop carbonyl reduction.' }
+        ]},
+        'B<sub>2</sub>H<sub>6</sub>': { title: 'B₂H₆ (Diborane)', type: '// SELECTIVE ELECTROPHILIC REDUCER', warnings: ['Cannot reduce acyl chlorides (R–COCl).'], reactions: [
+            { from: 'Carboxylic acid', to: 'Primary Alcohol', note: 'Highly selective. Faster than esters.' },
+            { from: 'Anhydride', to: 'Primary Alcohol', note: 'Reduces cleanly.' },
+            { from: 'Ester', to: 'Primary Alcohol', note: 'Reduces ester groups.' },
+            { from: 'Aldehyde / Ketone', to: 'Alcohol', note: 'Reduces carbonyls.' }
+        ]},
+        'H<sub>2</sub> / Pd / BaSO<sub>4</sub>': { title: 'H₂ / Pd / BaSO₄ (Rosenmund)', type: '// CONTROLLED POISONED HYDROGENATION', warnings: [], reactions: [{ from: 'Acyl chloride', to: 'Aldehyde', note: 'BaSO₄ poisons the Pd to stop at aldehyde.' }], mechKey: 'rosenmund' },
+        'DIBAL-H': { title: 'DIBAL-H', type: '// STERICALLY HINDERED SELECTIVE REDUCER', warnings: [], reactions: [{ from: 'Ester', to: 'Aldehyde', note: '−78°C, 1 equiv. Stops at aldehyde intermediate.' }] },
+        'H<sub>2</sub> / Pd': { title: 'H₂ / Pd', type: '// CATALYTIC HYDROGENATION', warnings: [], reactions: [
+            { from: 'Anhydride', to: 'Primary Alcohol', note: 'Reduces to alcohol.' },
+            { from: 'Carboxylic acid', to: 'Primary Alcohol', note: 'Reduces to alcohol.' },
+            { from: 'Aldehyde / Ketone', to: 'Alcohol', note: 'Standard reduction.' }
+        ]},
+        'H<sub>2</sub> / Pt': { title: 'H₂ / Pt', type: '// HIGH-ACTIVITY HYDROGENATION', warnings: [], reactions: [{ from: 'Ester', to: 'Primary Alcohol', note: 'Complete reduction.' }] },
+        'Red P + HI': { title: 'Red P + HI', type: '// EXTREME DEOXYGENATION', warnings: [], reactions: [
+            { from: 'Carboxylic acid', to: 'Alkane', note: 'Aggressive deoxygenation.' },
+            { from: 'Aldehyde / Ketone', to: 'Alkane', note: 'Converts carbonyl directly to alkane.' }
+        ]},
+        'Decarboxylation': { title: 'Thermal Decarboxylation', type: '// CO₂ ELIMINATION', warnings: [], reactions: [{ from: 'Carboxylic acid', to: 'Alkane', note: 'Soda Lime (NaOH + CaO), heat. Removes CO₂.' }], mechKey: 'decarboxylation' },
+        'Kolbe Electrolysis': { title: 'Kolbe Electrolysis', type: '// ELECTROCHEMICAL DECARBOXYLATIVE DIMERISATION', warnings: [], reactions: [{ from: 'Carboxylic acid', to: 'Alkane (Dimer)', note: 'Electrolysis of carboxylate salt at anode. Decarboxylation + radical dimerisation.' }], mechKey: 'kolbe' },
+        'Wolff-Kishner': { title: 'Wolff-Kishner Reduction', type: '// BASIC CARBONYL DEOXYGENATION', warnings: [], reactions: [{ from: 'Aldehyde / Ketone', to: 'Alkane', note: 'N₂H₄ + KOH in ethylene glycol. Oxygen leaves as N₂.' }], mechKey: 'wolff-kishner' },
+        'Clemmensen': { title: 'Clemmensen Reduction', type: '// ACIDIC CARBONYL DEOXYGENATION', warnings: [], reactions: [{ from: 'Aldehyde / Ketone', to: 'Alkane', note: 'Zn(Hg) + conc. HCl. Acidic conditions.' }], mechKey: 'clemmensen' },
+        'Lewis Acid': { title: 'Lewis Acid Catalyst', type: '// EPOXIDE REARRANGEMENT', warnings: [], reactions: [{ from: 'Epoxide', to: 'Aldehyde / Ketone', note: 'Meinwald Rearrangement. BF₃·OEt₂ triggers ring opening and hydride/alkyl migration.' }], mechKey: 'meinwald' }
+    };
+
+    var mechData = {
+        'rosenmund': {
+            title: 'Rosenmund Reduction',
+            tag: 'Acyl chloride → Aldehyde',
+            overview: 'The Rosenmund reduction converts an acyl chloride to an aldehyde using hydrogen gas over a palladium catalyst that has been deliberately poisoned with barium sulfate. The poison reduces catalytic activity just enough to stop at the aldehyde — without it, the aldehyde would be further reduced to a primary alcohol.',
+            steps: [
+                { title: 'Acyl chloride adsorbs onto Pd surface', body: 'The acyl chloride coordinates to the palladium surface. The C–Cl bond weakens as electrons are drawn into the metal. <span class="ht">Heterogeneous catalysis</span> — everything happens on the metal surface, not in solution.<div class="intuition">Think of the Pd surface as a cutting board. The molecule lays flat, and the weakest bond gets cleaved first.</div>' },
+                { title: 'Oxidative addition: C–Cl bond breaks', body: 'Palladium inserts into the C–Cl bond. The acyl group and chloride are now both bound to Pd. This is <span class="ht">oxidative addition</span> — Pd goes from Pd(0) to Pd(II).<div class="intuition">Pd eats the C–Cl bond the same way it would eat a C–H bond in cross-coupling.</div>' },
+                { title: 'Hydrogen activates on Pd: H₂ dissociates', body: 'H₂ adsorbs onto the Pd surface and dissociates into two Pd–H species. The BaSO₄ poison reduces the number of active Pd sites so this step is slower and more controlled.<div class="intuition">BaSO₄ is like putting a governor on an engine. The reaction can still run, just not at full speed.</div>' },
+                { title: 'Reductive elimination: aldehyde forms', body: 'One of the Pd–H species delivers hydrogen to the acyl carbon. The Pd–C bond breaks and the <span class="ht">aldehyde</span> desorbs from the surface. Pd(0) is regenerated.<div class="intuition">The aldehyde leaves before the second hydrogen can reach it. That is the whole point of using a poisoned catalyst.</div>' }
+            ]
+        },
+        'wolff-kishner': {
+            title: 'Wolff-Kishner Reduction',
+            tag: 'Aldehyde / Ketone → Alkane',
+            overview: 'The Wolff-Kishner reduction completely removes the carbonyl oxygen, replacing C=O with CH₂. It works under strongly basic conditions using hydrazine (N₂H₄) and KOH in a high-boiling solvent like ethylene glycol. The driving force is the extraordinary stability of N₂ gas.',
+            steps: [
+                { title: 'Hydrazone formation: N₂H₄ attacks carbonyl', body: 'The carbonyl carbon is a <span class="ht">electrophile</span> (δ+). The terminal NH₂ of hydrazine is a nucleophile — it attacks the carbon, forming a carbinolamine intermediate. Water is lost to give the <span class="ht">hydrazone</span> (R₂C=N–NH₂).<div class="intuition">The carbonyl swaps its oxygen for nitrogen. This is not the reduction yet — it is just the setup.</div>' },
+                { title: 'Base deprotonates the hydrazone N–H', body: 'KOH deprotonates the N–H of the hydrazone, generating the <span class="ht">hydrazone anion</span> (R₂C=N–NH⁻). This carbanion-like species is highly reactive.<div class="intuition">Think of base as pulling the pin. The anion is now unstable and wants to collapse immediately.</div>' },
+                { title: 'Loss of N₂: carbanion forms', body: 'The hydrazone anion expels N₂ gas in a retro-[1,4] elimination, generating a <span class="ht">carbanion</span> directly on what was the carbonyl carbon. N₂ has a triple bond (945 kJ/mol) — the thermodynamic driving force.<div class="intuition">N₂ is the best leaving group there is. Once the reaction reaches the point where N₂ can leave, there is no going back.</div>' },
+                { title: 'Protonation: alkane forms', body: 'The carbanion picks up a proton from the solvent (ethylene glycol or water) to give the final <span class="ht">alkane</span>. The carbonyl oxygen has been completely replaced by two hydrogens.<div class="intuition">The carbanion is so basic it protonates instantly from solvent. All the hard work was done when N₂ left.</div>' }
+            ]
+        },
+        'clemmensen': {
+            title: 'Clemmensen Reduction',
+            tag: 'Aldehyde / Ketone → Alkane',
+            overview: 'The Clemmensen reduction converts an aldehyde or ketone to an alkane using zinc amalgam [Zn(Hg)] and concentrated HCl. It is the acidic counterpart to the Wolff-Kishner. The reaction occurs on the zinc metal surface.',
+            steps: [
+                { title: 'Carbonyl adsorbs on Zn(Hg) surface', body: 'The carbonyl compound adsorbs onto the zinc amalgam surface. The mercury in the amalgam prevents zinc from dissolving in HCl too quickly. The <span class="ht">C=O bond</span> coordinates to the metal surface through the oxygen.<div class="intuition">Just like Rosenmund, this is a surface reaction. The metal is the stage.</div>' },
+                { title: 'Sequential electron transfer from Zn', body: 'Zinc donates electrons to the carbonyl carbon in two sequential single-electron transfers. This generates a <span class="ht">zinc alkoxide intermediate</span> on the surface. Zn is oxidised to Zn²⁺.<div class="intuition">Zinc is giving away electrons. It is being sacrificed to reduce the carbonyl.</div>' },
+                { title: 'C–O bond cleavage: carbenoid intermediate', body: 'The C–O bond breaks on the zinc surface. A surface-bound <span class="ht">carbenoid species</span> forms — the oxygen leaves as water after picking up protons from HCl.<div class="intuition">Acidic conditions (HCl) are crucial here. The protons protonate the oxygen, making water — an excellent leaving group.</div>' },
+                { title: 'Protonation: alkane released from surface', body: 'The surface-bound carbon species picks up two protons from HCl, releasing the <span class="ht">alkane</span>. The overall transformation: C=O → CH₂, with Zn metal oxidised to Zn²⁺.<div class="intuition">The product just pops off the surface once it is fully protonated. Clemmensen is particularly good for substrates attached to aromatic rings.</div>' }
+            ]
+        },
+        'decarboxylation': {
+            title: 'Thermal Decarboxylation',
+            tag: 'Carboxylic acid → Alkane + CO₂',
+            overview: 'Thermal decarboxylation removes the carboxyl group (–COOH) from a carboxylic acid as CO₂, leaving an alkane. The classic laboratory version uses Soda Lime (NaOH + CaO) and heat.',
+            steps: [
+                { title: 'Soda Lime generates carboxylate salt', body: 'NaOH in Soda Lime deprotonates the carboxylic acid, forming the sodium carboxylate (R–COO⁻ Na⁺). CaO acts as a desiccant. The <span class="ht">carboxylate anion</span> is the actual species that undergoes decarboxylation.<div class="intuition">Deprotonation before heating makes the departure of CO₂ easier.</div>' },
+                { title: 'Pericyclic elimination: CO₂ departs', body: 'On heating, a <span class="ht">cyclic transition state</span> forms where the C–C bond breaks simultaneously with CO₂ departure. This is a retro-[2+2] or retro-ene type process.<div class="intuition">CO₂ is a very stable molecule. The reaction is thermodynamically favourable because you are forming a very stable small molecule.</div>' },
+                { title: 'Carbanion protonates: alkane forms', body: 'The carbanion intermediate picks up a proton to give the <span class="ht">alkane</span>. The net equation: R–COOH → R–H + CO₂.<div class="intuition">COOH leaves as CO₂ gas, and the broken bond picks up a hydrogen. You have essentially just chopped one carbon off the chain.</div>' }
+            ]
+        },
+        'kolbe': {
+            title: 'Kolbe Electrolysis',
+            tag: 'Carboxylic acid → Alkane (Dimer) + CO₂',
+            overview: 'Kolbe electrolysis passes electrical current through an aqueous or methanolic solution of a carboxylate salt. At the anode, the carboxylate is oxidised, loses CO₂, and the resulting carbon radicals dimerize to give an alkane with twice the carbon chain length.',
+            steps: [
+                { title: 'Carboxylate oxidised at anode', body: 'The carboxylate anion (R–COO⁻) migrates to the anode and loses one electron in an <span class="ht">oxidation</span> step: R–COO⁻ → R–COO• (acyloxy radical).<div class="intuition">The anode removes the electron — this is electrochemical oxidation.</div>' },
+                { title: 'Decarboxylation: acyloxy radical loses CO₂', body: 'The acyloxy radical (R–COO•) immediately expels CO₂, generating a <span class="ht">carbon radical</span> (R•).<div class="intuition">Radicals adjacent to carbonyl are destabilised. Losing CO₂ converts a high-energy radical into a more stable one.</div>' },
+                { title: 'Radical dimerisation: alkane forms', body: 'Two carbon radicals (R•) combine to give the <span class="ht">dimer</span> (R–R). The product alkane has twice the carbon count of the original acid minus the carboxyl group.<div class="intuition">Radicals are desperate to pair up. Two radicals finding each other and forming a bond is one of the fastest reactions in chemistry.</div>' }
+            ]
+        },
+        'meinwald': {
+            title: 'Meinwald Rearrangement',
+            tag: 'Epoxide → Aldehyde or Ketone',
+            overview: 'The Meinwald rearrangement isomerises an epoxide to a carbonyl compound (aldehyde or ketone) using a Lewis acid catalyst such as BF₃·OEt₂. The regioselectivity depends on which carbon of the epoxide undergoes the 1,2-hydride or 1,2-alkyl shift.',
+            steps: [
+                { title: 'Lewis acid coordinates to epoxide oxygen', body: 'The Lewis acid (BF₃, ZnCl₂, etc.) coordinates to the oxygen of the epoxide, acting as an <span class="ht">electron pair acceptor</span>. This weakens the C–O bonds of the ring.<div class="intuition">The Lewis acid is essentially activating the leaving group. By pulling electrons onto the oxygen, it makes the C–O bond longer and weaker.</div>' },
+                { title: 'Ring opens: carbocation or carbenoid forms', body: 'One C–O bond breaks heterolytically. The more substituted carbon retains the positive charge (more stable carbocation). This gives an <span class="ht">open-chain carbocation</span>.<div class="intuition">Carbocations form at the more substituted position — same rule as SN1 / E1.</div>' },
+                { title: '1,2-Hydride or alkyl shift', body: 'A hydride (H⁻) or alkyl group migrates from the carbon bearing the Lewis-acid-coordinated oxygen to the adjacent carbocation. This is a <span class="ht">1,2-shift</span> — one of the most fundamental rearrangements in organic chemistry.<div class="intuition">The migrating group moves to where the positive charge is. Think of it as a game of musical chairs.</div>' },
+                { title: 'Lewis acid departs: carbonyl forms', body: 'After the 1,2-shift, the oxygen forms a <span class="ht">C=O double bond</span>. If H migrated, an aldehyde forms. If an alkyl group migrated, a ketone forms. The Lewis acid is regenerated.<div class="intuition">Net result: a strained three-membered ring becomes a stable carbonyl. Thermodynamically very favourable.</div>' }
+            ]
+        }
+    };
+
+    // ── SCREEN NAVIGATION ──
+    function showScreen(id) {
+    document.querySelectorAll('.screen').forEach(function(s) { s.classList.remove('active'); });
+    document.getElementById(id).classList.add('active');
+    window.scrollTo(0, 0);
+}
+    function goToObjective() { showScreen('screen-objective'); }
+    function goToExercise() { showScreen('screen-exercise'); }
+    function goToBeginner() { showScreen('screen-beginner'); }
+    function goToManual() { showScreen('screen-manual'); selectManualNode('Acyl chloride'); }
+
+    // ── DRAG AND DROP ──
+    document.addEventListener('dragstart', function(e) {
+        if (e.target.classList.contains('name-tag') && !e.target.classList.contains('used')) {
+            draggedName = e.target.dataset.name;
+            draggedEl = e.target;
+            setTimeout(function() { e.target.classList.add('dragging'); }, 0);
+        }
+    });
+    document.addEventListener('dragend', function(e) {
+        if (e.target.classList.contains('name-tag')) e.target.classList.remove('dragging');
+    });
+    document.addEventListener('dragover', function(e) {
+        var drop = e.target.closest('.structure-drop');
+        if (drop) { e.preventDefault(); drop.classList.add('dragover'); }
+    });
+    document.addEventListener('dragleave', function(e) {
+        var drop = e.target.closest('.structure-drop');
+        if (drop) drop.classList.remove('dragover');
+    });
+    document.addEventListener('drop', function(e) {
+        var drop = e.target.closest('.structure-drop');
+        if (!drop || !draggedName) return;
+        e.preventDefault();
+        drop.classList.remove('dragover');
+        var slot = parseInt(drop.dataset.slot);
+        var prev = slotState[slot];
+        if (prev) {
+            var prevTag = document.querySelector('.name-tag[data-name="' + prev + '"]');
+            if (prevTag) prevTag.classList.remove('used');
+        }
+        slotState[slot] = draggedName;
+        draggedEl.classList.add('used');
+        drop.innerHTML = '<span class="filled-name">' + draggedName + '</span>';
+        drop.classList.remove('correct', 'wrong');
+    });
+
+    function resetExercise() {
+        slotState = {};
+        document.querySelectorAll('.name-tag').forEach(function(t) { t.classList.remove('used'); });
+        document.querySelectorAll('.structure-drop').forEach(function(d) {
+            d.innerHTML = '<span class="placeholder">drop name here</span>';
+            d.classList.remove('correct', 'wrong');
+        });
+    }
+
+    function submitExercise() {
+        var cards = document.querySelectorAll('.structure-card');
+        var correct = 0;
+        var unlockedList = [];
+        wrongGroups = [];
+        cards.forEach(function(card, i) {
+            var drop = card.querySelector('.structure-drop');
+            var correctName = card.dataset.correct;
+            var given = slotState[i];
+            if (given === correctName) { drop.classList.add('correct'); correct++; unlockedList.push(correctName); }
+            else { drop.classList.add('wrong'); wrongGroups.push(correctName); }
+        });
+        document.getElementById('result-score').textContent = correct + '/9';
+        var msgs = ['Don\'t sweat it — that\'s exactly what this exercise is for. We\'ll walk you through everything you missed.', 'Good attempt. A few gaps — we\'ll fill them in right now.', 'Solid. More than halfway there. The ones you missed are coming up.', 'Really strong. Just a couple of blind spots — let\'s clear them up.', 'Clean sweep. The full manual is open.'];
+        document.getElementById('result-msg').textContent = msgs[correct <= 2 ? 0 : correct <= 4 ? 1 : correct <= 6 ? 2 : correct <= 8 ? 3 : 4];
+        var chips = document.getElementById('result-chips');
+        chips.innerHTML = '';
+        allGroups.forEach(function(name) {
+            var chip = document.createElement('span');
+            chip.className = unlockedList.indexOf(name) >= 0 ? 'unlock-chip' : 'locked-chip';
+            chip.textContent = name;
+            chips.appendChild(chip);
+        });
+        showScreen('screen-result');
+        if (wrongGroups.length > 0) setTimeout(function() { openLearnModal(0); }, 600);
+    }
+
+    // ── LEARN MODAL ──
+    function openLearnModal(idx) {
+        learnIndex = idx;
+        var name = wrongGroups[idx];
+        var data = groupData[name];
+        document.getElementById('learn-name').textContent = name;
+        document.getElementById('learn-tag').textContent = data.tag;
+        document.getElementById('learn-text').textContent = data.intro;
+        document.getElementById('learn-svg').innerHTML = learnSVGs[data.svgKey];
+        document.getElementById('learn-counter').textContent = '// ' + (idx + 1) + ' OF ' + wrongGroups.length + ' TO REVIEW';
+        document.getElementById('learn-prev-btn').style.display = idx === 0 ? 'none' : 'inline-flex';
+        document.getElementById('learn-next-btn').textContent = idx === wrongGroups.length - 1 ? 'GOT IT ✓' : 'NEXT →';
+        document.getElementById('learn-overlay').classList.add('open');
+        document.body.style.overflow = 'hidden';
+    }
+    function closeLearnModal() { document.getElementById('learn-overlay').classList.remove('open'); document.body.style.overflow = ''; }
+    function learnNav(dir) { var next = learnIndex + dir; if (next >= wrongGroups.length) { closeLearnModal(); return; } if (next < 0) return; openLearnModal(next); }
+    document.getElementById('learn-overlay').addEventListener('click', function(e) { if (e.target === this) closeLearnModal(); });
+
+    // ── MANUAL ──
+    function selectManualNode(name) {
+        document.querySelectorAll('.roadmap-card').forEach(function(c) { c.classList.remove('active'); });
+        var cardId = 'node-' + name.toLowerCase().replace(/\s*\/\s*/g, '-').replace(/\s+/g, '-');
+        var cardEl = document.getElementById(cardId);
+        if (cardEl) cardEl.classList.add('active');
+        var data = manualData[name];
+        if (!data) return;
+        var sandboxHTML = '';
+        data.pathways.forEach(function(path) {
+            var reagentPills = path.reagents.map(function(r) {
+                return '<span class="reagent-pill clickable" onclick="openReagentDrawer(\'' + r.replace(/'/g,"\\'") + '\', event)">' + r + '</span>';
+            }).join('');
+            sandboxHTML += '<div class="sandbox-row"><div class="sandbox-node reactant">' + name + '</div><div class="sandbox-arrow-wrap"><div class="sandbox-reagents">' + reagentPills + '</div><div class="sandbox-arrow-line">──────────></div></div><div class="sandbox-node product">' + path.target + '</div></div>';
+        });
+        document.getElementById('sandbox-rows').innerHTML = sandboxHTML;
+        document.getElementById('explorer-placeholder').style.display = 'none';
+        document.getElementById('explorer-content').style.display = 'block';
+        document.getElementById('exp-name').textContent = name;
+        document.getElementById('exp-formula').innerHTML = data.formula;
+        var pathHTML = '';
+        data.pathways.forEach(function(path) {
+            var pills = path.reagents.map(function(r) {
+                return '<span class="reagent-pill clickable" onclick="openReagentDrawer(\'' + r.replace(/'/g,"\\'") + '\', event)">' + r + '</span>';
+            }).join('');
+            var noteClass = path.danger ? 'pathway-note danger' : 'pathway-note';
+            var mechBtn = path.mechKey ? '<button class="btn-ghost" style="margin-top:8px;padding:6px 12px;font-size:7px;" onclick="openMechModal(\'' + path.mechKey + '\')">SEE MECHANISM →</button>' : '';
+            pathHTML += '<div class="pathway-card"><div class="pathway-target">' + path.target + '</div><div class="pathway-reagents">' + pills + '</div><div class="' + noteClass + '">' + path.note + '</div>' + mechBtn + '</div>';
+        });
+        document.getElementById('exp-pathways').innerHTML = pathHTML;
+        var wontSection = document.getElementById('exp-wont-work-section');
+        var wontPills = document.getElementById('exp-wont-work-pills');
+        if (data.wontWork && data.wontWork.length > 0) {
+            wontPills.innerHTML = data.wontWork.map(function(r) { return '<span class="reagent-pill wont-work">✕ ' + r + '</span>'; }).join('');
+            wontSection.style.display = 'block';
+        } else { wontSection.style.display = 'none'; }
+    }
+
+    // ── REAGENT DRAWER ──
+    function openReagentDrawer(name, event) {
+        if (event) event.stopPropagation();
+        var data = reagentData[name];
+        if (!data) return;
+        document.getElementById('reagent-title').textContent = data.title;
+        document.getElementById('reagent-type').textContent = data.type;
+        var warningsHTML = '';
+        if (data.warnings && data.warnings.length > 0) {
+            warningsHTML = '<div class="reagent-warning"><div class="reagent-warning-title">// ⚠ LIMITATIONS</div>' + data.warnings.map(function(w) { return '<div style="margin-bottom:4px;">- ' + w + '</div>'; }).join('') + '</div>';
+        }
+        document.getElementById('reagent-warnings').innerHTML = warningsHTML;
+        var rxnsHTML = data.reactions.map(function(rxn) {
+            var mechBtn = data.mechKey ? '<button class="btn-ghost" style="margin-top:6px;padding:5px 10px;font-size:7px;" onclick="openMechModal(\'' + data.mechKey + '\')">SEE MECHANISM →</button>' : '';
+            return '<div class="reagent-rxn-item"><div class="reagent-rxn-equation"><span>' + rxn.from + '</span><span class="reagent-rxn-arrow">──(' + data.title + ')──></span><span>' + rxn.to + '</span></div><div class="reagent-rxn-note">' + rxn.note + '</div>' + mechBtn + '</div>';
+        }).join('');
+        document.getElementById('reagent-rxn-list').innerHTML = rxnsHTML;
+        document.getElementById('reagent-drawer').classList.add('open');
+        document.getElementById('reagent-backdrop').classList.add('open');
+    }
+
+    function closeReagentDrawer() {
+        document.getElementById('reagent-drawer').classList.remove('open');
+        document.getElementById('reagent-backdrop').classList.remove('open');
+    }
+
+    // ── MECHANISM MODAL ──
+    function openMechModal(key) {
+        var data = mechData[key];
+        if (!data) return;
+        closeReagentDrawer();
+        document.getElementById('mech-title').textContent = data.title;
+        document.getElementById('mech-tag').textContent = data.tag;
+        document.getElementById('mech-overview').textContent = data.overview;
+        var stepsHTML = data.steps.map(function(step, i) {
+            return '<div class="mech-step" onclick="toggleMechStep(this)"><div class="mech-step-header"><div class="mech-step-num">' + (i+1) + '</div><span class="mech-step-title">' + step.title + '</span><span class="mech-step-chevron">&#x25BC;</span></div><div class="mech-step-body">' + step.body + '</div></div>';
+        }).join('');
+        document.getElementById('mech-steps').innerHTML = stepsHTML;
+        document.getElementById('mech-overlay').classList.add('open');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeMechModal() {
+        document.getElementById('mech-overlay').classList.remove('open');
+        document.body.style.overflow = '';
+    }
+
+    function toggleMechStep(el) { el.classList.toggle('open'); }
+
+    document.getElementById('mech-overlay').addEventListener('click', function(e) {
+        if (e.target === this) closeMechModal();
+    });
+</script>
+</body>
+</html>

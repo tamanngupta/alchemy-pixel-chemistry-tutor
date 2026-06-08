@@ -1,0 +1,1607 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>More Nucleophiles</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323:wght@400&family=Fraunces:ital,wght@0,300;0,400;0,500;1,300&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg:        oklch(0.10 0.05 265);
+            --bg-card:   oklch(0.24 0.09 265);
+            --bg-card2:  oklch(0.18 0.07 265);
+            --surface:   oklch(0.28 0.07 265);
+            --neon:      oklch(0.85 0.22 210);
+            --primary:   oklch(0.72 0.18 230);
+            --accent:    oklch(0.78 0.2  200);
+            --danger:    oklch(0.65 0.25 25);
+            --text:      oklch(0.95 0.04 230);
+            --muted:     oklch(0.75 0.05 230);
+            --border:    oklch(0.5  0.15 240);
+            --prose:     oklch(0.88 0.03 230);
+            --prose-dim: oklch(0.72 0.04 230);
+            --accent2:   oklch(0.78 0.18 155);
+        }
+ 
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+ 
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+ 
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background-image:
+                linear-gradient(color-mix(in oklab, var(--neon) 10%, transparent) 1px, transparent 1px),
+                linear-gradient(90deg, color-mix(in oklab, var(--neon) 10%, transparent) 1px, transparent 1px);
+            background-size: 40px 40px;
+            pointer-events: none;
+            z-index: 0;
+        }
+ 
+        body::after {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background-image: repeating-linear-gradient(
+                0deg,
+                rgba(0,0,0,0.12) 0px,
+                rgba(0,0,0,0.12) 2px,
+                transparent 2px,
+                transparent 4px
+            );
+            pointer-events: none;
+            z-index: 0;
+        }
+ 
+        /* ── INTRO SCREEN ── */
+        #intro-screen {
+            position: fixed;
+            inset: 0;
+            background: var(--bg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            flex-direction: column;
+            gap: 16px;
+        }
+ 
+        #intro-screen::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background-image: repeating-linear-gradient(
+                0deg,
+                rgba(0,0,0,0.12) 0px,
+                rgba(0,0,0,0.12) 2px,
+                transparent 2px,
+                transparent 4px
+            );
+            pointer-events: none;
+        }
+ 
+        #intro-screen .module-tag {
+            font-family: 'Press Start 2P', monospace;
+            font-size: 9px;
+            letter-spacing: 0.15em;
+            color: var(--neon);
+            opacity: 0;
+            animation: fadeUp 0.6s ease 0.3s forwards;
+            position: relative;
+            z-index: 1;
+            text-shadow: 0 0 6px var(--neon);
+        }
+ 
+        #intro-screen h1 {
+            font-family: 'Fraunces', serif;
+            font-size: clamp(2rem, 5vw, 3.8rem);
+            font-weight: 300;
+            color: var(--text);
+            text-align: center;
+            opacity: 0;
+            animation: fadeUp 0.7s ease 0.6s forwards;
+            line-height: 1.25;
+            position: relative;
+            z-index: 1;
+        }
+ 
+        #intro-screen h1 em {
+            font-style: italic;
+            color: var(--neon);
+            text-shadow: 0 0 12px var(--neon), 0 0 30px color-mix(in oklab, var(--neon) 50%, transparent);
+            -webkit-text-fill-color: var(--neon);
+        }
+ 
+        #intro-screen .sub {
+            font-family: 'VT323', monospace;
+            font-size: 22px;
+            color: var(--muted);
+            opacity: 0;
+            animation: fadeUp 0.6s ease 1s forwards;
+            letter-spacing: 0.05em;
+            position: relative;
+            z-index: 1;
+        }
+ 
+        #intro-screen .carbonyl-symbol {
+            font-family: 'Press Start 2P', monospace;
+            font-size: clamp(2rem, 8vw, 5rem);
+            color: var(--neon);
+            text-shadow: 0 0 16px var(--neon), 0 0 40px color-mix(in oklab, var(--neon) 60%, transparent);
+            opacity: 0;
+            animation: fadeUp 0.8s ease 1.4s forwards, flicker 3s ease 2.2s infinite;
+            letter-spacing: 0.05em;
+            position: relative;
+            z-index: 1;
+        }
+ 
+        #intro-screen .begin-btn {
+            margin-top: 12px;
+            padding: 14px 44px;
+            background: var(--primary);
+            border: none;
+            color: oklch(0.12 0.06 265);
+            font-family: 'Press Start 2P', monospace;
+            font-size: 11px;
+            letter-spacing: 0.08em;
+            cursor: pointer;
+            opacity: 0;
+            animation: fadeUp 0.6s ease 2s forwards;
+            transition: transform 0.15s;
+            position: relative;
+            z-index: 1;
+            box-shadow:
+                0 -4px 0 0 var(--neon),
+                0  4px 0 0 var(--neon),
+                -4px 0 0 0 var(--neon),
+                 4px 0 0 0 var(--neon),
+                0 0 24px color-mix(in oklab, var(--neon) 50%, transparent);
+        }
+ 
+        #intro-screen .begin-btn:hover { transform: translateY(-3px); }
+ 
+        /* ── MAIN SCREEN ── */
+        .screen {
+            display: none;
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 48px 24px 80px;
+            position: relative;
+            z-index: 1;
+        }
+ 
+        .lesson-tag {
+            font-family: 'Press Start 2P', monospace;
+            font-size: 8px;
+            letter-spacing: 0.15em;
+            color: var(--neon);
+            margin-bottom: 14px;
+            text-shadow: 0 0 6px var(--neon);
+        }
+ 
+        .lesson-title {
+            font-family: 'Fraunces', serif;
+            font-size: 2.4rem;
+            font-weight: 300;
+            margin-bottom: 48px;
+            color: var(--text);
+            line-height: 1.2;
+        }
+ 
+        .lesson-title em {
+            font-style: italic;
+            color: var(--neon);
+            -webkit-text-fill-color: var(--neon);
+            text-shadow: 0 0 10px var(--neon), 0 0 25px color-mix(in oklab, var(--neon) 40%, transparent);
+        }
+ 
+        .section-label {
+            font-family: 'Press Start 2P', monospace;
+            font-size: 8px;
+            letter-spacing: 0.15em;
+            color: var(--neon);
+            margin-bottom: 20px;
+            text-shadow: 0 0 6px var(--neon);
+        }
+ 
+        /* ── REACTION NAV ── */
+        .reaction-nav {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 40px;
+            flex-wrap: wrap;
+        }
+ 
+        .reaction-nav-btn {
+            padding: 9px 20px;
+            background: var(--bg-card);
+            border: none;
+            color: var(--muted);
+            font-family: 'Press Start 2P', monospace;
+            font-size: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            letter-spacing: 0.05em;
+            box-shadow:
+                0 -3px 0 0 var(--border),
+                0  3px 0 0 var(--border),
+                -3px 0 0 0 var(--border),
+                 3px 0 0 0 var(--border);
+        }
+ 
+        .reaction-nav-btn:hover {
+            color: var(--text);
+            box-shadow:
+                0 -3px 0 0 var(--neon),
+                0  3px 0 0 var(--neon),
+                -3px 0 0 0 var(--neon),
+                 3px 0 0 0 var(--neon);
+        }
+ 
+        .reaction-nav-btn.active {
+            color: oklch(0.12 0.06 265);
+            background: var(--neon);
+            box-shadow:
+                0 -3px 0 0 var(--neon),
+                0  3px 0 0 var(--neon),
+                -3px 0 0 0 var(--neon),
+                 3px 0 0 0 var(--neon),
+                0 0 18px color-mix(in oklab, var(--neon) 40%, transparent);
+        }
+ 
+        .reaction-panel { display: none; }
+        .reaction-panel.active { display: block; }
+ 
+        .reaction-header { margin-bottom: 32px; }
+ 
+        .reaction-type {
+            font-family: 'Press Start 2P', monospace;
+            font-size: 7px;
+            letter-spacing: 0.12em;
+            color: var(--muted);
+            text-transform: uppercase;
+            margin-bottom: 10px;
+        }
+ 
+        .reaction-name {
+            font-family: 'Fraunces', serif;
+            font-size: 1.6rem;
+            font-weight: 300;
+            color: var(--text);
+        }
+ 
+        .reaction-name em {
+            font-style: italic;
+            color: var(--neon);
+            -webkit-text-fill-color: var(--neon);
+            text-shadow: 0 0 8px var(--neon);
+        }
+ 
+        /* ── PREDICT TRIGGER BUTTON ── */
+        .predict-trigger-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 24px;
+            background: transparent;
+            border: none;
+            color: oklch(0.12 0.06 265);
+            font-family: 'Press Start 2P', monospace;
+            font-size: 8px;
+            cursor: pointer;
+            margin-bottom: 36px;
+            transition: transform 0.15s;
+            letter-spacing: 0.05em;
+            background: var(--accent);
+            box-shadow:
+                0 -3px 0 0 var(--neon),
+                0  3px 0 0 var(--neon),
+                -3px 0 0 0 var(--neon),
+                 3px 0 0 0 var(--neon),
+                0 0 14px color-mix(in oklab, var(--neon) 30%, transparent);
+        }
+ 
+        .predict-trigger-btn:hover { transform: translateY(-2px); }
+ 
+        /* ── PREDICT OVERLAY ── */
+        .predict-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.85);
+            backdrop-filter: blur(6px);
+            z-index: 200;
+            align-items: center;
+            justify-content: center;
+        }
+ 
+        .predict-overlay.open { display: flex; animation: fadeIn 0.2s ease; }
+ 
+        .predict-modal {
+            background: var(--bg-card);
+            padding: 40px;
+            max-width: 620px;
+            width: 92%;
+            position: relative;
+            max-height: 88vh;
+            overflow-y: auto;
+            animation: slideUp 0.25s ease;
+            box-shadow:
+                0 -4px 0 0 var(--neon),
+                0  4px 0 0 var(--neon),
+                -4px 0 0 0 var(--neon),
+                 4px 0 0 0 var(--neon),
+                0 0 40px color-mix(in oklab, var(--neon) 25%, transparent);
+        }
+ 
+        .predict-close {
+            position: absolute;
+            top: 18px;
+            right: 18px;
+            background: var(--bg-card2);
+            border: none;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--muted);
+            font-size: 14px;
+            cursor: pointer;
+            transition: color 0.2s;
+            font-family: 'Press Start 2P', monospace;
+            box-shadow:
+                0 -2px 0 0 var(--border),
+                0  2px 0 0 var(--border),
+                -2px 0 0 0 var(--border),
+                 2px 0 0 0 var(--border);
+        }
+ 
+        .predict-close:hover {
+            color: var(--danger);
+            box-shadow:
+                0 -2px 0 0 var(--danger),
+                0  2px 0 0 var(--danger),
+                -2px 0 0 0 var(--danger),
+                 2px 0 0 0 var(--danger);
+        }
+ 
+        .predict-modal-title {
+            font-family: 'Fraunces', serif;
+            font-size: 1.3rem;
+            font-weight: 300;
+            margin-bottom: 6px;
+            color: var(--text);
+        }
+ 
+        .predict-modal-sub {
+            font-family: 'DM Sans', sans-serif;
+            font-size: 14px;
+            color: var(--prose-dim);
+            margin-bottom: 28px;
+            line-height: 1.7;
+        }
+ 
+        /* ── WORD BOXES ── */
+        .word-boxes { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 28px; }
+ 
+        .word-box {
+            padding: 8px 16px;
+            background: var(--bg-card2);
+            border: none;
+            cursor: grab;
+            font-family: 'VT323', monospace;
+            font-size: 16px;
+            color: var(--text);
+            user-select: none;
+            transition: all 0.2s;
+            box-shadow:
+                0 -2px 0 0 var(--border),
+                0  2px 0 0 var(--border),
+                -2px 0 0 0 var(--border),
+                 2px 0 0 0 var(--border);
+        }
+ 
+        .word-box:hover {
+            color: var(--neon);
+            box-shadow:
+                0 -2px 0 0 var(--neon),
+                0  2px 0 0 var(--neon),
+                -2px 0 0 0 var(--neon),
+                 2px 0 0 0 var(--neon);
+        }
+ 
+        .word-box.dragging { opacity: 0.4; }
+        .word-box.used { opacity: 0.2; cursor: default; pointer-events: none; }
+ 
+        /* ── DROP TARGETS ── */
+        .drop-targets { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px; }
+ 
+        .drop-target {
+            background: var(--bg-card2);
+            padding: 16px 20px;
+            min-height: 64px;
+            display: flex;
+            align-items: center;
+            transition: all 0.2s;
+            position: relative;
+            box-shadow:
+                0 -2px 0 0 var(--border),
+                0  2px 0 0 var(--border),
+                -2px 0 0 0 var(--border),
+                 2px 0 0 0 var(--border);
+        }
+ 
+        .drop-target.dragover {
+            box-shadow:
+                0 -2px 0 0 var(--neon),
+                0  2px 0 0 var(--neon),
+                -2px 0 0 0 var(--neon),
+                 2px 0 0 0 var(--neon),
+                0 0 12px color-mix(in oklab, var(--neon) 25%, transparent);
+            background: color-mix(in oklab, var(--neon) 6%, var(--bg-card2));
+        }
+ 
+        .drop-target.correct {
+            box-shadow:
+                0 -2px 0 0 var(--accent2),
+                0  2px 0 0 var(--accent2),
+                -2px 0 0 0 var(--accent2),
+                 2px 0 0 0 var(--accent2),
+                0 0 12px color-mix(in oklab, var(--accent2) 25%, transparent);
+            background: color-mix(in oklab, var(--accent2) 6%, var(--bg-card2));
+        }
+ 
+        .drop-target.wrong {
+            box-shadow:
+                0 -2px 0 0 var(--danger),
+                0  2px 0 0 var(--danger),
+                -2px 0 0 0 var(--danger),
+                 2px 0 0 0 var(--danger),
+                0 0 12px color-mix(in oklab, var(--danger) 25%, transparent);
+            background: color-mix(in oklab, var(--danger) 6%, var(--bg-card2));
+        }
+ 
+        .drop-target-label {
+            position: absolute;
+            top: -10px;
+            left: 10px;
+            font-family: 'Press Start 2P', monospace;
+            font-size: 7px;
+            letter-spacing: 0.08em;
+            color: var(--muted);
+            background: var(--bg-card);
+            padding: 0 6px;
+        }
+ 
+        .drop-target-content { font-family: 'VT323', monospace; font-size: 16px; color: var(--text); }
+        .drop-target-placeholder { font-family: 'VT323', monospace; font-size: 15px; color: var(--muted); font-style: italic; }
+ 
+        /* ── PREDICT ACTIONS ── */
+        .predict-actions { display: flex; gap: 10px; }
+ 
+        .check-btn {
+            padding: 10px 28px;
+            background: var(--neon);
+            border: none;
+            color: oklch(0.12 0.06 265);
+            font-family: 'Press Start 2P', monospace;
+            font-size: 9px;
+            cursor: pointer;
+            transition: opacity 0.2s;
+            letter-spacing: 0.05em;
+            box-shadow:
+                0 -3px 0 0 var(--accent),
+                0  3px 0 0 var(--accent),
+                -3px 0 0 0 var(--accent),
+                 3px 0 0 0 var(--accent);
+        }
+ 
+        .check-btn:hover { opacity: 0.88; }
+ 
+        .reset-btn {
+            padding: 10px 20px;
+            background: transparent;
+            border: none;
+            color: var(--muted);
+            font-family: 'Press Start 2P', monospace;
+            font-size: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            letter-spacing: 0.04em;
+            box-shadow:
+                0 -2px 0 0 var(--border),
+                0  2px 0 0 var(--border),
+                -2px 0 0 0 var(--border),
+                 2px 0 0 0 var(--border);
+        }
+ 
+        .reset-btn:hover {
+            color: var(--text);
+            box-shadow:
+                0 -2px 0 0 var(--muted),
+                0  2px 0 0 var(--muted),
+                -2px 0 0 0 var(--muted),
+                 2px 0 0 0 var(--muted);
+        }
+ 
+        .predict-feedback {
+            display: none;
+            margin-top: 16px;
+            padding: 14px 18px;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 14px;
+            line-height: 1.7;
+        }
+ 
+        .predict-feedback.correct {
+            background: var(--bg-card2);
+            color: var(--accent2);
+            box-shadow:
+                0 -3px 0 0 var(--accent2),
+                0  3px 0 0 var(--accent2),
+                -3px 0 0 0 var(--accent2),
+                 3px 0 0 0 var(--accent2);
+        }
+ 
+        .predict-feedback.wrong {
+            background: var(--bg-card2);
+            color: var(--danger);
+            box-shadow:
+                0 -3px 0 0 var(--danger),
+                0  3px 0 0 var(--danger),
+                -3px 0 0 0 var(--danger),
+                 3px 0 0 0 var(--danger);
+        }
+ 
+        /* ── HOTSPOT MAP ── */
+        .hotspot-map {
+            background: var(--bg-card);
+            padding: 32px;
+            margin-bottom: 16px;
+            box-shadow:
+                0 -4px 0 0 var(--border),
+                0  4px 0 0 var(--border),
+                -4px 0 0 0 var(--border),
+                 4px 0 0 0 var(--border);
+        }
+ 
+        .hotspot-equation { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 8px; }
+        .hotspot-equation-plain { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 16px; padding-top: 16px; border-top: 2px solid var(--border); }
+        .hs-species { display: flex; flex-direction: column; align-items: center; gap: 5px; }
+ 
+        .hs-plain-label {
+            font-family: 'VT323', monospace;
+            font-size: 15px;
+            color: var(--muted);
+            white-space: nowrap;
+            letter-spacing: 0.04em;
+        }
+ 
+        .hs-term {
+            padding: 7px 16px;
+            background: var(--bg-card2);
+            border: none;
+            font-family: 'Press Start 2P', monospace;
+            font-size: 7px;
+            color: var(--text);
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+            white-space: nowrap;
+            letter-spacing: 0.04em;
+            box-shadow:
+                0 -2px 0 0 var(--border),
+                0  2px 0 0 var(--border),
+                -2px 0 0 0 var(--border),
+                 2px 0 0 0 var(--border);
+        }
+ 
+        .hs-term:hover {
+            color: var(--neon);
+            box-shadow:
+                0 -2px 0 0 var(--neon),
+                0  2px 0 0 var(--neon),
+                -2px 0 0 0 var(--neon),
+                 2px 0 0 0 var(--neon),
+                0 0 10px color-mix(in oklab, var(--neon) 20%, transparent);
+        }
+ 
+        .hs-term.active {
+            color: oklch(0.12 0.06 265);
+            background: var(--neon);
+            box-shadow:
+                0 -2px 0 0 var(--neon),
+                0  2px 0 0 var(--neon),
+                -2px 0 0 0 var(--neon),
+                 2px 0 0 0 var(--neon),
+                0 0 16px color-mix(in oklab, var(--neon) 35%, transparent);
+        }
+ 
+        .hs-term.has-pulse::after {
+            content: '';
+            position: absolute;
+            top: -3px;
+            right: -3px;
+            width: 7px;
+            height: 7px;
+            background: var(--neon);
+            box-shadow: 0 0 6px var(--neon);
+            animation: pulse-dot 1.8s ease infinite;
+        }
+ 
+        .hs-formula {
+            font-family: 'VT323', monospace;
+            font-size: 16px;
+            color: var(--neon);
+            text-shadow: 0 0 6px color-mix(in oklab, var(--neon) 40%, transparent);
+        }
+ 
+        .hs-plus { color: var(--muted); font-size: 1.3rem; padding: 0 4px; font-family: 'VT323', monospace; }
+ 
+        .hs-arrow {
+            color: var(--muted);
+            font-size: 1rem;
+            padding: 0 4px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+        }
+ 
+        .hs-arrow-conditions { display: flex; flex-direction: column; gap: 6px; }
+ 
+        .hotspot-card-area {
+            min-height: 20px;
+            margin-top: 20px;
+            border-top: 2px solid var(--border);
+            padding-top: 20px;
+        }
+ 
+        .hotspot-card {
+            display: none;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 13px;
+            color: var(--prose-dim);
+            line-height: 1.75;
+            padding: 16px 20px;
+            background: var(--bg-card2);
+            border-left: 4px solid var(--neon);
+        }
+ 
+        .hotspot-card.active { display: block; animation: fadeUp 0.2s ease; }
+ 
+        .hotspot-card-title {
+            font-family: 'Press Start 2P', monospace;
+            font-size: 8px;
+            letter-spacing: 0.08em;
+            color: var(--neon);
+            margin-bottom: 10px;
+            text-shadow: 0 0 6px var(--neon);
+        }
+ 
+        .hotspot-hint {
+            font-family: 'VT323', monospace;
+            font-size: 15px;
+            color: var(--muted);
+            letter-spacing: 0.04em;
+        }
+ 
+        @keyframes pulse-dot {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.4; transform: scale(1.6); }
+        }
+ 
+        /* ── HSAB TOOLTIP ── */
+        .hsab-term {
+            color: var(--neon);
+            font-weight: 500;
+            cursor: pointer;
+            border-bottom: 2px solid var(--neon);
+            position: relative;
+            display: inline-block;
+            text-shadow: 0 0 4px color-mix(in oklab, var(--neon) 30%, transparent);
+        }
+ 
+        .hsab-tooltip {
+            display: none;
+            position: absolute;
+            bottom: 130%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--bg-card);
+            padding: 14px 16px;
+            width: 280px;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 12px;
+            color: var(--prose-dim);
+            line-height: 1.6;
+            z-index: 50;
+            box-shadow:
+                0 -4px 0 0 var(--border),
+                0  4px 0 0 var(--border),
+                -4px 0 0 0 var(--border),
+                 4px 0 0 0 var(--border),
+                0 8px 24px rgba(0,0,0,0.6);
+        }
+ 
+        .hsab-tooltip::after {
+            content: '';
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            border: 6px solid transparent;
+            border-top-color: var(--border);
+        }
+ 
+        .hsab-term.open .hsab-tooltip { display: block; animation: fadeUp 0.15s ease; }
+ 
+        .hsab-tooltip-title {
+            font-family: 'Press Start 2P', monospace;
+            font-size: 7px;
+            letter-spacing: 0.08em;
+            color: var(--neon);
+            margin-bottom: 6px;
+            text-shadow: 0 0 4px var(--neon);
+        }
+ 
+        /* ── DID YOU KNOW ── */
+        .did-you-know {
+            background: var(--bg-card2);
+            border-left: 4px solid var(--accent);
+            padding: 16px 20px;
+            margin-bottom: 32px;
+            box-shadow:
+                0 -3px 0 0 var(--border),
+                0  3px 0 0 var(--border),
+                -3px 0 0 0 var(--border),
+                 3px 0 0 0 var(--border);
+        }
+ 
+        .dyk-label {
+            font-family: 'Press Start 2P', monospace;
+            font-size: 7px;
+            letter-spacing: 0.12em;
+            color: var(--accent);
+            margin-bottom: 8px;
+            text-shadow: 0 0 6px color-mix(in oklab, var(--accent) 40%, transparent);
+        }
+ 
+        .dyk-text {
+            font-family: 'DM Sans', sans-serif;
+            font-size: 13px;
+            color: var(--prose-dim);
+            line-height: 1.7;
+        }
+ 
+        .dyk-text .ht { color: var(--neon); font-weight: 500; text-shadow: 0 0 4px color-mix(in oklab, var(--neon) 30%, transparent); }
+ 
+        /* ── MECHANISM SPLIT ── */
+        .mechanism-split { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; align-items: start; margin-bottom: 32px; }
+ 
+        .mechanism-visual {
+            position: sticky;
+            top: 24px;
+            background: oklch(0.08 0.04 265);
+            padding: 28px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 240px;
+            box-shadow:
+                0 -4px 0 0 var(--neon),
+                0  4px 0 0 var(--neon),
+                -4px 0 0 0 var(--neon),
+                 4px 0 0 0 var(--neon),
+                0 0 24px color-mix(in oklab, var(--neon) 20%, transparent);
+        }
+ 
+        .mechanism-visual svg { max-width: 100%; height: auto; }
+ 
+        .visual-label {
+            font-family: 'Press Start 2P', monospace;
+            font-size: 7px;
+            letter-spacing: 0.1em;
+            color: var(--muted);
+            text-align: center;
+            margin-top: 12px;
+            line-height: 1.6;
+        }
+ 
+        .mechanism-scroll { display: flex; flex-direction: column; gap: 12px; }
+ 
+        /* ── MECHANISM STEPS ── */
+        .mechanism-step {
+            background: var(--bg-card);
+            overflow: hidden;
+            cursor: pointer;
+            box-shadow:
+                0 -3px 0 0 var(--border),
+                0  3px 0 0 var(--border),
+                -3px 0 0 0 var(--border),
+                 3px 0 0 0 var(--border);
+        }
+ 
+        .mechanism-step-header {
+            padding: 16px 20px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            transition: background 0.2s;
+        }
+ 
+        .mechanism-step-header:hover { background: var(--bg-card2); }
+ 
+        .step-number {
+            width: 28px;
+            height: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Press Start 2P', monospace;
+            font-size: 10px;
+            color: var(--muted);
+            flex-shrink: 0;
+            transition: all 0.2s;
+            box-shadow:
+                0 -2px 0 0 var(--border),
+                0  2px 0 0 var(--border),
+                -2px 0 0 0 var(--border),
+                 2px 0 0 0 var(--border);
+        }
+ 
+        .mechanism-step.open .step-number {
+            color: oklch(0.12 0.06 265);
+            background: var(--neon);
+            box-shadow:
+                0 -2px 0 0 var(--neon),
+                0  2px 0 0 var(--neon),
+                -2px 0 0 0 var(--neon),
+                 2px 0 0 0 var(--neon),
+                0 0 10px color-mix(in oklab, var(--neon) 40%, transparent);
+        }
+ 
+        .step-title {
+            font-family: 'DM Sans', sans-serif;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text);
+            line-height: 1.4;
+        }
+ 
+        .step-chevron {
+            margin-left: auto;
+            color: var(--muted);
+            transition: transform 0.2s;
+            font-size: 11px;
+            flex-shrink: 0;
+            font-family: monospace;
+        }
+ 
+        .mechanism-step.open .step-chevron { transform: rotate(180deg); color: var(--neon); }
+ 
+        .mechanism-step-body {
+            display: none;
+            border-top: 2px solid var(--border);
+        }
+ 
+        .mechanism-step.open .mechanism-step-body { display: block; }
+ 
+        .step-explanation {
+            padding: 16px 20px;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 13px;
+            color: var(--prose-dim);
+            line-height: 1.75;
+        }
+ 
+        .step-explanation .ht {
+            color: var(--neon);
+            font-weight: 500;
+            text-shadow: 0 0 4px color-mix(in oklab, var(--neon) 30%, transparent);
+        }
+ 
+        .step-explanation .intuition {
+            margin-top: 10px;
+            padding: 10px 14px;
+            background: var(--bg-card2);
+            border-left: 3px solid var(--accent);
+            font-family: 'DM Sans', sans-serif;
+            font-size: 12px;
+            color: var(--muted);
+            font-style: italic;
+        }
+ 
+        .mechanism-step.open {
+            box-shadow:
+                0 -3px 0 0 var(--neon),
+                0  3px 0 0 var(--neon),
+                -3px 0 0 0 var(--neon),
+                 3px 0 0 0 var(--neon),
+                0 0 12px color-mix(in oklab, var(--neon) 15%, transparent);
+        }
+ 
+        /* ── NEXT BUTTON ── */
+        .next-wrap { margin-top: 48px; display: flex; justify-content: flex-end; }
+ 
+        .next-btn {
+            padding: 14px 40px;
+            background: var(--primary);
+            border: none;
+            color: oklch(0.12 0.06 265);
+            font-family: 'Press Start 2P', monospace;
+            font-size: 9px;
+            cursor: pointer;
+            transition: transform 0.15s;
+            letter-spacing: 0.06em;
+            box-shadow:
+                0 -4px 0 0 var(--neon),
+                0  4px 0 0 var(--neon),
+                -4px 0 0 0 var(--neon),
+                 4px 0 0 0 var(--neon),
+                0 0 20px color-mix(in oklab, var(--neon) 40%, transparent);
+        }
+ 
+        .next-btn:hover { transform: translateY(-3px); }
+ 
+        /* ── ANIMATIONS ── */
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(14px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+ 
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+ 
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+ 
+        @keyframes flicker {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.82; }
+        }
+ 
+        /* ── RESPONSIVE ── */
+        @media (max-width: 700px) {
+            .mechanism-split { grid-template-columns: 1fr; }
+            .mechanism-visual { position: relative; top: 0; }
+            .drop-targets { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+ 
+<div id="intro-screen">
+    <p class="module-tag">// MODULE 1 &middot; LESSON 3</p>
+    <h1>More <em>Nucleophiles</em></h1>
+    <p class="sub">Four more species that attack the carbonyl</p>
+    <div class="carbonyl-symbol">Nu: → C=O</div>
+    <button class="begin-btn" onclick="beginLesson()">&#x25B6; BEGIN</button>
+</div>
+ 
+<div id="main-screen" class="screen">
+    <p class="lesson-tag">// MODULE 1 &middot; LESSON 3</p>
+    <h2 class="lesson-title">More <em>Nucleophiles</em></h2>
+ 
+    <div class="reaction-nav">
+        <button class="reaction-nav-btn active" onclick="showReaction('grignard', this)">Organometallic</button>
+        <button class="reaction-nav-btn" onclick="showReaction('water', this)">Water</button>
+        <button class="reaction-nav-btn" onclick="showReaction('alcohol', this)">Alcohol</button>
+        <button class="reaction-nav-btn" onclick="showReaction('bisulfite', this)">Bisulfite</button>
+    </div>
+ 
+    <!-- ===================== GRIGNARD ===================== -->
+    <div id="reaction-grignard" class="reaction-panel active">
+        <div class="reaction-header">
+            <p class="reaction-type">// Organometallic addition</p>
+            <h3 class="reaction-name">The <em>Grignard</em> Reaction</h3>
+        </div>
+        <button class="predict-trigger-btn" onclick="openPredict('grignard')"><span>⟡</span> Test your prediction first</button>
+        <div class="predict-overlay" id="predict-overlay-grignard">
+            <div class="predict-modal">
+                <button class="predict-close" onclick="closePredict('grignard')">✕</button>
+                <p class="predict-modal-title">Predict before you proceed.</p>
+                <p class="predict-modal-sub">You know the carbonyl carbon has a δ+ and accepts nucleophiles. In RMgX, which species is the nucleophile, and what is the final product after work-up with an aldehyde?</p>
+                <div class="word-boxes" id="words-grignard">
+                    <div class="word-box" draggable="true" data-value="R⁻ (carbanion)">R⁻ (carbanion)</div>
+                    <div class="word-box" draggable="true" data-value="MgX⁺">MgX⁺</div>
+                    <div class="word-box" draggable="true" data-value="RMgX attacks as a whole">RMgX attacks as a whole</div>
+                    <div class="word-box" draggable="true" data-value="Aldehyde is the nucleophile">Aldehyde is the nucleophile</div>
+                    <div class="word-box" draggable="true" data-value="Secondary alcohol">Secondary alcohol</div>
+                    <div class="word-box" draggable="true" data-value="Primary alcohol">Primary alcohol</div>
+                    <div class="word-box" draggable="true" data-value="Carboxylic acid">Carboxylic acid</div>
+                    <div class="word-box" draggable="true" data-value="Ketone">Ketone</div>
+                </div>
+                <div class="drop-targets">
+                    <div class="drop-target" id="drop-grignard-nucleophile" data-correct="R⁻ (carbanion)"><span class="drop-target-label">Nucleophile</span><span class="drop-target-placeholder">Drop here</span></div>
+                    <div class="drop-target" id="drop-grignard-product" data-correct="Secondary alcohol"><span class="drop-target-label">Final product (from aldehyde)</span><span class="drop-target-placeholder">Drop here</span></div>
+                </div>
+                <div class="predict-actions">
+                    <button class="check-btn" onclick="checkPredict('grignard')">Check</button>
+                    <button class="reset-btn" onclick="resetPredict('grignard')">Reset</button>
+                </div>
+                <div id="predict-feedback-grignard" class="predict-feedback"></div>
+            </div>
+        </div>
+ 
+        <p class="section-label">// The complete reaction</p>
+        <div class="hotspot-map" id="hmap-grignard">
+            <div class="hotspot-equation">
+                <div class="hs-species"><span class="hs-plain-label">Aldehyde</span><span class="hs-formula">RCHO</span></div>
+                <span class="hs-plus">+</span>
+                <div class="hs-species"><span class="hs-term has-pulse" data-map="grignard" data-card="organolithium">Grignard Reagent</span><span class="hs-formula">R'MgX</span></div>
+                <div class="hs-arrow"><span>⟶</span><div class="hs-arrow-conditions"><span class="hs-term has-pulse" data-map="grignard" data-card="anhydrous">1. dry ether / THF</span><span class="hs-term has-pulse" data-map="grignard" data-card="workup">2. water hydrolysis</span></div></div>
+                <div class="hs-species"><span class="hs-plain-label">Secondary alcohol</span><span class="hs-formula">RCH(OH)R'</span></div>
+            </div>
+            <p class="hotspot-hint" style="margin-top:10px;">↑ Click any highlighted term to explore it</p>
+            <div class="hotspot-card-area" id="hcard-area-grignard">
+                <div class="hotspot-card" id="hcard-grignard-anhydrous">
+                    <p class="hotspot-card-title">Why anhydrous conditions</p>
+                    RMgX is both a nucleophile and an extremely strong base. If water is present, RMgX deprotonates it immediately, forming an alkane and destroying the reagent before it can attack the carbonyl. Dry ether or THF — aprotic solvents with no acidic protons — are mandatory.
+                </div>
+                <div class="hotspot-card" id="hcard-grignard-workup">
+                    <p class="hotspot-card-title">Water hydrolysis (work-up)</p>
+                    Once the Grignard reagent has been fully consumed, water is added to protonate the alkoxide (R–O⁻) and give the final alcohol. Always the last step — never add water at the start or during the reaction. Adding water too early destroys the reagent before it can attack the carbonyl.
+                </div>
+                <div class="hotspot-card" id="hcard-grignard-organolithium">
+                    <p class="hotspot-card-title">Organolithium reagents</p>
+                    Organolithiums (RLi) are even more reactive than Grignard reagents. Must be used at −78°C under inert atmosphere (N₂ or Ar). Common examples: n-butyllithium and phenyllithium. Both aldehydes and ketones react with organolithiums.
+                </div>
+            </div>
+        </div>
+ 
+        <p class="section-label">// Step by step mechanism</p>
+        <div class="mechanism-split">
+            <div class="mechanism-visual" id="mvis-grignard">
+                <svg viewBox="0 0 360 160" width="320" xmlns="http://www.w3.org/2000/svg">
+                    <text x="20" y="90" fill="#c8b89a" font-family="monospace" font-size="17">R&#x2014;Mg&#x2014;X</text>
+                    <text x="148" y="72" fill="#888" font-size="12">in ether</text>
+                    <line x1="148" y1="79" x2="210" y2="79" stroke="#888" stroke-width="1.2"/>
+                    <polygon points="210,74 220,79 210,84" fill="#888"/>
+                    <text x="228" y="68" fill="#c8b89a" font-family="monospace" font-size="16">R&#x207B;</text>
+                    <text x="254" y="68" fill="#888" font-size="13">+</text>
+                    <text x="268" y="68" fill="#888" font-family="monospace" font-size="14">MgX&#x207A;</text>
+                    <text x="224" y="90" fill="#7ec8a4" font-size="11">nucleophile</text>
+                    <text x="264" y="90" fill="#888" font-size="11">spectator</text>
+                </svg>
+                <p class="visual-label">Select a step to see its diagram</p>
+            </div>
+            <div class="mechanism-scroll">
+                <div class="mechanism-step" onclick="toggleStep(this,'grignard',1)">
+                    <div class="mechanism-step-header"><div class="step-number">1</div><span class="step-title">RMgX dissociates: the carbanion is born</span><span class="step-chevron">▼</span></div>
+                    <div class="mechanism-step-body"><div class="step-explanation">In solution, RMgX partially dissociates. The carbon end picks up both electrons from the C–Mg bond, forming R⁻, a <span class="ht">carbanion</span>. Carbon with a full negative charge — unusual and highly reactive. MgX⁺ is the spectator.<div class="intuition">The more unusual the charge on an atom, the more desperate it is to react. R⁻ is carbon in an unstable state.</div></div></div>
+                </div>
+                <div class="mechanism-step" onclick="toggleStep(this,'grignard',2)">
+                    <div class="mechanism-step-header"><div class="step-number">2</div><span class="step-title">R⁻ attacks the carbonyl carbon: new C–C bond forms</span><span class="step-chevron">▼</span></div>
+                    <div class="mechanism-step-body"><div class="step-explanation">R⁻ donates its lone pair into the π* of the carbonyl at carbon. A new <span class="ht">C–C bond</span> forms. The π bond breaks — electrons move onto oxygen forming an alkoxide. Carbon rehybridizes sp² → sp³.<div class="intuition">Every time a Grignard reacts, a new C–C bond is born. The most fundamental bond in organic chemistry.</div></div></div>
+                </div>
+                <div class="mechanism-step" onclick="toggleStep(this,'grignard',3)">
+                    <div class="mechanism-step-header"><div class="step-number">3</div><span class="step-title">Why you cannot add water yet</span><span class="step-chevron">▼</span></div>
+                    <div class="mechanism-step-body"><div class="step-explanation">R⁻ is such a strong base that it deprotonates water instantly, forming R–H and destroying the Grignard reagent. The carbonyl never gets a chance to react. The entire reaction must be run in <span class="ht">aprotic solvents</span>.<div class="intuition">R⁻ does not care whether it deprotonates water or attacks a carbonyl. If water is present, water wins — it's faster.</div></div></div>
+                </div>
+                <div class="mechanism-step" onclick="toggleStep(this,'grignard',4)">
+                    <div class="mechanism-step-header"><div class="step-number">4</div><span class="step-title">Water hydrolysis: protonating the alkoxide</span><span class="step-chevron">▼</span></div>
+                    <div class="mechanism-step-body"><div class="step-explanation">Once the Grignard reagent is fully consumed, water is added. It protonates the alkoxide (R–C–O⁻) to give the final <span class="ht">alcohol</span>. Always done last — the Grignard must be completely used up first.<div class="intuition">Never add water first. The Grignard eats it. Water only comes in at the end, as a clean-up step to convert the alkoxide to an alcohol.</div></div></div>
+                </div>
+            </div>
+        </div>
+    </div>
+ 
+    <!-- ===================== WATER ===================== -->
+    <div id="reaction-water" class="reaction-panel">
+        <div class="reaction-header">
+            <p class="reaction-type">// Nucleophilic addition of water</p>
+            <h3 class="reaction-name"><em>Gem-diol</em> Formation</h3>
+        </div>
+        <button class="predict-trigger-btn" onclick="openPredict('water')"><span>⟡</span> Test your prediction first</button>
+        <div class="predict-overlay" id="predict-overlay-water">
+            <div class="predict-modal">
+                <button class="predict-close" onclick="closePredict('water')">✕</button>
+                <p class="predict-modal-title">Predict before you proceed.</p>
+                <p class="predict-modal-sub">Water can act as a nucleophile. Which part of water attacks, and what is the product when water adds across a carbonyl?</p>
+                <div class="word-boxes" id="words-water">
+                    <div class="word-box" draggable="true" data-value="H₂O (oxygen lone pair)">H₂O (oxygen lone pair)</div>
+                    <div class="word-box" draggable="true" data-value="H⁺ is the nucleophile">H⁺ is the nucleophile</div>
+                    <div class="word-box" draggable="true" data-value="OH⁻">OH⁻</div>
+                    <div class="word-box" draggable="true" data-value="No nucleophile, water just donates a proton">No nucleophile, water just donates a proton</div>
+                    <div class="word-box" draggable="true" data-value="Gem-diol">Gem-diol</div>
+                    <div class="word-box" draggable="true" data-value="Aldehyde reforms immediately">Aldehyde reforms immediately</div>
+                    <div class="word-box" draggable="true" data-value="Hemiacetal">Hemiacetal</div>
+                    <div class="word-box" draggable="true" data-value="Acetal">Acetal</div>
+                </div>
+                <div class="drop-targets">
+                    <div class="drop-target" id="drop-water-nucleophile" data-correct="H₂O (oxygen lone pair)"><span class="drop-target-label">Nucleophile</span><span class="drop-target-placeholder">Drop here</span></div>
+                    <div class="drop-target" id="drop-water-product" data-correct="Gem-diol"><span class="drop-target-label">Final product</span><span class="drop-target-placeholder">Drop here</span></div>
+                </div>
+                <div class="predict-actions">
+                    <button class="check-btn" onclick="checkPredict('water')">Check</button>
+                    <button class="reset-btn" onclick="resetPredict('water')">Reset</button>
+                </div>
+                <div id="predict-feedback-water" class="predict-feedback"></div>
+            </div>
+        </div>
+ 
+        <p class="section-label">// The complete reaction</p>
+        <div class="hotspot-map" id="hmap-water">
+            <div class="hotspot-equation">
+                <div class="hs-species"><span class="hs-plain-label">Aldehyde</span><span class="hs-formula">RCHO</span></div>
+                <span class="hs-plus">+</span>
+                <div class="hs-species"><span class="hs-plain-label">Water</span><span class="hs-formula">H₂O</span></div>
+                <div class="hs-arrow"><span>⇌</span><span style="font-family:'VT323',monospace;font-size:14px;color:var(--muted)">aqueous</span></div>
+                <div class="hs-species"><span class="hs-term has-pulse" data-map="water" data-card="gem-diol-unstable">Gem-diol</span><span class="hs-formula">RCH(OH)₂</span></div>
+            </div>
+            <div class="hotspot-equation-plain">
+                <span style="font-family:'VT323',monospace;font-size:14px;color:var(--muted);margin-right:4px;">Stable examples →</span>
+                <span class="hs-term has-pulse" data-map="water" data-card="chloral" style="margin-right:8px;">Chloral hydrate</span>
+                <span class="hs-term has-pulse" data-map="water" data-card="ninhydrin" style="margin-right:8px;">Ninhydrin</span>
+                <span class="hs-term has-pulse" data-map="water" data-card="cyclopropane">1,2-dihydroxycyclopropane</span>
+            </div>
+            <p class="hotspot-hint" style="margin-top:12px;">↑ Click any highlighted term to explore it</p>
+            <div class="hotspot-card-area" id="hcard-area-water">
+                <div class="hotspot-card" id="hcard-water-gem-diol-unstable">
+                    <p class="hotspot-card-title">Why most gem-diols are unstable</p>
+                    Gem-diol formation is reversible and the equilibrium usually favours the carbonyl. Most gem-diols cannot be isolated because they immediately revert to the aldehyde or ketone. The C=O bond is more stable than two C–OH bonds in most simple cases.
+                </div>
+                <div class="hotspot-card" id="hcard-water-chloral">
+                    <p class="hotspot-card-title">Chloral hydrate — stabilised by H-bonding</p>
+                    Chloral (CCl₃CHO) forms a stable gem-diol. The two adjacent OH groups form intramolecular hydrogen bonds with each other, locking the gem-diol form in place and preventing reversion to the carbonyl. The electron-withdrawing CCl₃ group also helps by making the carbonyl carbon more electrophilic.
+                </div>
+                <div class="hotspot-card" id="hcard-water-ninhydrin">
+                    <p class="hotspot-card-title">Ninhydrin — stabilised by H-bonding</p>
+                    Ninhydrin exists as a gem-diol in the solid state. The two OH groups on the central carbon form strong intramolecular hydrogen bonds supported by the adjacent carbonyl groups on the ring. Famous for the ninhydrin test — reacts with amino acids to give a purple colour used in forensic chemistry.
+                </div>
+                <div class="hotspot-card" id="hcard-water-cyclopropane">
+                    <p class="hotspot-card-title">1,2-dihydroxycyclopropane — stabilised by ring resonance</p>
+                    In the cyclopropane ring system, the gem-diol is stabilised by the interaction of the OH lone pairs with the strained C–C σ* orbitals of the ring — σ-conjugation or Walsh orbital overlap. This resonance effect unique to three-membered rings donates electron density into adjacent bonds, stabilising the gem-diol over the carbonyl form.
+                </div>
+            </div>
+        </div>
+ 
+        <p class="section-label">// Step by step mechanism</p>
+        <div class="mechanism-split">
+            <div class="mechanism-visual" id="mvis-water">
+                <svg viewBox="0 0 360 160" width="320" xmlns="http://www.w3.org/2000/svg">
+                    <defs><marker id="aw-def" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#7ec8a4"/></marker></defs>
+                    <text x="20" y="85" fill="#7ec8a4" font-family="monospace" font-size="16">H&#x2082;O:</text>
+                    <path d="M 55 68 Q 85 42 110 65" stroke="#7ec8a4" stroke-width="1.5" fill="none" marker-end="url(#aw-def)"/>
+                    <text x="116" y="85" fill="#c8b89a" font-family="monospace" font-size="16">C</text>
+                    <line x1="127" y1="85" x2="144" y2="85" stroke="#e07070" stroke-width="2.5"/>
+                    <line x1="127" y1="79" x2="144" y2="79" stroke="#e07070" stroke-width="2.5"/>
+                    <text x="147" y="85" fill="#e07070" font-family="monospace" font-size="16">O</text>
+                    <line x1="200" y1="78" x2="245" y2="78" stroke="#888" stroke-width="1.5"/>
+                    <polygon points="245,73 255,78 245,83" fill="#888"/>
+                    <text x="262" y="72" fill="#888" font-family="monospace" font-size="13">HO&#x2014;C&#x2014;O&#x207B;</text>
+                    <text x="262" y="96" fill="#7ec8a4" font-size="11">oxyanion intermediate</text>
+                </svg>
+                <p class="visual-label">Select a step to see its diagram</p>
+            </div>
+            <div class="mechanism-scroll">
+                <div class="mechanism-step" onclick="toggleStep(this,'water',1)">
+                    <div class="mechanism-step-header"><div class="step-number">1</div><span class="step-title">Water oxygen attacks carbonyl carbon</span><span class="step-chevron">▼</span></div>
+                    <div class="mechanism-step-body"><div class="step-explanation">The oxygen of water uses one of its lone pairs to attack the carbonyl carbon. The new O–C bond forms, the π bond breaks, electrons move onto the carbonyl oxygen. An <span class="ht">oxyanion intermediate</span> forms. Carbon goes sp² → sp³.<div class="intuition">Water is a weak nucleophile — oxygen is already partially satisfied. But the δ+ on carbon is attractive enough to pull it in.</div></div></div>
+                </div>
+                <div class="mechanism-step" onclick="toggleStep(this,'water',2)">
+                    <div class="mechanism-step-header"><div class="step-number">2</div><span class="step-title">Proton transfer gives the gem-diol</span><span class="step-chevron">▼</span></div>
+                    <div class="mechanism-step-body"><div class="step-explanation">The oxyanion picks up a proton from solvent water, giving the <span class="ht">gem-diol</span> — two OH groups on the same carbon. From the Latin geminus, meaning twin. In most cases the equilibrium lies back toward the carbonyl, so the gem-diol is a transient species.</div></div>
+                </div>
+                <div class="mechanism-step" onclick="toggleStep(this,'water',3)">
+                    <div class="mechanism-step-header"><div class="step-number">3</div><span class="step-title">When the gem-diol is stabilised: chloral, ninhydrin, cyclopropane</span><span class="step-chevron">▼</span></div>
+                    <div class="mechanism-step-body"><div class="step-explanation">In chloral and ninhydrin, the gem-diol is stabilised by <span class="ht">intramolecular hydrogen bonding</span> between the two adjacent OH groups — they lock each other in place, preventing dehydration back to the carbonyl. In 1,2-dihydroxycyclopropane, stabilisation comes from OH lone pairs interacting with the strained σ* orbitals of the ring — a resonance effect unique to three-membered rings.<div class="intuition">H-bonding is the gem-diol's seatbelt. Once the two OH groups are holding each other, they don't let go easily.</div></div></div>
+                </div>
+            </div>
+        </div>
+    </div>
+ 
+    <!-- ===================== ALCOHOL ===================== -->
+    <div id="reaction-alcohol" class="reaction-panel">
+        <div class="reaction-header">
+            <p class="reaction-type">// Nucleophilic addition of alcohol</p>
+            <h3 class="reaction-name"><em>Hemiacetal</em> and <em>Acetal</em> Formation</h3>
+        </div>
+        <button class="predict-trigger-btn" onclick="openPredict('alcohol')"><span>⟡</span> Test your prediction first</button>
+        <div class="predict-overlay" id="predict-overlay-alcohol">
+            <div class="predict-modal">
+                <button class="predict-close" onclick="closePredict('alcohol')">✕</button>
+                <p class="predict-modal-title">Predict before you proceed.</p>
+                <p class="predict-modal-sub">An alcohol can add to a carbonyl. Which part of the alcohol is the nucleophile, and what is the product of the first addition?</p>
+                <div class="word-boxes" id="words-alcohol">
+                    <div class="word-box" draggable="true" data-value="ROH (oxygen lone pair)">ROH (oxygen lone pair)</div>
+                    <div class="word-box" draggable="true" data-value="H⁺ is the nucleophile">H⁺ is the nucleophile</div>
+                    <div class="word-box" draggable="true" data-value="The carbonyl is the nucleophile here">The carbonyl is the nucleophile here</div>
+                    <div class="word-box" draggable="true" data-value="RO⁻">RO⁻</div>
+                    <div class="word-box" draggable="true" data-value="Hemiacetal">Hemiacetal</div>
+                    <div class="word-box" draggable="true" data-value="Acetal forms directly">Acetal forms directly</div>
+                    <div class="word-box" draggable="true" data-value="Gem-diol">Gem-diol</div>
+                    <div class="word-box" draggable="true" data-value="No reaction without base">No reaction without base</div>
+                </div>
+                <div class="drop-targets">
+                    <div class="drop-target" id="drop-alcohol-nucleophile" data-correct="ROH (oxygen lone pair)"><span class="drop-target-label">Nucleophile</span><span class="drop-target-placeholder">Drop here</span></div>
+                    <div class="drop-target" id="drop-alcohol-product" data-correct="Hemiacetal"><span class="drop-target-label">First addition product</span><span class="drop-target-placeholder">Drop here</span></div>
+                </div>
+                <div class="predict-actions">
+                    <button class="check-btn" onclick="checkPredict('alcohol')">Check</button>
+                    <button class="reset-btn" onclick="resetPredict('alcohol')">Reset</button>
+                </div>
+                <div id="predict-feedback-alcohol" class="predict-feedback"></div>
+            </div>
+        </div>
+ 
+        <p class="section-label">// The complete reaction</p>
+        <div class="hotspot-map" id="hmap-alcohol">
+            <div class="hotspot-equation">
+                <div class="hs-species"><span class="hs-plain-label">Aldehyde</span><span class="hs-formula">RCHO</span></div>
+                <span class="hs-plus">+</span>
+                <div class="hs-species"><span class="hs-term has-pulse" data-map="alcohol" data-card="hemi-vs-acetal">Alcohol ×2</span><span class="hs-formula">2 R'OH</span></div>
+                <div class="hs-arrow"><span>⇌</span><div class="hs-arrow-conditions"><span class="hs-term has-pulse" data-map="alcohol" data-card="acid-needed">dry HCl</span><span class="hs-term has-pulse" data-map="alcohol" data-card="equilibrium">remove H₂O</span></div></div>
+                <div class="hs-species"><span class="hs-term has-pulse" data-map="alcohol" data-card="protecting">Acetal</span><span class="hs-formula">RCH(OR')₂</span></div>
+            </div>
+            <div class="hotspot-equation-plain">
+                <span style="font-family:'VT323',monospace;font-size:14px;color:var(--muted);margin-right:8px;">Ketone version →</span>
+                <div class="hs-species" style="margin-right:6px;"><span class="hs-plain-label">Ketone</span><span class="hs-formula">RCOR'</span></div>
+                <span class="hs-plus">+</span>
+                <div class="hs-species" style="margin:0 6px;"><span class="hs-plain-label">Ethylene glycol</span><span class="hs-formula">HOCH₂CH₂OH</span></div>
+                <div class="hs-arrow" style="margin:0 6px;"><span>⇌</span><span style="font-family:'VT323',monospace;font-size:13px;color:var(--muted)">H⁺, −H₂O</span></div>
+                <div class="hs-species"><span class="hs-plain-label">Cyclic ketal</span><span class="hs-formula">1,3-dioxolane</span></div>
+            </div>
+            <p class="hotspot-hint" style="margin-top:12px;">↑ Click any highlighted term to explore it</p>
+            <div class="hotspot-card-area" id="hcard-area-alcohol">
+                <div class="hotspot-card" id="hcard-alcohol-acid-needed">
+                    <p class="hotspot-card-title">Why acid is needed</p>
+                    Dry HCl provides H⁺ which protonates the carbonyl oxygen, converting it from a moderate electrophile into a highly activated one. The protonated carbonyl now carries a full positive charge on oxygen, making it far more reactive toward the weak alcohol nucleophile.
+                </div>
+                <div class="hotspot-card" id="hcard-alcohol-hemi-vs-acetal">
+                    <p class="hotspot-card-title">Hemiacetal vs Acetal</p>
+                    The first alcohol addition gives a hemiacetal — one OH and one OR group on the same carbon. Under acidic conditions, the OH gets protonated and leaves as water, forming an oxocarbenium ion. A second alcohol attacks to give the acetal — two OR groups, no OH.
+                </div>
+                <div class="hotspot-card" id="hcard-alcohol-protecting">
+                    <p class="hotspot-card-title">Acetals as protecting groups</p>
+                    Acetals are stable to basic conditions and nucleophiles. Convert the carbonyl to an acetal, do your chemistry elsewhere in the molecule, then remove the acetal under acidic aqueous conditions to regenerate the carbonyl.
+                </div>
+                <div class="hotspot-card" id="hcard-alcohol-equilibrium">
+                    <p class="hotspot-card-title">Driving the equilibrium</p>
+                    Acetal formation is reversible. Water is a product. Continuously removing water via Dean–Stark trap or drying agent forces equilibrium right by Le Chatelier's principle.
+                </div>
+            </div>
+        </div>
+ 
+        <p class="section-label">// Step by step mechanism</p>
+        <div class="mechanism-split">
+            <div class="mechanism-visual" id="mvis-alcohol">
+                <svg viewBox="0 0 360 160" width="320" xmlns="http://www.w3.org/2000/svg">
+                    <defs><marker id="aa-def" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#7ec8a4"/></marker></defs>
+                    <text x="20" y="85" fill="#c8b89a" font-family="monospace" font-size="16">C</text>
+                    <line x1="30" y1="85" x2="48" y2="85" stroke="#e07070" stroke-width="2.5"/>
+                    <line x1="30" y1="79" x2="48" y2="79" stroke="#e07070" stroke-width="2.5"/>
+                    <text x="51" y="85" fill="#e07070" font-family="monospace" font-size="16">O</text>
+                    <text x="78" y="85" fill="#888" font-size="14">+</text>
+                    <text x="93" y="85" fill="#7ec8a4" font-family="monospace" font-size="16">H&#x207A;</text>
+                    <path d="M 56 72 Q 72 50 90 68" stroke="#7ec8a4" stroke-width="1.5" fill="none" marker-end="url(#aa-def)"/>
+                    <line x1="155" y1="78" x2="197" y2="78" stroke="#888" stroke-width="1.5"/>
+                    <polygon points="197,73 207,78 197,83" fill="#888"/>
+                    <text x="215" y="85" fill="#c8b89a" font-family="monospace" font-size="16">C</text>
+                    <line x1="225" y1="85" x2="243" y2="85" stroke="#e07070" stroke-width="2.5"/>
+                    <line x1="225" y1="79" x2="243" y2="79" stroke="#e07070" stroke-width="2.5"/>
+                    <text x="246" y="85" fill="#e07070" font-family="monospace" font-size="15">OH&#x207A;</text>
+                    <text x="215" y="110" fill="#e07070" font-size="11">highly activated electrophile</text>
+                </svg>
+                <p class="visual-label">Select a step to see its diagram</p>
+            </div>
+            <div class="mechanism-scroll">
+                <div class="mechanism-step" onclick="toggleStep(this,'alcohol',1)">
+                    <div class="mechanism-step-header"><div class="step-number">1</div><span class="step-title">Acid protonates carbonyl oxygen: activating the electrophile</span><span class="step-chevron">▼</span></div>
+                    <div class="mechanism-step-body"><div class="step-explanation">The carbonyl oxygen donates a lone pair to H⁺, protonating itself. This converts the δ+ on carbon into a full positive charge — the carbonyl is now a much stronger <span class="ht">electrophile</span>. Without this activation, the weak alcohol nucleophile cannot attack fast enough.</div></div>
+                </div>
+                <div class="mechanism-step" onclick="toggleStep(this,'alcohol',2)">
+                    <div class="mechanism-step-header"><div class="step-number">2</div><span class="step-title">Alcohol attacks: hemiacetal forms</span><span class="step-chevron">▼</span></div>
+                    <div class="mechanism-step-body"><div class="step-explanation">The oxygen lone pair of the alcohol attacks the activated carbonyl carbon. A new C–O bond forms. After proton loss, the <span class="ht">hemiacetal</span> is obtained — one OR group from the alcohol, one OH from the former carbonyl oxygen. Carbon is now sp³.<div class="intuition">The hemiacetal is the halfway house. One alcohol in, but there is still an OH group that can leave under acidic conditions.</div></div></div>
+                </div>
+                <div class="mechanism-step" onclick="toggleStep(this,'alcohol',3)">
+                    <div class="mechanism-step-header"><div class="step-number">3</div><span class="step-title">Acid protonates hemiacetal OH: water leaves</span><span class="step-chevron">▼</span></div>
+                    <div class="mechanism-step-body"><div class="step-explanation">The OH of the hemiacetal gets protonated, converting it into OH₂⁺ — an excellent leaving group. Water departs, forming an <span class="ht">oxocarbenium ion</span>, stabilised by the adjacent oxygen lone pair.<div class="intuition">OH is a terrible leaving group. OH₂⁺ is a great one. Protonation converts a bad leaving group into a good one.</div></div></div>
+                </div>
+                <div class="mechanism-step" onclick="toggleStep(this,'alcohol',4)">
+                    <div class="mechanism-step-header"><div class="step-number">4</div><span class="step-title">Second alcohol attacks: acetal forms</span><span class="step-chevron">▼</span></div>
+                    <div class="mechanism-step-body"><div class="step-explanation">A second alcohol attacks the oxocarbenium ion. After proton loss, the <span class="ht">acetal</span> is the product — two OR groups, no OH. No OH means base cannot deprotonate it and initiate reversal. This is why acetals are stable to basic conditions.<div class="intuition">The acetal is the locked form. No OH means no easy way back. You need acid and water together to break it open again.</div></div></div>
+                </div>
+            </div>
+        </div>
+ 
+        <div class="did-you-know">
+            <p class="dyk-label">// Did you know</p>
+            <p class="dyk-text">Thioacetal formation uses a thiol (RSH) instead of an alcohol. The thioacetal can then be reduced using <span class="ht">Raney nickel</span> with H₂ gas, converting C–S bonds all the way to C–H bonds — effectively replacing the carbonyl with CH₂. This two-step sequence is the <span class="ht">Mozingo reduction</span>.</p>
+        </div>
+    </div>
+ 
+    <!-- ===================== BISULFITE ===================== -->
+    <div id="reaction-bisulfite" class="reaction-panel">
+        <div class="reaction-header">
+            <p class="reaction-type">// Nucleophilic addition of bisulfite</p>
+            <h3 class="reaction-name"><em>Bisulfite</em> Addition</h3>
+        </div>
+        <button class="predict-trigger-btn" onclick="openPredict('bisulfite')"><span>⟡</span> Test your prediction first</button>
+        <div class="predict-overlay" id="predict-overlay-bisulfite">
+            <div class="predict-modal">
+                <button class="predict-close" onclick="closePredict('bisulfite')">✕</button>
+                <p class="predict-modal-title">Predict before you proceed.</p>
+                <p class="predict-modal-sub">HSO₃⁻ has two potential donor atoms: sulfur and oxygen. Which one acts as the nucleophile, and what is the product?</p>
+                <div class="word-boxes" id="words-bisulfite">
+                    <div class="word-box" draggable="true" data-value="S of HSO₃⁻">S of HSO₃⁻</div>
+                    <div class="word-box" draggable="true" data-value="O of HSO₃⁻ is the nucleophile">O of HSO₃⁻ is the nucleophile</div>
+                    <div class="word-box" draggable="true" data-value="Na⁺">Na⁺</div>
+                    <div class="word-box" draggable="true" data-value="HSO₃⁻ attacks as a whole unit">HSO₃⁻ attacks as a whole unit</div>
+                    <div class="word-box" draggable="true" data-value="Crystalline sulfonate adduct">Crystalline sulfonate adduct</div>
+                    <div class="word-box" draggable="true" data-value="Carboxylic acid">Carboxylic acid</div>
+                    <div class="word-box" draggable="true" data-value="No reaction with ketones">No reaction with ketones</div>
+                    <div class="word-box" draggable="true" data-value="Gem-diol">Gem-diol</div>
+                </div>
+                <div class="drop-targets">
+                    <div class="drop-target" id="drop-bisulfite-nucleophile" data-correct="S of HSO₃⁻"><span class="drop-target-label">Nucleophile</span><span class="drop-target-placeholder">Drop here</span></div>
+                    <div class="drop-target" id="drop-bisulfite-product" data-correct="Crystalline sulfonate adduct"><span class="drop-target-label">Final product</span><span class="drop-target-placeholder">Drop here</span></div>
+                </div>
+                <div class="predict-actions">
+                    <button class="check-btn" onclick="checkPredict('bisulfite')">Check</button>
+                    <button class="reset-btn" onclick="resetPredict('bisulfite')">Reset</button>
+                </div>
+                <div id="predict-feedback-bisulfite" class="predict-feedback"></div>
+            </div>
+        </div>
+ 
+        <p class="section-label">// The complete reaction</p>
+        <div class="hotspot-map" id="hmap-bisulfite">
+            <div class="hotspot-equation">
+                <div class="hs-species"><span class="hs-term has-pulse" data-map="bisulfite" data-card="steric">Aldehyde</span><span class="hs-formula">RCHO</span></div>
+                <span class="hs-plus">+</span>
+                <div class="hs-species"><span class="hs-term has-pulse" data-map="bisulfite" data-card="why-sulfur">Sodium bisulfite</span><span class="hs-formula">NaHSO₃</span></div>
+                <div class="hs-arrow"><span>⇌</span><span style="font-family:'VT323',monospace;font-size:14px;color:var(--muted)">aqueous</span></div>
+                <div class="hs-species"><span class="hs-term has-pulse" data-map="bisulfite" data-card="crystalline">Bisulfite adduct</span><span class="hs-formula">RCH(OH)SO₃Na</span></div>
+            </div>
+            <p class="hotspot-hint" style="margin-top:10px;">↑ Click any highlighted term to explore it</p>
+            <div class="hotspot-card-area" id="hcard-area-bisulfite">
+                <div class="hotspot-card" id="hcard-bisulfite-why-sulfur">
+                    <p class="hotspot-card-title">Why sulfur attacks, not oxygen</p>
+                    Sulfur is larger and more polarisable than oxygen. Its electron cloud is more easily distorted, making it a softer and better nucleophile for soft electrophiles like the carbonyl carbon. This is an application of <span class="hsab-term" onclick="toggleHSAB(this)">HSAB theory<span class="hsab-tooltip"><p class="hsab-tooltip-title">HSAB Theory</p>Hard and Soft Acids and Bases (Pearson, 1963). Hard acids prefer hard bases; soft acids prefer soft bases. Hard = small, high charge density, not very polarisable. Soft = large, low charge density, highly polarisable. The carbonyl carbon is a relatively soft acid. Sulfur is a soft base. Oxygen is harder. So sulfur wins.</span></span>. Oxygen in HSO₃⁻ is harder and less nucleophilic toward carbon.
+                </div>
+                <div class="hotspot-card" id="hcard-bisulfite-steric">
+                    <p class="hotspot-card-title">Steric limitation</p>
+                    Bisulfite addition only works with aldehydes, methyl ketones, and cyclic ketones up to 8 ring members. The bisulfite ion is bulky. Ketones with large alkyl groups create too much steric hindrance during the sp² → sp³ geometry change.
+                </div>
+                <div class="hotspot-card" id="hcard-bisulfite-crystalline">
+                    <p class="hotspot-card-title">Crystalline product and purification</p>
+                    The bisulfite adduct is an ionic solid that precipitates as a crystalline product. Convert an aldehyde to its adduct, filter off the crystals, wash away impurities, then regenerate the pure aldehyde by treating with acid or base.
+                </div>
+                <div class="hotspot-card" id="hcard-bisulfite-reversibility">
+                    <p class="hotspot-card-title">Reversibility</p>
+                    The adduct is decomposed by both acid and base. With acid, the sulfonate is protonated and leaves. With base, the alkoxide is deprotonated and sulfonate is expelled as SO₂ and water. Either way the pure aldehyde is regenerated.
+                </div>
+            </div>
+        </div>
+ 
+        <p class="section-label">// Step by step mechanism</p>
+        <div class="mechanism-split">
+            <div class="mechanism-visual" id="mvis-bisulfite">
+                <svg viewBox="0 0 360 160" width="320" xmlns="http://www.w3.org/2000/svg">
+                    <defs><marker id="ab-def" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#7ec8a4"/></marker></defs>
+                    <text x="20" y="85" fill="#7ec8a4" font-family="monospace" font-size="14">&#x207B;O&#x2083;S&#x2014;H</text>
+                    <text x="20" y="103" fill="#7ec8a4" font-size="11">sulfur end attacks</text>
+                    <path d="M 28 68 Q 62 38 95 62" stroke="#7ec8a4" stroke-width="1.5" fill="none" marker-end="url(#ab-def)"/>
+                    <text x="102" y="85" fill="#c8b89a" font-family="monospace" font-size="15">C</text>
+                    <line x1="113" y1="85" x2="130" y2="85" stroke="#e07070" stroke-width="2.5"/>
+                    <line x1="113" y1="79" x2="130" y2="79" stroke="#e07070" stroke-width="2.5"/>
+                    <text x="133" y="85" fill="#e07070" font-family="monospace" font-size="15">O</text>
+                    <line x1="195" y1="78" x2="238" y2="78" stroke="#888" stroke-width="1.5"/>
+                    <polygon points="238,73 248,78 238,83" fill="#888"/>
+                    <text x="255" y="72" fill="#888" font-family="monospace" font-size="12">&#x207B;O&#x2083;S&#x2014;C&#x2014;O&#x207B;</text>
+                    <text x="255" y="96" fill="#7ec8a4" font-size="11">new C&#x2013;S bond formed</text>
+                </svg>
+                <p class="visual-label">Select a step to see its diagram</p>
+            </div>
+            <div class="mechanism-scroll">
+                <div class="mechanism-step" onclick="toggleStep(this,'bisulfite',1)">
+                    <div class="mechanism-step-header"><div class="step-number">1</div><span class="step-title">Sulfur lone pair attacks carbonyl carbon</span><span class="step-chevron">▼</span></div>
+                    <div class="mechanism-step-body"><div class="step-explanation">The sulfur atom of HSO₃⁻ donates its lone pair into the π* of the carbonyl. Sulfur attacks rather than oxygen because it is <span class="ht">larger and more polarisable</span>. New C–S bond forms, π breaks, alkoxide forms.<div class="intuition">Bigger atoms have more loosely held electrons. Sulfur's electron cloud stretches toward the electrophile more easily than oxygen's.</div></div></div>
+                </div>
+                <div class="mechanism-step" onclick="toggleStep(this,'bisulfite',2)">
+                    <div class="mechanism-step-header"><div class="step-number">2</div><span class="step-title">Proton transfer: S–H protonates the alkoxide</span><span class="step-chevron">▼</span></div>
+                    <div class="mechanism-step-body"><div class="step-explanation">The S–H proton transfers to the alkoxide oxygen in an intramolecular proton transfer, giving the final <span class="ht">bisulfite adduct</span>. Highly ionic, precipitates from aqueous solution as a crystalline solid.<div class="intuition">The proton is already sitting on the sulfur, right next to where it needs to go. Intramolecular proton transfers are fast.</div></div></div>
+                </div>
+                <div class="mechanism-step" onclick="toggleStep(this,'bisulfite',3)">
+                    <div class="mechanism-step-header"><div class="step-number">3</div><span class="step-title">Reversal: acid or base breaks the adduct</span><span class="step-chevron">▼</span></div>
+                    <div class="mechanism-step-body"><div class="step-explanation">With base: OH is deprotonated, alkoxide expels sulfonate as SO₃²⁻, regenerating the carbonyl. With acid: sulfonate is protonated and leaves as H₂SO₃ → SO₂ + H₂O. Either way, the <span class="ht">pure aldehyde</span> is regenerated.<div class="intuition">You use this reaction like a handle. Grab the aldehyde with bisulfite, pull it away from impurities, let go with acid or base to get it back clean.</div></div></div>
+                </div>
+            </div>
+        </div>
+    </div>
+ 
+ 
+</div>
+ 
+<script>
+    var draggedValue = null;
+    var draggedElement = null;
+    var dropState = {
+        grignard:  { nucleophile: null, product: null },
+        water:     { nucleophile: null, product: null },
+        alcohol:   { nucleophile: null, product: null },
+        bisulfite: { nucleophile: null, product: null }
+    };
+ 
+    var stepSVGs = {
+        grignard: {
+            1: '<svg viewBox="0 0 360 160" width="320" xmlns="http://www.w3.org/2000/svg"><text x="20" y="90" fill="#c8b89a" font-family="monospace" font-size="17">R&#x2014;Mg&#x2014;X</text><text x="148" y="72" fill="#888" font-size="12">in ether</text><line x1="148" y1="79" x2="210" y2="79" stroke="#888" stroke-width="1.2"/><polygon points="210,74 220,79 210,84" fill="#888"/><text x="228" y="68" fill="#c8b89a" font-family="monospace" font-size="16">R&#x207B;</text><text x="254" y="68" fill="#888" font-size="13">+</text><text x="268" y="68" fill="#888" font-family="monospace" font-size="14">MgX&#x207A;</text><text x="224" y="90" fill="#7ec8a4" font-size="11">nucleophile</text><text x="264" y="90" fill="#888" font-size="11">spectator</text></svg>',
+            2: '<svg viewBox="0 0 360 190" width="320" xmlns="http://www.w3.org/2000/svg"><defs><marker id="sg2a" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#7ec8a4"/></marker><marker id="sg2b" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#4a9eff"/></marker></defs><text x="20" y="100" fill="#888" font-family="monospace" font-size="16">R&#x207B;</text><path d="M 46 92 Q 80 62 106 85" stroke="#7ec8a4" stroke-width="1.5" fill="none" marker-end="url(#sg2a)"/><text x="112" y="100" fill="#c8b89a" font-family="monospace" font-size="16">C</text><line x1="124" y1="100" x2="142" y2="100" stroke="#e07070" stroke-width="2.5"/><line x1="124" y1="93" x2="142" y2="93" stroke="#e07070" stroke-width="2.5"/><text x="145" y="100" fill="#e07070" font-family="monospace" font-size="16">O</text><text x="114" y="118" fill="#e07070" font-size="11">&#x3b4;+</text><path d="M 133 91 Q 138 68 150 78" stroke="#4a9eff" stroke-width="1.5" fill="none" marker-end="url(#sg2b)"/><line x1="208" y1="95" x2="252" y2="95" stroke="#888" stroke-width="1.5"/><polygon points="252,90 262,95 252,100" fill="#888"/><text x="270" y="82" fill="#888" font-family="monospace" font-size="13">R</text><line x1="280" y1="82" x2="292" y2="82" stroke="#888" stroke-width="1.5"/><text x="294" y="82" fill="#c8b89a" font-family="monospace" font-size="13">C</text><line x1="302" y1="82" x2="314" y2="82" stroke="#888" stroke-width="1.5"/><text x="316" y="82" fill="#e07070" font-family="monospace" font-size="13">O&#x207B;</text><line x1="298" y1="85" x2="298" y2="102" stroke="#888" stroke-width="1.5"/><text x="286" y="115" fill="#888" font-family="monospace" font-size="12">R(H)</text><text x="270" y="140" fill="#7ec8a4" font-size="11">sp&#xb3; carbon, alkoxide formed</text></svg>',
+            3: '<svg viewBox="0 0 360 130" width="320" xmlns="http://www.w3.org/2000/svg"><text x="20" y="65" fill="#c8b89a" font-family="monospace" font-size="15">R&#x2014;MgX</text><text x="108" y="65" fill="#888" font-size="14">+</text><text x="122" y="65" fill="#e07070" font-family="monospace" font-size="15">H&#x2082;O</text><line x1="205" y1="59" x2="248" y2="59" stroke="#888" stroke-width="1.5"/><polygon points="248,54 258,59 248,64" fill="#888"/><text x="265" y="65" fill="#888" font-family="monospace" font-size="15">R&#x2014;H</text><text x="305" y="65" fill="#888" font-size="14">+</text><text x="316" y="65" fill="#888" font-family="monospace" font-size="13">MgX(OH)</text><text x="265" y="88" fill="#e07070" font-size="11">reagent destroyed</text></svg>',
+            4: '<svg viewBox="0 0 360 140" width="320" xmlns="http://www.w3.org/2000/svg"><text x="20" y="65" fill="#c8b89a" font-family="monospace" font-size="14">R&#x2014;C&#x2014;O&#x207B;</text><text x="115" y="65" fill="#888" font-size="13">+</text><text x="128" y="65" fill="#7ec8a4" font-family="monospace" font-size="14">H&#x2082;O</text><line x1="212" y1="59" x2="252" y2="59" stroke="#888" stroke-width="1.5"/><polygon points="252,54 262,59 252,64" fill="#888"/><text x="270" y="65" fill="#c8b89a" font-family="monospace" font-size="14">R&#x2014;C&#x2014;OH</text><text x="270" y="88" fill="#7ec8a4" font-size="11">alcohol product</text><text x="20" y="118" fill="#888" font-size="11">Always add water only after Grignard is fully consumed</text></svg>'
+        },
+        water: {
+            1: '<svg viewBox="0 0 360 160" width="320" xmlns="http://www.w3.org/2000/svg"><defs><marker id="sw1a" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#7ec8a4"/></marker><marker id="sw1b" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#4a9eff"/></marker></defs><text x="20" y="85" fill="#7ec8a4" font-family="monospace" font-size="16">H&#x2082;O:</text><path d="M 55 68 Q 85 42 108 65" stroke="#7ec8a4" stroke-width="1.5" fill="none" marker-end="url(#sw1a)"/><text x="114" y="85" fill="#c8b89a" font-family="monospace" font-size="16">C</text><line x1="125" y1="85" x2="143" y2="85" stroke="#e07070" stroke-width="2.5"/><line x1="125" y1="79" x2="143" y2="79" stroke="#e07070" stroke-width="2.5"/><text x="146" y="85" fill="#e07070" font-family="monospace" font-size="16">O</text><path d="M 134 76 Q 138 55 150 66" stroke="#4a9eff" stroke-width="1.5" fill="none" marker-end="url(#sw1b)"/><line x1="200" y1="78" x2="242" y2="78" stroke="#888" stroke-width="1.5"/><polygon points="242,73 252,78 242,83" fill="#888"/><text x="258" y="72" fill="#888" font-family="monospace" font-size="13">HO&#x2014;C&#x2014;O&#x207B;</text><text x="258" y="96" fill="#7ec8a4" font-size="11">oxyanion intermediate</text></svg>',
+            2: '<svg viewBox="0 0 360 140" width="320" xmlns="http://www.w3.org/2000/svg"><defs><marker id="sw2" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#7ec8a4"/></marker></defs><text x="20" y="68" fill="#888" font-family="monospace" font-size="13">HO&#x2014;C&#x2014;O&#x207B;</text><text x="28" y="42" fill="#7ec8a4" font-family="monospace" font-size="13">H&#x207A;</text><path d="M 46 48 Q 72 24 98 48" stroke="#7ec8a4" stroke-width="1.5" fill="none" marker-end="url(#sw2)"/><line x1="190" y1="62" x2="232" y2="62" stroke="#888" stroke-width="1.5"/><polygon points="232,57 242,62 232,67" fill="#888"/><text x="250" y="62" fill="#c8b89a" font-family="monospace" font-size="13">HO&#x2014;C&#x2014;OH</text><text x="250" y="88" fill="#7ec8a4" font-size="11">gem-diol: two OH on same carbon</text></svg>',
+            3: '<svg viewBox="0 0 360 310" width="320" xmlns="http://www.w3.org/2000/svg"><text x="10" y="20" fill="#888" font-size="11">Chloral hydrate (CCl&#x2083;CH(OH)&#x2082;)</text><text x="10" y="48" fill="#c8b89a" font-family="monospace" font-size="12">CCl&#x2083;</text><line x1="44" y1="44" x2="60" y2="44" stroke="#888" stroke-width="1.5"/><text x="62" y="48" fill="#c8b89a" font-family="monospace" font-size="12">C</text><line x1="70" y1="44" x2="84" y2="44" stroke="#888" stroke-width="1.5"/><text x="86" y="48" fill="#e07070" font-family="monospace" font-size="12">OH</text><line x1="66" y1="50" x2="66" y2="66" stroke="#888" stroke-width="1.5"/><text x="56" y="78" fill="#e07070" font-family="monospace" font-size="12">OH</text><path d="M 95 50 Q 112 64 95 74" stroke="#4a9eff" stroke-width="1.5" fill="none" stroke-dasharray="4,2"/><text x="115" y="64" fill="#4a9eff" font-size="10">H-bond</text><line x1="0" y1="100" x2="360" y2="100" stroke="#2a2a2a" stroke-width="1"/><text x="10" y="120" fill="#888" font-size="11">Ninhydrin (gem-diol form)</text><text x="10" y="148" fill="#c8b89a" font-family="monospace" font-size="11">O=C</text><line x1="38" y1="144" x2="52" y2="144" stroke="#888" stroke-width="1.5"/><text x="54" y="148" fill="#c8b89a" font-family="monospace" font-size="11">C</text><line x1="62" y1="148" x2="76" y2="148" stroke="#888" stroke-width="1.5"/><text x="78" y="148" fill="#e07070" font-family="monospace" font-size="11">OH</text><line x1="58" y1="150" x2="58" y2="165" stroke="#888" stroke-width="1.5"/><text x="48" y="177" fill="#e07070" font-family="monospace" font-size="11">OH</text><line x1="38" y1="144" x2="30" y2="158" stroke="#888" stroke-width="1.5"/><text x="10" y="168" fill="#888" font-family="monospace" font-size="11">C=O</text><path d="M 86 150 Q 104 162 86 172" stroke="#4a9eff" stroke-width="1.5" fill="none" stroke-dasharray="4,2"/><text x="106" y="164" fill="#4a9eff" font-size="10">H-bond</text><line x1="0" y1="198" x2="360" y2="198" stroke="#2a2a2a" stroke-width="1"/><text x="10" y="218" fill="#888" font-size="11">1,2-dihydroxycyclopropane &#x2014; resonance forms</text><text x="10" y="248" fill="#c8b89a" font-family="monospace" font-size="11">HO</text><line x1="30" y1="244" x2="44" y2="244" stroke="#888" stroke-width="1.5"/><text x="46" y="248" fill="#c8b89a" font-family="monospace" font-size="11">C</text><line x1="54" y1="248" x2="68" y2="248" stroke="#888" stroke-width="1.5"/><text x="70" y="248" fill="#c8b89a" font-family="monospace" font-size="11">C</text><line x1="78" y1="248" x2="92" y2="248" stroke="#888" stroke-width="1.5"/><text x="94" y="248" fill="#e07070" font-family="monospace" font-size="11">OH</text><line x1="50" y1="250" x2="72" y2="264" stroke="#888" stroke-width="1.5"/><line x1="74" y1="250" x2="52" y2="264" stroke="#888" stroke-width="1.5"/><text x="55" y="278" fill="#888" font-family="monospace" font-size="11">CH&#x2082;</text><text x="128" y="256" fill="#888" font-size="14">&#x21d4;</text><text x="145" y="248" fill="#c8b89a" font-family="monospace" font-size="11">HO</text><line x1="165" y1="244" x2="179" y2="244" stroke="#888" stroke-width="1.5"/><text x="181" y="248" fill="#c8b89a" font-family="monospace" font-size="11">C</text><line x1="189" y1="248" x2="203" y2="248" stroke="#888" stroke-width="1.5"/><text x="205" y="248" fill="#c8b89a" font-family="monospace" font-size="11">C&#x207A;</text><line x1="185" y1="250" x2="207" y2="264" stroke="#888" stroke-width="1.5"/><line x1="209" y1="250" x2="187" y2="264" stroke="#888" stroke-width="1.5"/><text x="190" y="278" fill="#888" font-family="monospace" font-size="11">CH&#x2082;</text><text x="218" y="248" fill="#e07070" font-family="monospace" font-size="11">O&#x207B;</text><text x="10" y="300" fill="#4a9eff" font-size="10">OH lone pairs delocalize into ring &#x3c3;* &#x2014; Walsh orbital overlap</text></svg>'
+        },
+        alcohol: {
+            1: '<svg viewBox="0 0 360 150" width="320" xmlns="http://www.w3.org/2000/svg"><defs><marker id="sa1" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#7ec8a4"/></marker></defs><text x="20" y="82" fill="#c8b89a" font-family="monospace" font-size="16">C</text><line x1="30" y1="82" x2="48" y2="82" stroke="#e07070" stroke-width="2.5"/><line x1="30" y1="76" x2="48" y2="76" stroke="#e07070" stroke-width="2.5"/><text x="51" y="82" fill="#e07070" font-family="monospace" font-size="16">O</text><text x="78" y="82" fill="#888" font-size="14">+</text><text x="93" y="82" fill="#7ec8a4" font-family="monospace" font-size="16">H&#x207A;</text><path d="M 56 69 Q 72 48 90 65" stroke="#7ec8a4" stroke-width="1.5" fill="none" marker-end="url(#sa1)"/><line x1="155" y1="75" x2="197" y2="75" stroke="#888" stroke-width="1.5"/><polygon points="197,70 207,75 197,80" fill="#888"/><text x="215" y="82" fill="#c8b89a" font-family="monospace" font-size="16">C</text><line x1="225" y1="82" x2="243" y2="82" stroke="#e07070" stroke-width="2.5"/><line x1="225" y1="76" x2="243" y2="76" stroke="#e07070" stroke-width="2.5"/><text x="246" y="82" fill="#e07070" font-family="monospace" font-size="15">OH&#x207A;</text><text x="215" y="106" fill="#e07070" font-size="11">highly activated electrophile</text></svg>',
+            2: '<svg viewBox="0 0 360 165" width="320" xmlns="http://www.w3.org/2000/svg"><defs><marker id="sa2" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#7ec8a4"/></marker></defs><text x="20" y="85" fill="#7ec8a4" font-family="monospace" font-size="15">R\'O&#x2014;H</text><path d="M 26 68 Q 60 42 88 66" stroke="#7ec8a4" stroke-width="1.5" fill="none" marker-end="url(#sa2)"/><text x="94" y="85" fill="#c8b89a" font-family="monospace" font-size="15">C</text><line x1="104" y1="85" x2="120" y2="85" stroke="#e07070" stroke-width="2.5"/><line x1="104" y1="79" x2="120" y2="79" stroke="#e07070" stroke-width="2.5"/><text x="123" y="85" fill="#e07070" font-family="monospace" font-size="14">OH&#x207A;</text><line x1="192" y1="79" x2="234" y2="79" stroke="#888" stroke-width="1.5"/><polygon points="234,74 244,79 234,84" fill="#888"/><text x="252" y="70" fill="#888" font-family="monospace" font-size="12">R\'O</text><line x1="272" y1="68" x2="284" y2="68" stroke="#888" stroke-width="1.5"/><text x="286" y="70" fill="#c8b89a" font-family="monospace" font-size="12">C</text><line x1="294" y1="70" x2="306" y2="70" stroke="#888" stroke-width="1.5"/><text x="308" y="70" fill="#e07070" font-family="monospace" font-size="12">OH</text><line x1="290" y1="73" x2="290" y2="87" stroke="#888" stroke-width="1.5"/><text x="278" y="100" fill="#888" font-family="monospace" font-size="11">R(H)</text><text x="252" y="128" fill="#7ec8a4" font-size="11">hemiacetal</text></svg>',
+            3: '<svg viewBox="0 0 360 120" width="320" xmlns="http://www.w3.org/2000/svg"><text x="16" y="38" fill="#888" font-family="monospace" font-size="12">R\'O</text><line x1="38" y1="34" x2="50" y2="34" stroke="#888" stroke-width="1.5"/><text x="52" y="38" fill="#c8b89a" font-family="monospace" font-size="12">C</text><line x1="60" y1="38" x2="72" y2="38" stroke="#888" stroke-width="1.5"/><text x="74" y="38" fill="#888" font-family="monospace" font-size="12">OH</text><line x1="56" y1="41" x2="56" y2="53" stroke="#888" stroke-width="1.5"/><text x="44" y="64" fill="#888" font-family="monospace" font-size="11">R(H)</text><text x="100" y="38" fill="#888" font-size="13">+ H&#x207A;</text><line x1="148" y1="33" x2="185" y2="33" stroke="#888" stroke-width="1.5"/><polygon points="185,28 195,33 185,38" fill="#888"/><text x="202" y="28" fill="#c8b89a" font-family="monospace" font-size="12">R\'O</text><line x1="222" y1="26" x2="234" y2="26" stroke="#888" stroke-width="1.5"/><text x="236" y="28" fill="#c8b89a" font-family="monospace" font-size="12">C&#x207A;</text><text x="265" y="28" fill="#888" font-size="13">+</text><text x="278" y="28" fill="#e07070" font-family="monospace" font-size="12">H&#x2082;O</text><text x="202" y="52" fill="#7ec8a4" font-size="10">oxocarbenium ion</text><text x="272" y="52" fill="#e07070" font-size="10">leaves</text></svg>',
+            4: '<svg viewBox="0 0 360 155" width="320" xmlns="http://www.w3.org/2000/svg"><defs><marker id="sa4" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#7ec8a4"/></marker></defs><text x="20" y="82" fill="#7ec8a4" font-family="monospace" font-size="14">R\'O&#x2014;H</text><path d="M 26 65 Q 58 40 84 63" stroke="#7ec8a4" stroke-width="1.5" fill="none" marker-end="url(#sa4)"/><text x="90" y="82" fill="#c8b89a" font-family="monospace" font-size="14">C&#x207A;</text><line x1="104" y1="80" x2="116" y2="80" stroke="#888" stroke-width="1.5"/><text x="118" y="82" fill="#888" font-family="monospace" font-size="14">OR\'</text><line x1="192" y1="75" x2="232" y2="75" stroke="#888" stroke-width="1.5"/><polygon points="232,70 242,75 232,80" fill="#888"/><text x="250" y="65" fill="#888" font-family="monospace" font-size="12">R\'O</text><line x1="270" y1="63" x2="282" y2="63" stroke="#888" stroke-width="1.5"/><text x="284" y="65" fill="#c8b89a" font-family="monospace" font-size="12">C</text><line x1="292" y1="65" x2="304" y2="65" stroke="#888" stroke-width="1.5"/><text x="306" y="65" fill="#888" font-family="monospace" font-size="12">OR\'</text><line x1="288" y1="68" x2="288" y2="82" stroke="#888" stroke-width="1.5"/><text x="276" y="95" fill="#888" font-family="monospace" font-size="11">R(H)</text><text x="250" y="120" fill="#7ec8a4" font-size="11">acetal: two OR groups, stable to base</text></svg>'
+        },
+        bisulfite: {
+            1: '<svg viewBox="0 0 360 155" width="320" xmlns="http://www.w3.org/2000/svg"><defs><marker id="sb1a" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#7ec8a4"/></marker><marker id="sb1b" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#4a9eff"/></marker></defs><text x="20" y="82" fill="#7ec8a4" font-family="monospace" font-size="14">&#x207B;O&#x2083;S&#x2014;H</text><path d="M 26 65 Q 58 36 90 60" stroke="#7ec8a4" stroke-width="1.5" fill="none" marker-end="url(#sb1a)"/><text x="96" y="82" fill="#c8b89a" font-family="monospace" font-size="14">C</text><line x1="106" y1="82" x2="122" y2="82" stroke="#e07070" stroke-width="2.5"/><line x1="106" y1="76" x2="122" y2="76" stroke="#e07070" stroke-width="2.5"/><text x="125" y="82" fill="#e07070" font-family="monospace" font-size="14">O</text><path d="M 114 73 Q 118 52 130 63" stroke="#4a9eff" stroke-width="1.5" fill="none" marker-end="url(#sb1b)"/><line x1="190" y1="75" x2="232" y2="75" stroke="#888" stroke-width="1.5"/><polygon points="232,70 242,75 232,80" fill="#888"/><text x="250" y="70" fill="#888" font-family="monospace" font-size="12">&#x207B;O&#x2083;S&#x2014;C&#x2014;O&#x207B;</text><text x="250" y="94" fill="#7ec8a4" font-size="11">new C&#x2013;S bond formed</text></svg>',
+            2: '<svg viewBox="0 0 360 130" width="320" xmlns="http://www.w3.org/2000/svg"><defs><marker id="sb2" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#7ec8a4"/></marker></defs><text x="20" y="65" fill="#888" font-family="monospace" font-size="12">H&#x2014;S(O&#x2083;&#x207B;)</text><line x1="88" y1="61" x2="100" y2="61" stroke="#888" stroke-width="1.5"/><text x="102" y="65" fill="#c8b89a" font-family="monospace" font-size="12">C</text><line x1="110" y1="65" x2="122" y2="65" stroke="#888" stroke-width="1.5"/><text x="124" y="65" fill="#e07070" font-family="monospace" font-size="12">O&#x207B;</text><path d="M 24 48 Q 76 18 126 46" stroke="#7ec8a4" stroke-width="1.5" fill="none" marker-end="url(#sb2)"/><line x1="206" y1="59" x2="248" y2="59" stroke="#888" stroke-width="1.5"/><polygon points="248,54 258,59 248,64" fill="#888"/><text x="265" y="59" fill="#c8b89a" font-family="monospace" font-size="12">&#x207B;O&#x2083;S&#x2014;C&#x2014;OH</text><text x="265" y="85" fill="#7ec8a4" font-size="11">bisulfite adduct, crystalline</text></svg>',
+            3: '<svg viewBox="0 0 360 145" width="320" xmlns="http://www.w3.org/2000/svg"><text x="20" y="60" fill="#888" font-family="monospace" font-size="13">adduct</text><line x1="78" y1="54" x2="114" y2="38" stroke="#7ec8a4" stroke-width="1.5"/><polygon points="114,33 122,40 112,44" fill="#7ec8a4"/><text x="125" y="36" fill="#7ec8a4" font-size="12">+ base &#x2192; aldehyde + SO&#x2083;&#xb2;&#x207B;</text><line x1="78" y1="66" x2="114" y2="82" stroke="#e07070" stroke-width="1.5"/><polygon points="114,87 122,80 112,76" fill="#e07070"/><text x="125" y="86" fill="#e07070" font-size="12">+ acid &#x2192; aldehyde + H&#x2082;SO&#x2083;</text><text x="20" y="122" fill="#888" font-size="11">Both routes regenerate the pure aldehyde</text></svg>'
+        }
+    };
+ 
+    var stepLabels = {
+        grignard:  { 1:'Step 1 — Dissociation', 2:'Step 2 — C–C Bond Formation', 3:'Step 3 — Why No Water', 4:'Step 4 — Water Hydrolysis' },
+        water:     { 1:'Step 1 — Water Attacks', 2:'Step 2 — Gem-diol Forms', 3:'Step 3 — Stabilised Gem-diols' },
+        alcohol:   { 1:'Step 1 — Acid Activation', 2:'Step 2 — Hemiacetal Forms', 3:'Step 3 — Water Leaves', 4:'Step 4 — Acetal Forms' },
+        bisulfite: { 1:'Step 1 — Sulfur Attacks', 2:'Step 2 — Proton Transfer', 3:'Step 3 — Reversal' }
+    };
+ 
+    function beginLesson() {
+        $('#intro-screen').fadeOut(600, function() { $('#main-screen').fadeIn(400); });
+    }
+ 
+    function showReaction(id, btn) {
+        $('.reaction-panel').removeClass('active');
+        $('.reaction-nav-btn').removeClass('active');
+        $('#reaction-' + id).addClass('active');
+        $(btn).addClass('active');
+    }
+ 
+    function openPredict(id) {
+        document.getElementById('predict-overlay-' + id).classList.add('open');
+        document.body.style.overflow = 'hidden';
+    }
+ 
+    function closePredict(id) {
+        document.getElementById('predict-overlay-' + id).classList.remove('open');
+        document.body.style.overflow = '';
+    }
+ 
+    document.querySelectorAll('.predict-overlay').forEach(function(o) {
+        o.addEventListener('click', function(e) {
+            if (e.target === this) { this.classList.remove('open'); document.body.style.overflow = ''; }
+        });
+    });
+ 
+    $(document).on('dragstart', '.word-box', function() {
+        if ($(this).hasClass('used')) return;
+        draggedValue = $(this).data('value');
+        draggedElement = this;
+        var el = this;
+        setTimeout(function() { $(el).addClass('dragging'); }, 0);
+    });
+ 
+    $(document).on('dragend', '.word-box', function() { $(this).removeClass('dragging'); });
+ 
+    $(document).on('dragover', '.drop-target', function(e) { e.preventDefault(); $(this).addClass('dragover'); });
+ 
+    $(document).on('dragleave', '.drop-target', function() { $(this).removeClass('dragover'); });
+ 
+    $(document).on('drop', '.drop-target', function(e) {
+        e.preventDefault();
+        $(this).removeClass('dragover');
+        var parts = $(this).attr('id').split('-');
+        var reaction = parts[1];
+        var field = parts[2];
+        var prev = dropState[reaction][field];
+        if (prev) { $('.word-box[data-value="' + prev + '"]').removeClass('used'); }
+        dropState[reaction][field] = draggedValue;
+        $(draggedElement).addClass('used');
+        $(this).find('.drop-target-placeholder').hide();
+        $(this).find('.drop-target-content').remove();
+        $(this).append('<span class="drop-target-content">' + draggedValue + '</span>');
+        $(this).removeClass('correct wrong');
+    });
+ 
+    function checkPredict(reaction) {
+        var nt = $('#drop-' + reaction + '-nucleophile');
+        var pt = $('#drop-' + reaction + '-product');
+        var nv = dropState[reaction]['nucleophile'];
+        var pv = dropState[reaction]['product'];
+        if (!nv || !pv) {
+            $('#predict-feedback-' + reaction).removeClass('correct wrong').addClass('wrong').html('Fill both boxes before checking.').show();
+            return;
+        }
+        var nr = nv === nt.data('correct');
+        var pr = pv === pt.data('correct');
+        nt.removeClass('correct wrong').addClass(nr ? 'correct' : 'wrong');
+        pt.removeClass('correct wrong').addClass(pr ? 'correct' : 'wrong');
+        var fb = $('#predict-feedback-' + reaction);
+        if (nr && pr) {
+            fb.removeClass('wrong').addClass('correct').html('Exactly. Both correct. Now see why below.').show();
+        } else {
+            var msg = 'Not quite. ';
+            if (!nr) msg += 'The nucleophile is <strong>' + nt.data('correct') + '</strong>. ';
+            if (!pr) msg += 'The final product is <strong>' + pt.data('correct') + '</strong>.';
+            fb.removeClass('correct').addClass('wrong').html(msg).show();
+        }
+    }
+ 
+    function resetPredict(reaction) {
+        dropState[reaction] = { nucleophile: null, product: null };
+        $('#words-' + reaction + ' .word-box').removeClass('used');
+        $('[id^="drop-' + reaction + '"]').each(function() {
+            $(this).removeClass('correct wrong');
+            $(this).find('.drop-target-content').remove();
+            $(this).find('.drop-target-placeholder').show();
+        });
+        $('#predict-feedback-' + reaction).hide();
+    }
+ 
+    document.querySelectorAll('.hs-term[data-card]').forEach(function(term) {
+        term.addEventListener('click', function() {
+            var mapId = this.dataset.map;
+            var cardId = this.dataset.card;
+            var area = document.getElementById('hcard-area-' + mapId);
+            var allCards = area.querySelectorAll('.hotspot-card');
+            var allTerms = document.getElementById('hmap-' + mapId).querySelectorAll('.hs-term[data-card]');
+            var target = document.getElementById('hcard-' + mapId + '-' + cardId);
+            if (this.classList.contains('active')) {
+                this.classList.remove('active');
+                allCards.forEach(function(c) { c.classList.remove('active'); });
+                return;
+            }
+            allTerms.forEach(function(t) { t.classList.remove('active'); });
+            allCards.forEach(function(c) { c.classList.remove('active'); });
+            this.classList.add('active');
+            if (target) target.classList.add('active');
+        });
+    });
+ 
+    function toggleStep(el, reaction, stepNum) {
+        var wasOpen = el.classList.contains('open');
+        el.closest('.mechanism-scroll').querySelectorAll('.mechanism-step').forEach(function(s) { s.classList.remove('open'); });
+        if (!wasOpen) {
+            el.classList.add('open');
+            var svg = stepSVGs[reaction] && stepSVGs[reaction][stepNum];
+            if (svg) {
+                var vis = document.getElementById('mvis-' + reaction);
+                vis.innerHTML = svg + '<p class="visual-label">' + stepLabels[reaction][stepNum] + '</p>';
+            }
+        }
+    }
+ 
+    function toggleHSAB(el) {
+        el.classList.toggle('open');
+        document.addEventListener('click', function handler(e) {
+            if (!el.contains(e.target)) {
+                el.classList.remove('open');
+                document.removeEventListener('click', handler);
+            }
+        });
+    }
+</script>
+</body>
+</html>

@@ -1,0 +1,1032 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Someone had to go</title>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323:wght@400&family=Fraunces:ital,wght@0,300;0,400;0,500;1,300&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg:        oklch(0.10 0.05 265);
+            --bg-card:   oklch(0.24 0.09 265);
+            --bg-card2:  oklch(0.18 0.07 265);
+            --surface:   oklch(0.28 0.07 265);
+            --neon:      oklch(0.85 0.22 210);
+            --primary:   oklch(0.72 0.18 230);
+            --accent:    oklch(0.78 0.2  200);
+            --danger:    oklch(0.65 0.25 25);
+            --text:      oklch(0.95 0.04 230);
+            --muted:     oklch(0.75 0.05 230);
+            --border:    oklch(0.5  0.15 240);
+            --prose:     oklch(0.88 0.03 230);
+            --prose-dim: oklch(0.72 0.04 230);
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        body::before {
+            content: '';
+            position: fixed; inset: 0;
+            background-image:
+                linear-gradient(color-mix(in oklab, var(--neon) 12%, transparent) 1px, transparent 1px),
+                linear-gradient(90deg, color-mix(in oklab, var(--neon) 12%, transparent) 1px, transparent 1px);
+            background-size: 40px 40px;
+            pointer-events: none; z-index: 0;
+        }
+        body::after {
+            content: '';
+            position: fixed; inset: 0;
+            background-image: repeating-linear-gradient(0deg, rgba(0,0,0,0.13) 0px, rgba(0,0,0,0.13) 2px, transparent 2px, transparent 4px);
+            pointer-events: none; z-index: 0;
+        }
+
+        /* ── INTRO ── */
+        #intro-screen {
+            position: fixed; inset: 0; background: var(--bg);
+            display: flex; flex-direction: column; align-items: center;
+            justify-content: center; gap: 20px; z-index: 100;
+        }
+        #intro-screen::after {
+            content: ''; position: absolute; inset: 0;
+            background-image: repeating-linear-gradient(0deg, rgba(0,0,0,0.13) 0px, rgba(0,0,0,0.13) 2px, transparent 2px, transparent 4px);
+            pointer-events: none;
+        }
+        .intro-title {
+            font-family: 'Fraunces', serif;
+            font-size: clamp(2.5rem, 8vw, 6rem);
+            font-weight: 300; font-style: italic; color: var(--accent);
+            letter-spacing: -0.02em;
+            opacity: 0; animation: fadeUp 0.9s ease 0.4s forwards;
+            text-align: center; position: relative; z-index: 1;
+            text-shadow: 0 0 30px color-mix(in oklab, var(--accent) 30%, transparent);
+        }
+        .intro-sub {
+            font-family: 'Press Start 2P', monospace; font-size: 8px;
+            color: var(--neon); letter-spacing: 0.15em; text-align: center;
+            opacity: 0; animation: fadeUp 0.6s ease 1s forwards;
+            position: relative; z-index: 1; text-shadow: 0 0 6px var(--neon);
+        }
+        .intro-btn {
+            padding: 14px 44px; background: var(--primary); border: none;
+            color: oklch(0.12 0.06 265); font-family: 'Press Start 2P', monospace;
+            font-size: 10px; letter-spacing: 0.08em; cursor: pointer;
+            opacity: 0; animation: fadeUp 0.6s ease 1.4s forwards;
+            transition: transform 0.15s; position: relative; z-index: 1;
+            box-shadow: 0 -4px 0 0 var(--neon), 0 4px 0 0 var(--neon), -4px 0 0 0 var(--neon), 4px 0 0 0 var(--neon), 0 0 24px color-mix(in oklab, var(--neon) 50%, transparent);
+        }
+        .intro-btn:hover { transform: translateY(-3px); }
+
+        /* ── REACTION NAV ── */
+        #reaction-nav {
+            position: fixed; top: 0; left: 0; right: 0; z-index: 50;
+            background: var(--bg-card2); border-bottom: 4px solid var(--border);
+            padding: 0 24px; display: none;
+        }
+        #reaction-nav.visible { display: flex; }
+        .reaction-nav-inner {
+            max-width: 1200px; margin: 0 auto;
+            display: flex; gap: 8px; padding: 12px 0;
+            flex-wrap: wrap; align-items: center;
+        }
+        .reaction-nav-inner .nav-label {
+            font-family: 'Press Start 2P', monospace; font-size: 7px;
+            letter-spacing: 0.15em; text-transform: uppercase; color: var(--muted); margin-right: 8px;
+        }
+        .rxn-tab {
+            padding: 8px 16px; border: none; background: var(--bg-card);
+            color: var(--muted); font-family: 'Press Start 2P', monospace;
+            font-size: 7px; cursor: pointer; transition: all 0.15s; letter-spacing: 0.05em;
+            box-shadow: 0 -2px 0 0 var(--border), 0 2px 0 0 var(--border), -2px 0 0 0 var(--border), 2px 0 0 0 var(--border);
+        }
+        .rxn-tab:hover { color: var(--text); box-shadow: 0 -2px 0 0 var(--neon), 0 2px 0 0 var(--neon), -2px 0 0 0 var(--neon), 2px 0 0 0 var(--neon); }
+        .rxn-tab.active {
+            color: oklch(0.12 0.06 265); background: var(--neon);
+            box-shadow: 0 -2px 0 0 var(--neon), 0 2px 0 0 var(--neon), -2px 0 0 0 var(--neon), 2px 0 0 0 var(--neon), 0 0 12px color-mix(in oklab, var(--neon) 40%, transparent);
+        }
+
+        /* ── PANEL BACKDROP ── */
+        #panel-backdrop {
+            display: none; position: fixed; inset: 0;
+            background: rgba(0,0,0,0.88); backdrop-filter: blur(8px); z-index: 199;
+        }
+        #panel-backdrop.open { display: block; }
+
+        /* ── CENTRED PANEL ── */
+        #lesson-panel {
+            position: fixed; top: 50%; left: 50%;
+            transform: translate(-50%, -50%) translateY(16px);
+            width: min(680px, 95vw); max-height: 90vh;
+            background: var(--bg-card); z-index: 200;
+            display: none; flex-direction: column; overflow: hidden;
+            transition: opacity 0.3s ease, transform 0.3s ease; opacity: 0;
+            box-shadow: 0 -4px 0 0 var(--neon), 0 4px 0 0 var(--neon), -4px 0 0 0 var(--neon), 4px 0 0 0 var(--neon), 0 0 40px color-mix(in oklab, var(--neon) 20%, transparent);
+        }
+        #lesson-panel.open { display: flex; opacity: 1; transform: translate(-50%, -50%); }
+
+        .panel-header {
+            padding: 24px 28px 18px; border-bottom: 4px solid var(--border);
+            display: flex; align-items: flex-start; justify-content: space-between; flex-shrink: 0;
+        }
+        .panel-header-left { display: flex; flex-direction: column; gap: 4px; }
+        .panel-step-tag { font-family: 'Press Start 2P', monospace; font-size: 7px; letter-spacing: 0.15em; color: var(--neon); text-shadow: 0 0 6px var(--neon); }
+        .panel-title { font-family: 'Fraunces', serif; font-size: 1.25rem; font-weight: 300; color: var(--accent); text-shadow: 0 0 10px color-mix(in oklab, var(--accent) 25%, transparent); }
+        .panel-close {
+            background: var(--bg-card2); border: none; width: 30px; height: 30px;
+            flex-shrink: 0; display: flex; align-items: center; justify-content: center;
+            color: var(--muted); cursor: pointer; font-size: 12px; transition: all 0.2s;
+            box-shadow: 0 -2px 0 0 var(--border), 0 2px 0 0 var(--border), -2px 0 0 0 var(--border), 2px 0 0 0 var(--border);
+        }
+        .panel-close:hover { color: var(--danger); box-shadow: 0 -2px 0 0 var(--danger), 0 2px 0 0 var(--danger), -2px 0 0 0 var(--danger), 2px 0 0 0 var(--danger); }
+
+        .panel-progress { height: 3px; background: var(--border); flex-shrink: 0; }
+        .panel-progress-bar { height: 100%; background: var(--neon); transition: width 0.4s ease; box-shadow: 0 0 8px var(--neon); }
+
+        .panel-body { flex: 1; overflow-y: auto; padding: 24px 28px; }
+        .panel-footer {
+            padding: 16px 28px; border-top: 4px solid var(--border);
+            display: flex; justify-content: space-between; align-items: center; flex-shrink: 0;
+        }
+        .panel-step-counter { font-family: 'Press Start 2P', monospace; font-size: 7px; color: var(--muted); }
+
+        /* ── BUTTONS ── */
+        .btn-primary {
+            padding: 10px 28px; background: var(--primary); border: none;
+            color: oklch(0.12 0.06 265); font-family: 'Press Start 2P', monospace;
+            font-size: 8px; cursor: pointer; transition: transform 0.15s; letter-spacing: 0.05em;
+            box-shadow: 0 -3px 0 0 var(--neon), 0 3px 0 0 var(--neon), -3px 0 0 0 var(--neon), 3px 0 0 0 var(--neon), 0 0 16px color-mix(in oklab, var(--neon) 30%, transparent);
+        }
+        .btn-primary:hover { transform: translateY(-2px); }
+        .btn-primary:disabled { opacity: 0.3; cursor: default; transform: none; }
+        .btn-ghost {
+            padding: 8px 18px; background: var(--bg-card2); border: none;
+            color: var(--muted); font-family: 'Press Start 2P', monospace;
+            font-size: 7px; cursor: pointer; transition: all 0.15s; letter-spacing: 0.04em;
+            box-shadow: 0 -2px 0 0 var(--border), 0 2px 0 0 var(--border), -2px 0 0 0 var(--border), 2px 0 0 0 var(--border);
+        }
+        .btn-ghost:hover { color: var(--text); }
+
+        /* ── STEP CONTENT ── */
+        .step-screen { display: none; animation: fadeUp 0.3s ease; }
+        .step-screen.active { display: block; }
+
+        .step-section-label { font-family: 'Press Start 2P', monospace; font-size: 7px; letter-spacing: 0.15em; color: var(--neon); margin-bottom: 10px; text-shadow: 0 0 6px var(--neon); }
+        .step-heading { font-family: 'Fraunces', serif; font-size: 1.35rem; font-weight: 300; color: var(--text); margin-bottom: 10px; line-height: 1.3; }
+        .step-heading em { font-style: italic; color: var(--neon); -webkit-text-fill-color: var(--neon); text-shadow: 0 0 8px var(--neon); }
+        .step-body-text { font-family: 'DM Sans', sans-serif; font-size: 13px; color: var(--prose); line-height: 1.8; margin-bottom: 16px; }
+        .step-body-text .ht { color: var(--neon); font-weight: 500; }
+        .step-body-text .ht2 { color: var(--accent); font-weight: 500; }
+
+        .diagram-wrap {
+            background: var(--bg); padding: 22px 14px;
+            display: flex; align-items: center; justify-content: center;
+            margin: 14px 0; overflow-x: auto;
+            box-shadow: 0 -3px 0 0 var(--border), 0 3px 0 0 var(--border), -3px 0 0 0 var(--border), 3px 0 0 0 var(--border);
+        }
+        .diagram-wrap svg { max-width: 100%; height: auto; display: block; }
+
+        .equation-box {
+            background: var(--bg-card2); padding: 14px 18px; margin: 12px 0;
+            font-family: 'VT323', monospace; font-size: 16px; color: var(--text); line-height: 1.8;
+            box-shadow: 0 -3px 0 0 var(--border), 0 3px 0 0 var(--border), -3px 0 0 0 var(--border), 3px 0 0 0 var(--border);
+        }
+        .eq-label { font-family: 'Press Start 2P', monospace; font-size: 7px; letter-spacing: 0.1em; color: var(--muted); margin-bottom: 6px; }
+
+        /* ── MCQ ── */
+        .mcq-question { font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 500; color: var(--text); margin-bottom: 12px; line-height: 1.5; }
+        .mcq-options { display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; }
+        .mcq-option {
+            padding: 11px 15px; background: var(--bg-card2); border: none;
+            font-family: 'DM Sans', sans-serif; font-size: 13px; color: var(--text);
+            cursor: pointer; transition: all 0.15s; text-align: left; line-height: 1.5;
+            box-shadow: 0 -3px 0 0 var(--border), 0 3px 0 0 var(--border), -3px 0 0 0 var(--border), 3px 0 0 0 var(--border);
+        }
+        .mcq-option:hover:not(:disabled) { box-shadow: 0 -3px 0 0 var(--neon), 0 3px 0 0 var(--neon), -3px 0 0 0 var(--neon), 3px 0 0 0 var(--neon); color: var(--neon); }
+        .mcq-option.correct { color: oklch(0.12 0.06 265); background: var(--neon); box-shadow: 0 -3px 0 0 var(--neon), 0 3px 0 0 var(--neon), -3px 0 0 0 var(--neon), 3px 0 0 0 var(--neon), 0 0 16px color-mix(in oklab, var(--neon) 40%, transparent); }
+        .mcq-option.wrong { color: oklch(0.98 0 0); background: oklch(0.3 0.1 25); box-shadow: 0 -3px 0 0 var(--danger), 0 3px 0 0 var(--danger), -3px 0 0 0 var(--danger), 3px 0 0 0 var(--danger); }
+        .mcq-option:disabled { cursor: default; }
+
+        .reveal-block {
+            display: none; margin-top: 12px; padding: 14px 17px;
+            background: var(--bg-card2); border-left: 4px solid var(--accent);
+            font-family: 'DM Sans', sans-serif; font-size: 13px; color: var(--prose); line-height: 1.75;
+        }
+        .reveal-block.show { display: block; animation: fadeUp 0.3s ease; }
+        .reveal-block .ht { color: var(--neon); font-weight: 500; }
+        .reveal-block .ht2 { color: var(--accent); font-weight: 500; }
+        .intuition-note { margin-top: 10px; padding: 9px 13px; background: var(--bg); border-left: 3px solid var(--accent); font-family: 'DM Sans', sans-serif; font-size: 12px; color: var(--muted); font-style: italic; }
+
+        .scope-list { display: flex; flex-direction: column; gap: 7px; margin: 12px 0; }
+        .scope-item { display: flex; align-items: flex-start; gap: 10px; padding: 10px 14px; background: var(--bg-card2); font-family: 'DM Sans', sans-serif; font-size: 13px; color: var(--prose); box-shadow: 0 -2px 0 0 var(--border), 0 2px 0 0 var(--border), -2px 0 0 0 var(--border), 2px 0 0 0 var(--border); }
+        .scope-item-num { color: var(--neon); font-weight: 500; font-family: 'Press Start 2P', monospace; font-size: 9px; flex-shrink: 0; text-shadow: 0 0 6px var(--neon); padding-top: 2px; }
+
+        .feature-list { display: flex; flex-direction: column; gap: 9px; margin: 12px 0; }
+        .feature-item { padding: 11px 14px; background: var(--bg-card2); border-left: 4px solid var(--accent); font-family: 'DM Sans', sans-serif; font-size: 13px; color: var(--prose); line-height: 1.7; }
+        .feature-item .ht { color: var(--neon); font-weight: 500; }
+
+        /* ── MAIN SCREEN ── */
+        #main-screen { display: none; padding-top: 60px; position: relative; z-index: 1; }
+        #main-screen.visible { display: block; }
+        .reaction-section { display: none; }
+        .reaction-section.active { display: block; }
+
+        .main-wrap { max-width: 1200px; margin: 0 auto; padding: 40px 24px 80px; }
+        .main-tag { font-family: 'Press Start 2P', monospace; font-size: 7px; letter-spacing: 0.15em; color: var(--neon); margin-bottom: 8px; text-shadow: 0 0 6px var(--neon); }
+        .main-title { font-family: 'Fraunces', serif; font-size: 2.2rem; font-weight: 300; color: var(--text); margin-bottom: 8px; }
+        .main-title em { font-style: italic; color: var(--neon); -webkit-text-fill-color: var(--neon); text-shadow: 0 0 10px var(--neon); }
+        .main-intro { font-family: 'DM Sans', sans-serif; font-size: 14px; color: var(--muted); max-width: 600px; line-height: 1.75; margin-bottom: 36px; }
+        .section-label-small { font-family: 'Press Start 2P', monospace; font-size: 7px; letter-spacing: 0.15em; color: var(--neon); margin-bottom: 14px; text-shadow: 0 0 6px var(--neon); }
+
+        /* ── DASHBOARD ── */
+        .dashboard-layout { display: grid; grid-template-columns: 1.2fr 1fr; gap: 24px; margin-bottom: 56px; align-items: start; }
+        @media (max-width: 860px) { .dashboard-layout { grid-template-columns: 1fr; } }
+
+        .dashboard-cards { display: flex; flex-direction: column; gap: 10px; }
+        .dash-card {
+            background: var(--bg-card); cursor: pointer; transition: transform 0.15s;
+            box-shadow: 0 -3px 0 0 var(--border), 0 3px 0 0 var(--border), -3px 0 0 0 var(--border), 3px 0 0 0 var(--border);
+        }
+        .dash-card:hover { transform: translateX(4px); box-shadow: 0 -3px 0 0 var(--accent), 0 3px 0 0 var(--accent), -3px 0 0 0 var(--accent), 3px 0 0 0 var(--accent); }
+        .dash-card.active { box-shadow: 0 -3px 0 0 var(--neon), 0 3px 0 0 var(--neon), -3px 0 0 0 var(--neon), 3px 0 0 0 var(--neon), 0 0 12px color-mix(in oklab, var(--neon) 20%, transparent); }
+        .dash-card-header { padding: 14px 18px; display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+        .dash-card-name { font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 500; color: var(--text); }
+        .dash-card-tag { font-family: 'VT323', monospace; font-size: 14px; color: var(--muted); margin-top: 2px; }
+        .dash-card-chevron { color: var(--muted); font-size: 11px; transition: transform 0.2s; flex-shrink: 0; }
+        .dash-card.active .dash-card-chevron { transform: rotate(180deg); color: var(--neon); }
+
+        .dash-explorer {
+            background: var(--bg-card); padding: 20px;
+            position: sticky; top: 72px;
+            box-shadow: 0 -4px 0 0 var(--border), 0 4px 0 0 var(--border), -4px 0 0 0 var(--border), 4px 0 0 0 var(--border);
+        }
+        .dash-explorer-placeholder { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 260px; text-align: center; color: var(--muted); gap: 10px; }
+        .dash-explorer-content { display: none; flex-direction: column; gap: 14px; }
+        .dash-explorer-content.visible { display: flex; animation: fadeUp 0.25s ease; }
+
+        .exp-name { font-family: 'Fraunces', serif; font-size: 1.3rem; font-weight: 300; color: var(--neon); text-shadow: 0 0 10px color-mix(in oklab, var(--neon) 30%, transparent); }
+        .exp-formula { font-family: 'VT323', monospace; font-size: 16px; color: var(--muted); margin-top: 2px; }
+        .exp-section { font-family: 'Press Start 2P', monospace; font-size: 7px; letter-spacing: 0.1em; color: var(--muted); margin-bottom: 7px; }
+        .exp-text { font-family: 'DM Sans', sans-serif; font-size: 13px; color: var(--prose); line-height: 1.75; }
+
+        .exp-conditions { display: flex; flex-wrap: wrap; gap: 6px; }
+        .exp-pill {
+            padding: 4px 10px; border: none;
+            font-family: 'VT323', monospace; font-size: 15px; color: var(--text);
+            background: var(--bg-card2);
+            box-shadow: 0 -2px 0 0 var(--border), 0 2px 0 0 var(--border), -2px 0 0 0 var(--border), 2px 0 0 0 var(--border);
+        }
+        .exp-pill.green { color: var(--neon); box-shadow: 0 -2px 0 0 color-mix(in oklab, var(--neon) 40%, transparent), 0 2px 0 0 color-mix(in oklab, var(--neon) 40%, transparent), -2px 0 0 0 color-mix(in oklab, var(--neon) 40%, transparent), 2px 0 0 0 color-mix(in oklab, var(--neon) 40%, transparent); }
+        .exp-pill.red { color: var(--danger); box-shadow: 0 -2px 0 0 color-mix(in oklab, var(--danger) 40%, transparent), 0 2px 0 0 color-mix(in oklab, var(--danger) 40%, transparent), -2px 0 0 0 color-mix(in oklab, var(--danger) 40%, transparent), 2px 0 0 0 color-mix(in oklab, var(--danger) 40%, transparent); }
+
+        .exp-note { padding: 10px 14px; background: var(--bg-card2); border-left: 4px solid var(--accent); font-family: 'DM Sans', sans-serif; font-size: 12px; color: var(--muted); line-height: 1.6; }
+
+        /* ── APPLICATIONS ── */
+        .apps-section { margin-top: 14px; }
+        .apps-title { font-family: 'Fraunces', serif; font-size: 1.7rem; font-weight: 300; color: var(--text); margin-bottom: 5px; }
+        .apps-title em { font-style: italic; color: var(--neon); -webkit-text-fill-color: var(--neon); text-shadow: 0 0 8px var(--neon); }
+        .apps-subtitle { font-family: 'VT323', monospace; font-size: 18px; color: var(--muted); margin-bottom: 22px; }
+        .apps-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+        @media (max-width: 860px) { .apps-grid { grid-template-columns: repeat(2, 1fr); } }
+        @media (max-width: 560px) { .apps-grid { grid-template-columns: 1fr; } }
+
+        .app-card {
+            background: var(--bg-card); overflow: hidden; cursor: pointer;
+            transition: transform 0.15s;
+            box-shadow: 0 -3px 0 0 var(--border), 0 3px 0 0 var(--border), -3px 0 0 0 var(--border), 3px 0 0 0 var(--border);
+        }
+        .app-card:hover { transform: translateY(-3px); box-shadow: 0 -3px 0 0 var(--accent), 0 3px 0 0 var(--accent), -3px 0 0 0 var(--accent), 3px 0 0 0 var(--accent); }
+        .app-card.open { box-shadow: 0 -3px 0 0 var(--neon), 0 3px 0 0 var(--neon), -3px 0 0 0 var(--neon), 3px 0 0 0 var(--neon); transform: none; }
+        .app-card-header { padding: 15px 17px; }
+        .app-card-num { font-family: 'Press Start 2P', monospace; font-size: 7px; letter-spacing: 0.1em; color: var(--neon); margin-bottom: 4px; text-shadow: 0 0 6px var(--neon); }
+        .app-card-name { font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 500; color: var(--text); margin-bottom: 3px; }
+        .app-card-product { font-family: 'VT323', monospace; font-size: 15px; color: var(--muted); }
+        .app-card-body { display: none; border-top: 3px solid var(--border); padding: 15px 17px; font-family: 'DM Sans', sans-serif; font-size: 13px; color: var(--prose); line-height: 1.75; }
+        .app-card.open .app-card-body { display: block; animation: fadeUp 0.2s ease; }
+        .app-card-body .ht { color: var(--neon); font-weight: 500; }
+
+        /* ── ANIMATIONS ── */
+        @keyframes fadeUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes flicker { 0%, 100% { opacity: 1; } 50% { opacity: 0.82; } }
+    </style>
+</head>
+<body>
+
+<!-- INTRO -->
+<div id="intro-screen">
+    <h1 class="intro-title">Someone had to go</h1>
+    <p class="intro-sub">// Cannizzaro &middot; Perkin &middot; Claisen &middot; Benzoin</p>
+    <button class="intro-btn" onclick="startLesson('cannizzaro')">&#x25B6; BEGIN</button>
+</div>
+
+<!-- REACTION NAV -->
+<div id="reaction-nav">
+    <div class="reaction-nav-inner">
+        <span class="nav-label">// REACTION</span>
+        <button class="rxn-tab" id="tab-cannizzaro" onclick="switchReaction('cannizzaro')">Cannizzaro</button>
+        <button class="rxn-tab" id="tab-perkin" onclick="switchReaction('perkin')">Perkin</button>
+        <button class="rxn-tab" id="tab-claisen" onclick="switchReaction('claisen')">Claisen</button>
+        <button class="rxn-tab" id="tab-benzoin" onclick="switchReaction('benzoin')">Benzoin</button>
+    </div>
+</div>
+
+<!-- PANEL BACKDROP -->
+<div id="panel-backdrop" onclick="closePanel()"></div>
+
+<!-- CENTRED PANEL -->
+<div id="lesson-panel">
+    <div class="panel-header">
+        <div class="panel-header-left">
+            <p class="panel-step-tag" id="panel-step-tag">Introduction</p>
+            <p class="panel-title" id="panel-title">Loading...</p>
+        </div>
+        <button class="panel-close" onclick="closePanel()">&#x2715;</button>
+    </div>
+    <div class="panel-progress">
+        <div class="panel-progress-bar" id="progress-bar" style="width:0%"></div>
+    </div>
+    <div class="panel-body" id="panel-body"></div>
+    <div class="panel-footer">
+        <span class="panel-step-counter" id="step-counter">Step 1</span>
+        <div style="display:flex;gap:10px;">
+            <button class="btn-ghost" id="btn-back" onclick="prevStep()" style="display:none;">&#x2190; BACK</button>
+            <button class="btn-primary" id="btn-next" onclick="nextStep()">NEXT &#x2192;</button>
+        </div>
+    </div>
+</div>
+
+<!-- MAIN SCREEN -->
+<div id="main-screen">
+
+    <!-- CANNIZZARO -->
+    <div class="reaction-section" id="section-cannizzaro">
+        <div class="main-wrap">
+            <p class="main-tag">// CONDENSATION REACTIONS / 01</p>
+            <h1 class="main-title">The <em>Cannizzaro</em> Reaction</h1>
+            <p class="main-intro">A disproportionation reaction in which an aldehyde with no alpha-hydrogen simultaneously acts as both oxidising and reducing agent in the presence of concentrated alkali. One molecule is oxidised to the carboxylate, the other is reduced to the alcohol.</p>
+            <p class="section-label-small">// REACTION DASHBOARD</p>
+            <div class="dashboard-layout">
+                <div class="dashboard-cards">
+                    <div class="dash-card" id="cann-card-self" onclick="selectDash('cannizzaro','self',this)">
+                        <div class="dash-card-header"><div><div class="dash-card-name">Self-Cannizzaro</div><div class="dash-card-tag">2 ArCHO or HCHO → alcohol + carboxylate</div></div><span class="dash-card-chevron">&#x25BC;</span></div>
+                    </div>
+                    <div class="dash-card" id="cann-card-crossed" onclick="selectDash('cannizzaro','crossed',this)">
+                        <div class="dash-card-header"><div><div class="dash-card-name">Crossed Cannizzaro</div><div class="dash-card-tag">HCHO + ArCHO → ArCH₂OH + HCOO⁻</div></div><span class="dash-card-chevron">&#x25BC;</span></div>
+                    </div>
+                    <div class="dash-card" id="cann-card-conditions" onclick="selectDash('cannizzaro','conditions',this)">
+                        <div class="dash-card-header"><div><div class="dash-card-name">Why no alpha-H?</div><div class="dash-card-tag">Structural requirement for the reaction to work</div></div><span class="dash-card-chevron">&#x25BC;</span></div>
+                    </div>
+                </div>
+                <div class="dash-explorer" id="dash-explorer-cannizzaro">
+                    <div class="dash-explorer-placeholder" id="exp-placeholder-cannizzaro">
+                        <div style="font-size:2rem;opacity:0.4;">&#x2697;&#xFE0F;</div>
+                        <p style="font-family:'VT323',monospace;font-size:18px;color:var(--muted);max-width:200px;line-height:1.6;">Select a card to explore conditions, products, and notes.</p>
+                    </div>
+                    <div class="dash-explorer-content" id="exp-content-cannizzaro">
+                        <div><div class="exp-name" id="exp-name-cannizzaro"></div><div class="exp-formula" id="exp-formula-cannizzaro"></div></div>
+                        <div><p class="exp-section">// CONDITIONS</p><div class="exp-conditions" id="exp-conditions-cannizzaro"></div></div>
+                        <div><p class="exp-section">// PRODUCTS</p><div class="exp-text" id="exp-products-cannizzaro"></div></div>
+                        <div><p class="exp-section">// KEY NOTE</p><div class="exp-note" id="exp-note-cannizzaro"></div></div>
+                    </div>
+                </div>
+            </div>
+            <div class="apps-section">
+                <h2 class="apps-title">Industrial <em>Applications</em></h2>
+                <p class="apps-subtitle">Where the Cannizzaro reaction matters beyond the flask.</p>
+                <div class="apps-grid">
+                    <div class="app-card" id="cann-app-0" onclick="toggleApp('cann-app-0')">
+                        <div class="app-card-header"><p class="app-card-num">// APPLICATION 01</p><p class="app-card-name">Pentaerythritol synthesis</p><p class="app-card-product">4 HCHO + CH₃CHO → C(CH₂OH)₄</p></div>
+                        <div class="app-card-body">Pentaerythritol is made by reacting four equivalents of formaldehyde with acetaldehyde under base — three equivalents undergo aldol addition with acetaldehyde to install three CH₂OH groups, then the fourth equivalent undergoes a <span class="ht">crossed Cannizzaro</span> with the resulting aldehyde to reduce it to the fourth CH₂OH and oxidise HCHO to formate. The product C(CH₂OH)₄ is used in explosives (PETN), alkyd resins, and as a medicine for angina.</div>
+                    </div>
+                    <div class="app-card" id="cann-app-1" onclick="toggleApp('cann-app-1')">
+                        <div class="app-card-header"><p class="app-card-num">// APPLICATION 02</p><p class="app-card-name">Benzyl alcohol production</p><p class="app-card-product">2 C₆H₅CHO → C₆H₅CH₂OH + C₆H₅COO⁻</p></div>
+                        <div class="app-card-body">Benzaldehyde undergoes self-Cannizzaro in concentrated NaOH to give equimolar amounts of benzyl alcohol and sodium benzoate. <span class="ht">Benzyl alcohol</span> is used in perfumery, as a solvent in inks and paints, and as a preservative in injectable drugs. Sodium benzoate is a food preservative (E211).</div>
+                    </div>
+                    <div class="app-card" id="cann-app-2" onclick="toggleApp('cann-app-2')">
+                        <div class="app-card-header"><p class="app-card-num">// APPLICATION 03</p><p class="app-card-name">Formaldehyde disproportionation</p><p class="app-card-product">Industrial formate and methanol production</p></div>
+                        <div class="app-card-body">Formaldehyde is the most reactive substrate for the Cannizzaro reaction because it has no substituents to hinder hydride transfer. Self-Cannizzaro of HCHO gives methanol and formate. This has been used industrially as a route to methanol and sodium formate from formaldehyde and NaOH under controlled conditions.</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- PERKIN -->
+    <div class="reaction-section" id="section-perkin">
+        <div class="main-wrap">
+            <p class="main-tag">// CONDENSATION REACTIONS / 02</p>
+            <h1 class="main-title">The <em>Perkin</em> Condensation</h1>
+            <p class="main-intro">An aromatic aldehyde condenses with an acid anhydride in the presence of the sodium salt of the corresponding acid. The alpha-carbon of the anhydride acts as the nucleophile. The product is an alpha,beta-unsaturated acid — classically cinnamic acid from benzaldehyde and acetic anhydride.</p>
+            <p class="section-label-small">// REACTION DASHBOARD</p>
+            <div class="dashboard-layout">
+                <div class="dashboard-cards">
+                    <div class="dash-card" id="perk-card-classic" onclick="selectDash('perkin','classic',this)">
+                        <div class="dash-card-header"><div><div class="dash-card-name">Classic Perkin</div><div class="dash-card-tag">ArCHO + (RCO)₂O + RCOONa → ArCH=CR-COOH</div></div><span class="dash-card-chevron">&#x25BC;</span></div>
+                    </div>
+                    <div class="dash-card" id="perk-card-scope" onclick="selectDash('perkin','scope',this)">
+                        <div class="dash-card-header"><div><div class="dash-card-name">Scope and limitations</div><div class="dash-card-tag">Why aromatic aldehydes only, no ketones</div></div><span class="dash-card-chevron">&#x25BC;</span></div>
+                    </div>
+                    <div class="dash-card" id="perk-card-stereo" onclick="selectDash('perkin','stereo',this)">
+                        <div class="dash-card-header"><div><div class="dash-card-name">Stereochemistry</div><div class="dash-card-tag">Predominantly trans (E) product</div></div><span class="dash-card-chevron">&#x25BC;</span></div>
+                    </div>
+                </div>
+                <div class="dash-explorer" id="dash-explorer-perkin">
+                    <div class="dash-explorer-placeholder" id="exp-placeholder-perkin">
+                        <div style="font-size:2rem;opacity:0.4;">&#x2697;&#xFE0F;</div>
+                        <p style="font-family:'VT323',monospace;font-size:18px;color:var(--muted);max-width:200px;line-height:1.6;">Select a card to explore conditions, products, and notes.</p>
+                    </div>
+                    <div class="dash-explorer-content" id="exp-content-perkin">
+                        <div><div class="exp-name" id="exp-name-perkin"></div><div class="exp-formula" id="exp-formula-perkin"></div></div>
+                        <div><p class="exp-section">// CONDITIONS</p><div class="exp-conditions" id="exp-conditions-perkin"></div></div>
+                        <div><p class="exp-section">// PRODUCTS</p><div class="exp-text" id="exp-products-perkin"></div></div>
+                        <div><p class="exp-section">// KEY NOTE</p><div class="exp-note" id="exp-note-perkin"></div></div>
+                    </div>
+                </div>
+            </div>
+            <div class="apps-section">
+                <h2 class="apps-title">Industrial <em>Applications</em></h2>
+                <p class="apps-subtitle">The Perkin condensation in synthesis and industry.</p>
+                <div class="apps-grid">
+                    <div class="app-card" id="perk-app-0" onclick="toggleApp('perk-app-0')">
+                        <div class="app-card-header"><p class="app-card-num">// APPLICATION 01</p><p class="app-card-name">Cinnamic acid synthesis</p><p class="app-card-product">C₆H₅CHO + (CH₃CO)₂O → C₆H₅CH=CHCOOH</p></div>
+                        <div class="app-card-body">The most classic Perkin reaction. Benzaldehyde, acetic anhydride, and sodium acetate at 180°C give <span class="ht">cinnamic acid</span> (trans-3-phenylpropenoic acid). Used in perfumery, as a precursor to cinnamaldehyde, and in the synthesis of amino acids including phenylalanine by Erlenmeyer synthesis.</div>
+                    </div>
+                    <div class="app-card" id="perk-app-1" onclick="toggleApp('perk-app-1')">
+                        <div class="app-card-header"><p class="app-card-num">// APPLICATION 02</p><p class="app-card-name">Coumarin synthesis</p><p class="app-card-product">2-hydroxybenzaldehyde + (CH₃CO)₂O → coumarin</p></div>
+                        <div class="app-card-body">When salicylaldehyde (2-hydroxybenzaldehyde) is used in the Perkin condensation, the initially formed cinnamic acid derivative undergoes spontaneous lactonisation — the phenolic OH attacks the double bond in a ring-closing step to give <span class="ht">coumarin</span>. Used in perfumery and as the parent compound of many pharmaceutical anticoagulants (warfarin family).</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- CLAISEN -->
+    <div class="reaction-section" id="section-claisen">
+        <div class="main-wrap">
+            <p class="main-tag">// CONDENSATION REACTIONS / 03</p>
+            <h1 class="main-title">The <em>Claisen</em> Condensation</h1>
+            <p class="main-intro">Two ester molecules condense in the presence of a strong base (sodium ethoxide) to give a beta-ketoester. One ester loses its alpha-hydrogen to form an enolate, which then attacks the carbonyl of the second ester. The alkoxide leaving group departs and the beta-ketoester product is formed.</p>
+            <p class="section-label-small">// REACTION DASHBOARD</p>
+            <div class="dashboard-layout">
+                <div class="dashboard-cards">
+                    <div class="dash-card" id="clai-card-self" onclick="selectDash('claisen','self',this)">
+                        <div class="dash-card-header"><div><div class="dash-card-name">Self-Claisen</div><div class="dash-card-tag">2 RCH₂COOEt + NaOEt → beta-ketoester</div></div><span class="dash-card-chevron">&#x25BC;</span></div>
+                    </div>
+                    <div class="dash-card" id="clai-card-crossed" onclick="selectDash('claisen','crossed',this)">
+                        <div class="dash-card-header"><div><div class="dash-card-name">Crossed Claisen</div><div class="dash-card-tag">Two different esters, one with no alpha-H</div></div><span class="dash-card-chevron">&#x25BC;</span></div>
+                    </div>
+                    <div class="dash-card" id="clai-card-dieckmann" onclick="selectDash('claisen','dieckmann',this)">
+                        <div class="dash-card-header"><div><div class="dash-card-name">Dieckmann cyclisation</div><div class="dash-card-tag">Intramolecular Claisen, gives cyclic beta-ketoester</div></div><span class="dash-card-chevron">&#x25BC;</span></div>
+                    </div>
+                    <div class="dash-card" id="clai-card-thermodynamic" onclick="selectDash('claisen','thermodynamic',this)">
+                        <div class="dash-card-header"><div><div class="dash-card-name">Why the reaction goes to completion</div><div class="dash-card-tag">Irreversible deprotonation of product drives equilibrium</div></div><span class="dash-card-chevron">&#x25BC;</span></div>
+                    </div>
+                </div>
+                <div class="dash-explorer" id="dash-explorer-claisen">
+                    <div class="dash-explorer-placeholder" id="exp-placeholder-claisen">
+                        <div style="font-size:2rem;opacity:0.4;">&#x2697;&#xFE0F;</div>
+                        <p style="font-family:'VT323',monospace;font-size:18px;color:var(--muted);max-width:200px;line-height:1.6;">Select a card to explore conditions, products, and notes.</p>
+                    </div>
+                    <div class="dash-explorer-content" id="exp-content-claisen">
+                        <div><div class="exp-name" id="exp-name-claisen"></div><div class="exp-formula" id="exp-formula-claisen"></div></div>
+                        <div><p class="exp-section">// CONDITIONS</p><div class="exp-conditions" id="exp-conditions-claisen"></div></div>
+                        <div><p class="exp-section">// PRODUCTS</p><div class="exp-text" id="exp-products-claisen"></div></div>
+                        <div><p class="exp-section">// KEY NOTE</p><div class="exp-note" id="exp-note-claisen"></div></div>
+                    </div>
+                </div>
+            </div>
+            <div class="apps-section">
+                <h2 class="apps-title">Industrial <em>Applications</em></h2>
+                <p class="apps-subtitle">The Claisen condensation as a synthetic workhorse.</p>
+                <div class="apps-grid">
+                    <div class="app-card" id="clai-app-0" onclick="toggleApp('clai-app-0')">
+                        <div class="app-card-header"><p class="app-card-num">// APPLICATION 01</p><p class="app-card-name">Ethyl acetoacetate</p><p class="app-card-product">2 CH₃COOEt + NaOEt → CH₃COCH₂COOEt</p></div>
+                        <div class="app-card-body">Self-Claisen condensation of ethyl acetate gives <span class="ht">ethyl acetoacetate</span> (acetoacetic ester), one of the most important synthetic intermediates in organic chemistry. Used in the acetoacetic ester synthesis to make ketones and monosubstituted acetic acids via alkylation and controlled hydrolysis/decarboxylation.</div>
+                    </div>
+                    <div class="app-card" id="clai-app-1" onclick="toggleApp('clai-app-1')">
+                        <div class="app-card-header"><p class="app-card-num">// APPLICATION 02</p><p class="app-card-name">Dimedone (via Dieckmann)</p><p class="app-card-product">Cyclic beta-ketoester from diethyl pimelate</p></div>
+                        <div class="app-card-body">Diethyl pimelate undergoes <span class="ht">Dieckmann cyclisation</span> — intramolecular Claisen — in sodium ethoxide to give the cyclic beta-ketoester, which after hydrolysis and decarboxylation gives dimedone (5,5-dimethylcyclohexane-1,3-dione). Dimedone is widely used in analytical chemistry to characterise aldehydes.</div>
+                    </div>
+                    <div class="app-card" id="clai-app-2" onclick="toggleApp('clai-app-2')">
+                        <div class="app-card-header"><p class="app-card-num">// APPLICATION 03</p><p class="app-card-name">Natural product synthesis</p><p class="app-card-product">Beta-ketoesters as building blocks</p></div>
+                        <div class="app-card-body">Beta-ketoesters produced by Claisen condensation are versatile building blocks. Their active methylene group (between two carbonyls) has a pK<sub>a</sub> of ~11, making it easy to alkylate. This has been exploited in the synthesis of terpenes, steroids, and many pharmaceutical targets starting from simple ester starting materials.</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- BENZOIN -->
+    <div class="reaction-section" id="section-benzoin">
+        <div class="main-wrap">
+            <p class="main-tag">// CONDENSATION REACTIONS / 04</p>
+            <h1 class="main-title">The <em>Benzoin</em> Condensation</h1>
+            <p class="main-intro">Two molecules of benzaldehyde condense in the presence of cyanide ion (or an N-heterocyclic carbene) to give benzoin — an alpha-hydroxy ketone. The cyanide acts as a catalyst by temporarily reversing the polarity of the carbonyl carbon, a concept called umpolung.</p>
+            <p class="section-label-small">// REACTION DASHBOARD</p>
+            <div class="dashboard-layout">
+                <div class="dashboard-cards">
+                    <div class="dash-card" id="benz-card-mechanism" onclick="selectDash('benzoin','mechanism',this)">
+                        <div class="dash-card-header"><div><div class="dash-card-name">Cyanide-catalysed mechanism</div><div class="dash-card-tag">Umpolung via cyanohydrin intermediate</div></div><span class="dash-card-chevron">&#x25BC;</span></div>
+                    </div>
+                    <div class="dash-card" id="benz-card-nhc" onclick="selectDash('benzoin','nhc',this)">
+                        <div class="dash-card-header"><div><div class="dash-card-name">NHC catalysis (modern)</div><div class="dash-card-tag">N-heterocyclic carbene as organocatalyst</div></div><span class="dash-card-chevron">&#x25BC;</span></div>
+                    </div>
+                    <div class="dash-card" id="benz-card-scope" onclick="selectDash('benzoin','scope',this)">
+                        <div class="dash-card-header"><div><div class="dash-card-name">Scope</div><div class="dash-card-tag">Why aromatic aldehydes, not aliphatic</div></div><span class="dash-card-chevron">&#x25BC;</span></div>
+                    </div>
+                </div>
+                <div class="dash-explorer" id="dash-explorer-benzoin">
+                    <div class="dash-explorer-placeholder" id="exp-placeholder-benzoin">
+                        <div style="font-size:2rem;opacity:0.4;">&#x2697;&#xFE0F;</div>
+                        <p style="font-family:'VT323',monospace;font-size:18px;color:var(--muted);max-width:200px;line-height:1.6;">Select a card to explore conditions, products, and notes.</p>
+                    </div>
+                    <div class="dash-explorer-content" id="exp-content-benzoin">
+                        <div><div class="exp-name" id="exp-name-benzoin"></div><div class="exp-formula" id="exp-formula-benzoin"></div></div>
+                        <div><p class="exp-section">// CONDITIONS</p><div class="exp-conditions" id="exp-conditions-benzoin"></div></div>
+                        <div><p class="exp-section">// PRODUCTS</p><div class="exp-text" id="exp-products-benzoin"></div></div>
+                        <div><p class="exp-section">// KEY NOTE</p><div class="exp-note" id="exp-note-benzoin"></div></div>
+                    </div>
+                </div>
+            </div>
+            <div class="apps-section">
+                <h2 class="apps-title">Industrial <em>Applications</em></h2>
+                <p class="apps-subtitle">Benzoin and its derivatives in synthesis and material science.</p>
+                <div class="apps-grid">
+                    <div class="app-card" id="benz-app-0" onclick="toggleApp('benz-app-0')">
+                        <div class="app-card-header"><p class="app-card-num">// APPLICATION 01</p><p class="app-card-name">Photoinitiators</p><p class="app-card-product">Benzoin ethers in UV-curing polymers</p></div>
+                        <div class="app-card-body">Benzoin and its alkyl ethers are classic <span class="ht">photoinitiators</span> for radical polymerisation. On UV irradiation, the C-C bond alpha to the carbonyl undergoes homolytic cleavage to generate two radicals that initiate chain polymerisation. Used in UV-curable coatings, inks, dental composites, and 3D printing resins.</div>
+                    </div>
+                    <div class="app-card" id="benz-app-1" onclick="toggleApp('benz-app-1')">
+                        <div class="app-card-header"><p class="app-card-num">// APPLICATION 02</p><p class="app-card-name">Benzil and benzilate rearrangement</p><p class="app-card-product">Benzoin → benzil → benzilic acid</p></div>
+                        <div class="app-card-body">Benzoin is oxidised to <span class="ht">benzil</span> (C₆H₅-CO-CO-C₆H₅) by nitric acid or copper acetate. Benzil then undergoes the <span class="ht">benzilic acid rearrangement</span> in strong base — a 1,2-aryl shift to give benzilic acid (C₆H₅)₂C(OH)COOH. This is the first example of a 1,2-aryl shift in chemistry and benzilic acid is used in the synthesis of glycopyrrolate.</div>
+                    </div>
+                    <div class="app-card" id="benz-app-2" onclick="toggleApp('benz-app-2')">
+                        <div class="app-card-header"><p class="app-card-num">// APPLICATION 03</p><p class="app-card-name">Umpolung strategy in synthesis</p><p class="app-card-product">NHC-catalysed crossed benzoin for complex targets</p></div>
+                        <div class="app-card-body">The NHC-catalysed version of the benzoin condensation allows <span class="ht">crossed benzoin</span> reactions with high selectivity and enantioselectivity using chiral NHC precatalysts. This umpolung strategy has been applied in the total synthesis of complex natural products including plakortide and several polyketide natural products.</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    var activeReaction = 'cannizzaro';
+    var currentStep = 0;
+    var mcqAnswered = {};
+
+    // ── LESSON CONTENT ──
+    var lessons = {
+        cannizzaro: {
+            steps: [
+                {
+                    tag: '// INTRODUCTION', title: 'The Cannizzaro Reaction',
+                    html: `<p class="step-section-label">// THE REACTION</p>
+                    <h2 class="step-heading">What is the <em>Cannizzaro Reaction</em>?</h2>
+                    <p class="step-body-text">Aldehydes that have no alpha-hydrogen cannot undergo aldol condensation. Instead, in the presence of concentrated alkali, they undergo a <span class="ht">disproportionation</span> — one molecule is oxidised to the carboxylate salt, the other is reduced to the primary alcohol. Both products come from the same starting material. No external oxidising or reducing agent is needed.</p>
+                    <div class="diagram-wrap">
+                        <svg viewBox="0 0 480 110" width="450" xmlns="http://www.w3.org/2000/svg">
+                            <text x="10" y="55" fill="#888" font-family="monospace" font-size="13">2</text>
+                            <text x="22" y="55" fill="#c8b89a" font-family="monospace" font-size="13">C₆H₅CHO</text>
+                            <line x1="100" y1="51" x2="140" y2="51" stroke="#888" stroke-width="1.5"/>
+                            <polygon points="140,46 150,51 140,56" fill="#888"/>
+                            <text x="104" y="42" fill="#e07070" font-family="monospace" font-size="11">conc. NaOH</text>
+                            <text x="158" y="45" fill="#c8b89a" font-family="monospace" font-size="13">C₆H₅CH₂OH</text>
+                            <text x="268" y="55" fill="#888" font-size="13">+</text>
+                            <text x="280" y="65" fill="#c8b89a" font-family="monospace" font-size="13">C₆H₅COO⁻</text>
+                            <text x="158" y="82" fill="#7ec8a4" font-size="11">reduced (alcohol)</text>
+                            <text x="280" y="82" fill="#e07070" font-size="11">oxidised (carboxylate)</text>
+                        </svg>
+                    </div>
+                    <p class="step-body-text">The reaction requires <span class="ht">concentrated alkali</span> — dilute base is not sufficient. Formaldehyde and aromatic aldehydes like benzaldehyde are the most common substrates. The reaction does not work if the aldehyde has an alpha-hydrogen because the aldol pathway is much faster.</p>
+                    <div class="equation-box"><div class="eq-label">// REQUIREMENTS</div>Aldehyde with no alpha-H | Concentrated NaOH or KOH | Heat in some cases</div>`
+                },
+                {
+                    tag: '// MECHANISM 1', title: 'Hydride or proton transfer?',
+                    mcq: true, mcqId: 1,
+                    html: `<p class="step-section-label">// MECHANISM — STEP 1</p>
+                    <h2 class="step-heading">Nucleophilic addition of <em>OH⁻</em></h2>
+                    <p class="step-body-text">In the Cannizzaro reaction, concentrated OH⁻ attacks the carbonyl carbon of the aldehyde. There is no alpha-H to abstract, so it cannot act as a base here. It must act as a <span class="ht">nucleophile</span>. The OH⁻ adds to the electrophilic carbonyl carbon, forming a <span class="ht">tetrahedral alkoxide intermediate</span>. This intermediate now carries a hydride (H with both electrons) bonded to the sp3 carbon, ready to be transferred.</p>
+                    <p class="mcq-question">What is the role of OH⁻ in the Cannizzaro reaction, and why is it different from its role in aldol condensation?</p>
+                    <div class="mcq-options" id="mcq-cann-1">
+                        <button class="mcq-option" onclick="answerMCQ('cann-1',this,false)">Base — it abstracts the alpha-H just like in aldol</button>
+                        <button class="mcq-option" onclick="answerMCQ('cann-1',this,true)">Nucleophile — there is no alpha-H to abstract, so OH⁻ attacks the carbonyl carbon directly to form a tetrahedral alkoxide intermediate</button>
+                        <button class="mcq-option" onclick="answerMCQ('cann-1',this,false)">Spectator — it just provides a basic environment</button>
+                    </div>
+                    <div class="reveal-block" id="reveal-cann-1">
+                        In the Cannizzaro reaction, there is no alpha-H for the base to abstract. The only available electrophilic site is the <span class="ht">carbonyl carbon</span>. OH⁻ adds to it nucleophilically, forming a tetrahedral alkoxide intermediate. This intermediate is the key species. It now carries a hydride (H with both electrons) bonded to the sp3 carbon, ready to transfer to the carbonyl of a second aldehyde molecule.
+                        <div class="intuition-note">The Cannizzaro reaction forces OH⁻ to be a nucleophile because there is literally nothing else for it to do. No alpha-H means no base pathway. The carbonyl carbon is the only target.</div>
+                    </div>`
+                },
+                {
+                    tag: '// MECHANISM 2', title: 'The hydride transfer',
+                    mcq: true, mcqId: 2,
+                    html: `<p class="step-section-label">// MECHANISM — STEP 2</p>
+                    <h2 class="step-heading">The <em>hydride transfer</em> — the heart of the reaction</h2>
+                    <p class="step-body-text">The tetrahedral alkoxide intermediate now transfers its hydride (the H atom with both electrons from the C-H bond) to the carbonyl carbon of a second aldehyde molecule. This is an <span class="ht">intermolecular hydride transfer</span> — a direct transfer of H⁻ from one carbon to another.</p>
+                    <p class="mcq-question">Why is the Cannizzaro reaction described as a disproportionation rather than an oxidation-reduction with external reagents?</p>
+                    <div class="mcq-options" id="mcq-cann-2">
+                        <button class="mcq-option" onclick="answerMCQ('cann-2',this,false)">Because it uses a catalyst that is not consumed</button>
+                        <button class="mcq-option" onclick="answerMCQ('cann-2',this,true)">Because the same substrate simultaneously acts as both the hydride donor (oxidised to carboxylate) and hydride acceptor (reduced to alcohol) — no external oxidant or reductant is needed</button>
+                        <button class="mcq-option" onclick="answerMCQ('cann-2',this,false)">Because oxygen from the air is the actual oxidant</button>
+                    </div>
+                    <div class="reveal-block" id="reveal-cann-2">
+                        Disproportionation means one molecule of a compound is oxidised while another molecule of the same compound is reduced simultaneously. The hydride ion moves from one aldehyde molecule — oxidising it to the carboxylate — to another aldehyde molecule — reducing its carbonyl to an alkoxide. The <span class="ht">same compound is both electron donor and electron acceptor</span>. No NaBH₄, no H₂/Pd, no external oxidant.
+                        <div class="intuition-note">Think of it as two molecules of the same aldehyde arm-wrestling. One wins (gets the hydride, becomes the alcohol) and one loses (gives the hydride, gets oxidised to the carboxylate).</div>
+                    </div>`
+                },
+                {
+                    tag: '// BONUS', title: 'Crossed Cannizzaro',
+                    mcq: true, mcqId: 3,
+                    html: `<p class="step-section-label">// BONUS QUESTION</p>
+                    <h2 class="step-heading">Crossed Cannizzaro: HCHO + ArCHO</h2>
+                    <p class="step-body-text">When formaldehyde (HCHO) and an aromatic aldehyde (ArCHO) are both present in concentrated NaOH, a <span class="ht">crossed Cannizzaro</span> occurs. Formaldehyde is always oxidised (to formate) and the aromatic aldehyde is always reduced (to the benzyl alcohol). The reaction is not random.</p>
+                    <p class="mcq-question">Why is formaldehyde always the one that gets oxidised in the crossed Cannizzaro reaction?</p>
+                    <div class="mcq-options" id="mcq-cann-3">
+                        <button class="mcq-option" onclick="answerMCQ('cann-3',this,false)">Because formaldehyde is a stronger base</button>
+                        <button class="mcq-option" onclick="answerMCQ('cann-3',this,true)">Because formaldehyde has no substituents — it is the best hydride donor. Its tetrahedral intermediate transfers hydride more readily than the bulkier ArCHO intermediate. It is preferentially oxidised, leaving ArCHO to be reduced.</button>
+                        <button class="mcq-option" onclick="answerMCQ('cann-3',this,false)">Because the aromatic aldehyde is more stable and cannot be oxidised</button>
+                    </div>
+                    <div class="reveal-block" id="reveal-cann-3">
+                        Formaldehyde forms the tetrahedral alkoxide intermediate more readily (less steric hindrance, more electrophilic carbonyl) and its hydride is more easily transferred. The <span class="ht">ArCHO is the better electrophile</span> because the aromatic ring withdraws electron density through conjugation. So HCHO gives the hydride (gets oxidised to formate), ArCHO receives the hydride (gets reduced to ArCH₂OH).
+                        <div class="intuition-note">The best hydride donor meets the best hydride acceptor. The crossed Cannizzaro is not random — it is thermodynamically directed.</div>
+                    </div>`
+                },
+                {
+                    tag: '// SUMMARY', title: 'Salient Features',
+                    html: `<p class="step-section-label">// SUMMARY</p>
+                    <h2 class="step-heading">Salient features of the <em>Cannizzaro reaction</em></h2>
+                    <div class="feature-list">
+                        <div class="feature-item"><span class="ht">No alpha-H required — and in fact required absent:</span> Aldehydes with alpha-H undergo aldol condensation preferentially. Only aldehydes without alpha-H (HCHO, ArCHO, (CH₃)₃CCHO) undergo Cannizzaro.</div>
+                        <div class="feature-item"><span class="ht">Concentrated alkali is essential:</span> Dilute NaOH is insufficient. The reaction requires concentrated NaOH or KOH because the first step — nucleophilic addition of OH⁻ to the carbonyl — requires high [OH⁻] to proceed at a useful rate.</div>
+                        <div class="feature-item"><span class="ht">Equimolar products:</span> The self-Cannizzaro always gives a 1:1 ratio of alcohol to carboxylate salt. One molecule is oxidised, one is reduced.</div>
+                        <div class="feature-item"><span class="ht">Formaldehyde is the most reactive substrate:</span> HCHO undergoes Cannizzaro faster than any other aldehyde. In crossed Cannizzaro with any other aldehyde without alpha-H, HCHO is always the one oxidised to formate.</div>
+                    </div>`
+                }
+            ]
+        },
+        perkin: {
+            steps: [
+                {
+                    tag: '// INTRODUCTION', title: 'The Perkin Condensation',
+                    html: `<p class="step-section-label">// THE REACTION</p>
+                    <h2 class="step-heading">What is the <em>Perkin Condensation</em>?</h2>
+                    <p class="step-body-text">An aromatic aldehyde reacts with an acid anhydride in the presence of the sodium or potassium salt of the acid corresponding to the anhydride. The alpha-carbon of the anhydride acts as the nucleophile. After condensation and hydrolysis, an <span class="ht">alpha,beta-unsaturated carboxylic acid</span> is obtained.</p>
+                    <div class="diagram-wrap">
+                        <svg viewBox="0 0 520 100" width="490" xmlns="http://www.w3.org/2000/svg">
+                            <text x="8" y="52" fill="#c8b89a" font-family="monospace" font-size="12">C₆H₅CHO</text>
+                            <text x="82" y="52" fill="#888" font-size="12">+</text>
+                            <text x="94" y="52" fill="#c8b89a" font-family="monospace" font-size="12">(CH₃CO)₂O</text>
+                            <line x1="190" y1="48" x2="235" y2="48" stroke="#888" stroke-width="1.5"/>
+                            <polygon points="235,43 245,48 235,53" fill="#888"/>
+                            <text x="194" y="38" fill="#e07070" font-family="monospace" font-size="10">CH₃COONa, 180°C</text>
+                            <text x="252" y="52" fill="#c8b89a" font-family="monospace" font-size="12">C₆H₅CH=CHCOOH</text>
+                            <text x="252" y="72" fill="#7ec8a4" font-size="11">trans-Cinnamic acid</text>
+                        </svg>
+                    </div>
+                    <div class="equation-box"><div class="eq-label">// GENERAL FORM</div>ArCHO + (RCH₂CO)₂O + RCH₂COONa → ArCH=CR-COOH + RCH₂COONa</div>
+                    <p class="step-body-text">The sodium carboxylate salt is the base that generates the enolate from the anhydride. It must correspond to the anhydride used. A stronger base would cause side reactions; a weaker one would not generate enough enolate.</p>`
+                },
+                {
+                    tag: '// MECHANISM 1', title: 'Enolate from the anhydride',
+                    mcq: true, mcqId: 1,
+                    html: `<p class="step-section-label">// MECHANISM — STEP 1</p>
+                    <h2 class="step-heading">Where does the nucleophile come from?</h2>
+                    <p class="step-body-text">The sodium carboxylate (CH₃COONa) acts as a base and abstracts the alpha-H from the anhydride. The resulting carbanion is delocalised into the carbonyl system of the anhydride, forming an enolate-type species — the <span class="ht">anhydride enolate</span>.</p>
+                    <p class="mcq-question">Why does the sodium acetate abstract the alpha-H from the anhydride rather than attacking the carbonyl of the aldehyde directly?</p>
+                    <div class="mcq-options" id="mcq-perk-1">
+                        <button class="mcq-option" onclick="answerMCQ('perk-1',this,false)">Because the aldehyde has no alpha-H to abstract</button>
+                        <button class="mcq-option" onclick="answerMCQ('perk-1',this,true)">The carboxylate is a weaker nucleophile than base — it preferentially abstracts the alpha-H from the anhydride (pKa ~25 for the alpha-C-H). The anhydride alpha-H is relatively acidic because the resulting carbanion is stabilised by two adjacent carbonyls.</button>
+                        <button class="mcq-option" onclick="answerMCQ('perk-1',this,false)">Because carboxylates never act as nucleophiles</button>
+                    </div>
+                    <div class="reveal-block" id="reveal-perk-1">
+                        The alpha-H of the anhydride sits between two carbonyl groups. Its pKa is around 25 — much lower than a normal C-H (~50) because the resulting carbanion is stabilised by <span class="ht">resonance into both carbonyls simultaneously</span>. The sodium carboxylate is basic enough to abstract this proton. The anhydride enolate that forms is then the nucleophile that attacks the benzaldehyde carbonyl.
+                        <div class="intuition-note">The anhydride acts as both the reactant and the source of the nucleophile. It donates an alpha-H to make the attacking enolate and its carbonyl is the eventual source of the carboxylic acid in the product.</div>
+                    </div>`
+                },
+                {
+                    tag: '// MECHANISM 2', title: 'Aldol-type addition and elimination',
+                    mcq: true, mcqId: 2,
+                    html: `<p class="step-section-label">// MECHANISM — STEP 2</p>
+                    <h2 class="step-heading">The enolate attacks, then water is lost</h2>
+                    <p class="step-body-text">The anhydride enolate (nucleophile) attacks the carbonyl carbon of the aromatic aldehyde — exactly the same C-C bond forming step as in the aldol reaction. An alkoxide intermediate forms. This then undergoes elimination to give a mixed anhydride of the product acid, which is hydrolysed on workup.</p>
+                    <p class="mcq-question">What is the driving force for the dehydration step in the Perkin condensation?</p>
+                    <div class="mcq-options" id="mcq-perk-2">
+                        <button class="mcq-option" onclick="answerMCQ('perk-2',this,false)">Loss of water is always spontaneous at high temperature</button>
+                        <button class="mcq-option" onclick="answerMCQ('perk-2',this,true)">Formation of an alpha,beta-unsaturated system — the conjugation between the new C=C and the carboxyl group lowers the energy of the product significantly, making elimination thermodynamically favourable</button>
+                        <button class="mcq-option" onclick="answerMCQ('perk-2',this,false)">The aromatic ring forces elimination by steric crowding</button>
+                    </div>
+                    <div class="reveal-block" id="reveal-perk-2">
+                        The intermediate beta-hydroxy mixed anhydride eliminates water to give a <span class="ht">C=C double bond conjugated with the carboxyl group</span>. In the Perkin condensation this is the cinnamic acid skeleton — an alpha,beta-unsaturated acid. The extended conjugation (C=C-C=O, with the phenyl ring also conjugated) provides substantial stabilisation.
+                        <div class="intuition-note">Same logic as aldol condensation dehydration. Conjugation is the prize. The reaction reaches for it by eliminating water.</div>
+                    </div>`
+                },
+                {
+                    tag: '// SUMMARY', title: 'Salient Features',
+                    html: `<p class="step-section-label">// SUMMARY</p>
+                    <h2 class="step-heading">Salient features of the <em>Perkin condensation</em></h2>
+                    <div class="feature-list">
+                        <div class="feature-item"><span class="ht">Aromatic aldehydes only:</span> Aliphatic aldehydes are not suitable because they undergo aldol condensation under the basic conditions used. Only aldehydes with no alpha-H (ArCHO) work cleanly.</div>
+                        <div class="feature-item"><span class="ht">The salt must match the anhydride:</span> The sodium carboxylate used must correspond to the acid component of the anhydride. Using a different salt leads to mixed products or lower yields.</div>
+                        <div class="feature-item"><span class="ht">High temperature required:</span> 150-200°C is typically needed. The reaction is slow because the anhydride enolate is a weaker nucleophile than a simple carbanion.</div>
+                        <div class="feature-item"><span class="ht">Trans product predominates:</span> The product alpha,beta-unsaturated acid is predominantly the trans (E) isomer because the bulky aryl group and the carboxyl group prefer to be on opposite sides of the double bond.</div>
+                    </div>`
+                }
+            ]
+        },
+        claisen: {
+            steps: [
+                {
+                    tag: '// INTRODUCTION', title: 'The Claisen Condensation',
+                    html: `<p class="step-section-label">// THE REACTION</p>
+                    <h2 class="step-heading">What is the <em>Claisen Condensation</em>?</h2>
+                    <p class="step-body-text">Two molecules of an ester (both with alpha-H) condense in the presence of a strong alkoxide base (NaOEt). The enolate of one ester attacks the carbonyl of the other ester. The alkoxide leaving group departs — unlike in aldol, the carbonyl reforms — giving a <span class="ht">beta-ketoester</span> as the product.</p>
+                    <div class="diagram-wrap">
+                        <svg viewBox="0 0 560 100" width="530" xmlns="http://www.w3.org/2000/svg">
+                            <text x="8" y="52" fill="#c8b89a" font-family="monospace" font-size="13">2 CH₃COOEt</text>
+                            <line x1="126" y1="48" x2="172" y2="48" stroke="#888" stroke-width="1.5"/>
+                            <polygon points="172,43 182,48 172,53" fill="#888"/>
+                            <text x="130" y="38" fill="#e07070" font-family="monospace" font-size="11">1. NaOEt</text>
+                            <text x="130" y="62" fill="#888" font-family="monospace" font-size="11">2. H₃O⁺</text>
+                            <text x="190" y="52" fill="#c8b89a" font-family="monospace" font-size="13">CH₃COCH₂COOEt</text>
+                            <text x="340" y="52" fill="#888" font-size="13">+</text>
+                            <text x="354" y="52" fill="#888" font-family="monospace" font-size="13">EtOH</text>
+                            <text x="190" y="78" fill="#7ec8a4" font-size="11">Ethyl acetoacetate (beta-ketoester)</text>
+                        </svg>
+                    </div>
+                    <p class="step-body-text">The key difference from aldol: in Claisen, the tetrahedral intermediate <span class="ht">collapses by expelling the alkoxide</span> (EtO⁻) as a leaving group. This regenerates a carbonyl. The product is a beta-ketoester rather than a beta-hydroxy ester.</p>
+                    <div class="equation-box"><div class="eq-label">// REQUIREMENTS</div>Ester with at least one alpha-H | Strong base (NaOEt, NaH, LDA) | At least one full equivalent of base</div>`
+                },
+                {
+                    tag: '// MECHANISM 1', title: 'Enolate formation',
+                    mcq: true, mcqId: 1,
+                    html: `<p class="step-section-label">// MECHANISM — STEP 1</p>
+                    <h2 class="step-heading">NaOEt abstracts the <em>alpha-H</em></h2>
+                    <p class="step-body-text">Sodium ethoxide deprotonates the alpha-carbon of one ester molecule, forming the ester enolate. This is the same first step as in the aldol reaction, but the base here is stronger (NaOEt, pKa of EtOH ~16) than the typical dilute NaOH used in aldol.</p>
+                    <p class="mcq-question">Why does the Claisen condensation require a stronger base (NaOEt) than the aldol condensation (dilute NaOH)?</p>
+                    <div class="mcq-options" id="mcq-clai-1">
+                        <button class="mcq-option" onclick="answerMCQ('clai-1',this,false)">Because esters are more reactive than aldehydes</button>
+                        <button class="mcq-option" onclick="answerMCQ('clai-1',this,true)">The alpha-H of an ester (pKa ~25) is less acidic than the alpha-H of an aldehyde (pKa ~17) because the ester oxygen donates electron density into the carbonyl, reducing the ability of the C=O to stabilise the resulting enolate</button>
+                        <button class="mcq-option" onclick="answerMCQ('clai-1',this,false)">Because the alkoxide leaving group requires activation by a strong base</button>
+                    </div>
+                    <div class="reveal-block" id="reveal-clai-1">
+                        The ester oxygen has two lone pairs and donates electron density into the carbonyl via resonance. That same resonance <span class="ht">reduces the electrophilicity of the carbonyl carbon and increases the electron density on the alpha carbon</span>, raising the pKa of the alpha-H to ~25 compared to ~17 for aldehydes. NaOH is not strong enough to deprotonate an ester alpha-H efficiently.
+                        <div class="intuition-note">The ester oxygen donates into the C=O, making the carbonyl less hungry for electrons and the alpha-H less acidic. You need a stronger base to generate the enolate.</div>
+                    </div>`
+                },
+                {
+                    tag: '// MECHANISM 2', title: 'Attack and leaving group departure',
+                    mcq: true, mcqId: 2,
+                    html: `<p class="step-section-label">// MECHANISM — STEP 2</p>
+                    <h2 class="step-heading">The ester enolate attacks. The alkoxide <em>leaves</em>.</h2>
+                    <p class="step-body-text">The ester enolate attacks the carbonyl carbon of the second ester molecule. A tetrahedral intermediate forms. Unlike in aldol condensation, this intermediate has an <span class="ht">alkoxide leaving group</span> (EtO⁻) that can depart, regenerating the carbonyl and giving the beta-ketoester.</p>
+                    <p class="mcq-question">Why does the tetrahedral intermediate in the Claisen condensation collapse by expelling the alkoxide, whereas in the aldol reaction the intermediate is simply protonated?</p>
+                    <div class="mcq-options" id="mcq-clai-2">
+                        <button class="mcq-option" onclick="answerMCQ('clai-2',this,false)">Because the alkoxide is a better nucleophile than the aldol alkoxide</button>
+                        <button class="mcq-option" onclick="answerMCQ('clai-2',this,true)">Because esters have an alkoxide (EtO⁻) as a leaving group attached to the carbonyl carbon, while aldehydes only have H which cannot leave as H⁻. The alkoxide is a reasonable leaving group — its departure regenerates a stable carbonyl.</button>
+                        <button class="mcq-option" onclick="answerMCQ('clai-2',this,false)">Because the strong base forces the alkoxide out</button>
+                    </div>
+                    <div class="reveal-block" id="reveal-clai-2">
+                        In aldol, the intermediate has an H on the former carbonyl carbon — H cannot leave as H⁻, so the intermediate is simply protonated to give the beta-hydroxy carbonyl product. In Claisen, the intermediate has EtO⁻ on the former carbonyl carbon. EtO⁻ is a <span class="ht">competent leaving group</span> — its departure regenerates the C=O and gives the beta-ketoester.
+                        <div class="intuition-note">Claisen = aldol addition + nucleophilic acyl substitution. The first step (enolate formation + C-C bond) is aldol logic. The second step (alkoxide departure) is ester hydrolysis logic. Both in one pot.</div>
+                    </div>`
+                },
+                {
+                    tag: '// MECHANISM 3', title: 'Why the reaction goes to completion',
+                    mcq: true, mcqId: 3,
+                    html: `<p class="step-section-label">// MECHANISM — STEP 3</p>
+                    <h2 class="step-heading">Why does Claisen go to <em>completion</em>?</h2>
+                    <p class="step-body-text">The Claisen condensation is thermodynamically reversible — the beta-ketoester can in principle undergo retro-Claisen. Yet under the reaction conditions, the reaction goes essentially to completion. Why?</p>
+                    <p class="mcq-question">The beta-ketoester product has a methylene group flanked by two carbonyls. Its pKa is ~11. What happens to it in the presence of NaOEt, and how does this drive the reaction to completion?</p>
+                    <div class="mcq-options" id="mcq-clai-3">
+                        <button class="mcq-option" onclick="answerMCQ('clai-3',this,false)">The product precipitates out of solution, removing it from equilibrium</button>
+                        <button class="mcq-option" onclick="answerMCQ('clai-3',this,true)">NaOEt (pKa ~16) completely deprotonates the active methylene of the beta-ketoester (pKa ~11), forming a stable, resonance-stabilised enolate anion. This removes the product from the equilibrium irreversibly, pulling the reaction forward by Le Chatelier's principle.</button>
+                        <button class="mcq-option" onclick="answerMCQ('clai-3',this,false)">The high temperature prevents the reverse reaction</button>
+                    </div>
+                    <div class="reveal-block" id="reveal-clai-3">
+                        The beta-ketoester product has an active methylene group between the ketone and the ester carbonyls. The pKa of this C-H is ~11, because the resulting carbanion is stabilised by resonance into <span class="ht">both</span> adjacent carbonyls simultaneously. NaOEt (pKa of EtOH ~16) is more than strong enough to deprotonate it. The product is immediately converted to its sodium enolate salt, which is stable and does not undergo retro-Claisen.
+                        <div class="intuition-note">The product is more acidic than the starting material. The base that drives the reaction also traps the product as a salt, pulling the equilibrium completely to the right.</div>
+                    </div>`
+                },
+                {
+                    tag: '// SUMMARY', title: 'Salient Features',
+                    html: `<p class="step-section-label">// SUMMARY</p>
+                    <h2 class="step-heading">Salient features of the <em>Claisen condensation</em></h2>
+                    <div class="feature-list">
+                        <div class="feature-item"><span class="ht">Both esters must have alpha-H in self-Claisen:</span> An ester without alpha-H can only act as electrophile (crossed Claisen). If both partners lack alpha-H, no reaction occurs.</div>
+                        <div class="feature-item"><span class="ht">Strong alkoxide base required:</span> NaOEt is the standard. The base must match the ester to avoid transesterification side reactions.</div>
+                        <div class="feature-item"><span class="ht">Irreversible product deprotonation drives completion:</span> The active methylene of the beta-ketoester product (pKa ~11) is fully deprotonated by NaOEt. At least one equivalent of base is consumed.</div>
+                        <div class="feature-item"><span class="ht">Dieckmann cyclisation is the intramolecular version:</span> A diester with two ester groups separated by an appropriate chain undergoes intramolecular Claisen (Dieckmann) to give a cyclic beta-ketoester. Five- and six-membered rings are preferred.</div>
+                    </div>`
+                }
+            ]
+        },
+        benzoin: {
+            steps: [
+                {
+                    tag: '// INTRODUCTION', title: 'The Benzoin Condensation',
+                    html: `<p class="step-section-label">// THE REACTION</p>
+                    <h2 class="step-heading">What is the <em>Benzoin Condensation</em>?</h2>
+                    <p class="step-body-text">Two molecules of benzaldehyde condense in the presence of cyanide ion (KCN or NaCN in aqueous ethanol) to give <span class="ht">benzoin</span> — an alpha-hydroxy ketone (PhCO-CH(OH)-Ph). The reaction is catalytic in cyanide. The key concept is <span class="ht">umpolung</span> — the cyanide temporarily reverses the normal polarity of the carbonyl carbon, making what was an electrophile behave as a nucleophile.</p>
+                    <div class="diagram-wrap">
+                        <svg viewBox="0 0 480 100" width="450" xmlns="http://www.w3.org/2000/svg">
+                            <text x="8" y="52" fill="#c8b89a" font-family="monospace" font-size="12">2 C₆H₅CHO</text>
+                            <line x1="110" y1="48" x2="152" y2="48" stroke="#888" stroke-width="1.5"/>
+                            <polygon points="152,43 162,48 152,53" fill="#888"/>
+                            <text x="114" y="38" fill="#e07070" font-family="monospace" font-size="10">KCN (cat.), EtOH/H₂O</text>
+                            <text x="170" y="52" fill="#c8b89a" font-family="monospace" font-size="12">C₆H₅CO-CH(OH)-C₆H₅</text>
+                            <text x="170" y="76" fill="#7ec8a4" font-size="11">Benzoin (alpha-hydroxy ketone)</text>
+                        </svg>
+                    </div>
+                    <div class="equation-box"><div class="eq-label">// REQUIREMENTS</div>Aromatic aldehyde (no alpha-H) | KCN or NaCN (10-20 mol%) | Aqueous ethanol | Mild warming (40-60°C)</div>`
+                },
+                {
+                    tag: '// MECHANISM 1', title: 'Cyanide adds to the carbonyl',
+                    mcq: true, mcqId: 1,
+                    html: `<p class="step-section-label">// MECHANISM — STEP 1</p>
+                    <h2 class="step-heading">CN⁻ adds to benzaldehyde. What forms?</h2>
+                    <p class="step-body-text">Cyanide ion (CN⁻) is an excellent soft nucleophile — it has a lone pair on carbon and a negative charge. It attacks the electrophilic carbonyl carbon of benzaldehyde to form a <span class="ht">cyanohydrin alkoxide</span>.</p>
+                    <p class="mcq-question">After CN⁻ adds to benzaldehyde and the alkoxide picks up a proton, what is the key electronic consequence at the former carbonyl carbon?</p>
+                    <div class="mcq-options" id="mcq-benz-1">
+                        <button class="mcq-option" onclick="answerMCQ('benz-1',this,false)">The carbon becomes more electrophilic because CN is electron-withdrawing</button>
+                        <button class="mcq-option" onclick="answerMCQ('benz-1',this,true)">The carbon is now sp3 and carries an H — this H is now acidic (pKa ~12) because loss of that proton generates a carbanion stabilised by both the adjacent CN group and the phenyl ring, reversing the polarity of the former carbonyl carbon</button>
+                        <button class="mcq-option" onclick="answerMCQ('benz-1',this,false)">Nothing changes electronically — CN is just a temporary blocking group</button>
+                    </div>
+                    <div class="reveal-block" id="reveal-benz-1">
+                        After CN⁻ adds to benzaldehyde, the cyanohydrin Ph-CH(OH)-CN forms. The CN group is strongly electron-withdrawing through both induction and by accepting electron density into its pi* orbital. This makes the C-H on the cyanohydrin carbon unusually acidic (pKa ~12). When base removes that proton, the resulting <span class="ht">carbanion is stabilised by delocalisation into the CN pi* orbital</span>. A normally electrophilic carbon is now nucleophilic — <span class="ht">umpolung</span>.
+                        <div class="intuition-note">CN does two things: it adds to the carbonyl (making it sp3) and it then stabilises the carbanion at that same carbon (by delocalising the charge). The combination is what makes umpolung possible.</div>
+                    </div>`
+                },
+                {
+                    tag: '// MECHANISM 2', title: 'The umpolung attack',
+                    mcq: true, mcqId: 2,
+                    html: `<p class="step-section-label">// MECHANISM — STEP 2</p>
+                    <h2 class="step-heading">The <em>umpolung</em> carbanion attacks a second aldehyde</h2>
+                    <p class="step-body-text">The carbanion (acyl anion equivalent) at the former carbonyl carbon now attacks the carbonyl of a second benzaldehyde molecule. A new C-C bond forms. The tetrahedral intermediate then expels CN⁻, regenerating the cyanide catalyst and giving benzoin.</p>
+                    <p class="mcq-question">Why is KCN a uniquely effective catalyst for the benzoin condensation, while other nucleophiles like OH⁻ or SCN⁻ are ineffective?</p>
+                    <div class="mcq-options" id="mcq-benz-2">
+                        <button class="mcq-option" onclick="answerMCQ('benz-2',this,false)">KCN is the only catalyst that is soluble in ethanol</button>
+                        <button class="mcq-option" onclick="answerMCQ('benz-2',this,true)">CN⁻ must do three things: add to the aldehyde reversibly, stabilise the resulting carbanion (umpolung), and then leave cleanly to regenerate the catalyst. CN⁻ is uniquely suited because it is a good nucleophile, a strong pi-acceptor (stabilises the carbanion), and a good leaving group.</button>
+                        <button class="mcq-option" onclick="answerMCQ('benz-2',this,false)">Only cyanide has the right molecular weight</button>
+                    </div>
+                    <div class="reveal-block" id="reveal-benz-2">
+                        CN⁻ is uniquely effective because it satisfies three simultaneous requirements: (1) it is a <span class="ht">good nucleophile</span> (attacks the carbonyl rapidly), (2) it is a <span class="ht">strong pi-acceptor</span> (the CN pi* orbital delocalises the carbanion, enabling umpolung), and (3) it is a <span class="ht">good leaving group</span> (once the new C-C bond has formed, CN⁻ departs to regenerate the catalyst). OH⁻ fails because it cannot stabilise a carbanion at carbon. SCN⁻ adds but does not stabilise the carbanion efficiently.
+                        <div class="intuition-note">CN is the perfect three-act catalyst. It attacks, it stabilises, it leaves. Remove any one of those three abilities and the reaction fails.</div>
+                    </div>`
+                },
+                {
+                    tag: '// SUMMARY', title: 'Salient Features',
+                    html: `<p class="step-section-label">// SUMMARY</p>
+                    <h2 class="step-heading">Salient features of the <em>Benzoin condensation</em></h2>
+                    <div class="feature-list">
+                        <div class="feature-item"><span class="ht">Aromatic aldehydes only (classical KCN version):</span> Aliphatic aldehydes undergo Cannizzaro or aldol under these conditions instead. The aromatic ring must stabilise the cyanohydrin carbanion intermediate.</div>
+                        <div class="feature-item"><span class="ht">Umpolung is the core concept:</span> The cyanide reverses the polarity of the carbonyl carbon from electrophilic to nucleophilic. This is called umpolung (German for polarity reversal). The concept has been generalised to the NHC-catalysed version via a Breslow intermediate.</div>
+                        <div class="feature-item"><span class="ht">CN⁻ is catalytic:</span> It is regenerated at the end of every catalytic cycle. Only a small amount (typically 10-20 mol%) is needed.</div>
+                        <div class="feature-item"><span class="ht">NHC catalysts are the modern alternative:</span> N-heterocyclic carbenes catalyse benzoin-type reactions with high enantioselectivity using chiral NHC precatalysts derived from triazolium or imidazolium salts. This opened up asymmetric umpolung chemistry.</div>
+                    </div>`
+                }
+            ]
+        }
+    };
+
+    // ── DASHBOARD DATA ──
+    var dashData = {
+        cannizzaro: {
+            self: { name: 'Self-Cannizzaro', formula: '2 ArCHO or 2 HCHO', conditions: ['Conc. NaOH','No heat for HCHO','Heat for ArCHO'], conditionType: ['green','',''], products: 'Equimolar alcohol and carboxylate salt. For benzaldehyde: benzyl alcohol + sodium benzoate. For formaldehyde: methanol + sodium formate.', note: 'The products are always formed in a 1:1 ratio. One molecule is oxidised to the carboxylate, the other is reduced to the alcohol.' },
+            crossed: { name: 'Crossed Cannizzaro', formula: 'HCHO + ArCHO', conditions: ['Conc. NaOH','HCHO always oxidised'], conditionType: ['green','red'], products: 'ArCH₂OH (aromatic alcohol) + HCOONa (sodium formate). HCHO is always the hydride donor (gets oxidised). ArCHO is always the hydride acceptor (gets reduced).', note: 'Used industrially in the pentaerythritol synthesis where 3 HCHO molecules first undergo aldol with CH₃CHO, then a 4th HCHO undergoes crossed Cannizzaro to reduce the aldehyde product.' },
+            conditions: { name: 'Why no alpha-H?', formula: 'Structural requirement', conditions: ['No alpha-H = no aldol possible'], conditionType: ['red'], products: 'Only aldehydes without alpha-H undergo Cannizzaro: HCHO, ArCHO, (CH₃)₃CCHO, CCl₃CHO. Aldehydes with alpha-H prefer the aldol pathway (much faster).', note: 'The presence of a base and an aldehyde with alpha-H will always lead to aldol, not Cannizzaro. The two reactions compete, and aldol wins whenever alpha-H is available.' }
+        },
+        perkin: {
+            classic: { name: 'Classic Perkin', formula: 'ArCHO + (RCH₂CO)₂O', conditions: ['RCH₂COONa or K','150-200°C','No solvent'], conditionType: ['green','',''], products: 'ArCH=CR-COOH (alpha,beta-unsaturated acid, predominantly trans). The mixed anhydride intermediate is hydrolysed on aqueous workup to give the free acid.', note: 'The salt must correspond to the anhydride. If acetic anhydride is used, sodium acetate (not sodium propanoate) must be the base.' },
+            scope: { name: 'Scope and limitations', formula: 'ArCHO only, no aliphatic', conditions: ['ArCHO required','No ketones'], conditionType: ['green','red'], products: 'Cinnamic acid type products. Naphthaldehydes, furaldehyde (furfural), and other aromatic aldehydes work. Ketones do not react.', note: 'Aliphatic aldehydes (with alpha-H) undergo aldol condensation with the anhydride enolate. Only aromatic aldehydes (no alpha-H) give clean Perkin products.' },
+            stereo: { name: 'Stereochemistry', formula: 'Predominantly trans (E)', conditions: ['High temperature kinetics','Thermodynamic control'], conditionType: ['','green'], products: 'The trans isomer predominates because in the elimination step, the large aryl group and the carboxylate group prefer to be anti to each other in the transition state.', note: 'The E/Z ratio depends on the aryl group size and reaction temperature. Bulkier aryl substituents on the aldehyde give higher trans selectivity.' }
+        },
+        claisen: {
+            self: { name: 'Self-Claisen', formula: '2 RCH₂COOEt + NaOEt', conditions: ['NaOEt (1 equiv. minimum)','Dry ethanol or ether','Room temp to reflux'], conditionType: ['green','',''], products: 'Beta-ketoester: CH₃COCH₂COOEt from ethyl acetate. The ester with fewer alpha-H equivalents preferentially acts as electrophile.', note: 'Both esters must have at least one alpha-H. Esters without alpha-H (PhCOOEt, HCOOEt) can only act as electrophiles in crossed Claisen.' },
+            crossed: { name: 'Crossed Claisen', formula: 'One ester with no alpha-H + one with alpha-H', conditions: ['NaOEt','One partner must lack alpha-H'], conditionType: ['green','red'], products: 'Clean beta-ketoester. The partner without alpha-H (ethyl benzoate, ethyl formate, diethyl oxalate) acts exclusively as electrophile.', note: 'Crossed Claisen gives a clean product only when one partner cannot form an enolate. Otherwise a mixture of three or four beta-ketoesters forms.' },
+            dieckmann: { name: 'Dieckmann cyclisation', formula: 'Diester (intramolecular)', conditions: ['NaOEt','Five or six carbon chain between esters','Reflux'], conditionType: ['green','green',''], products: 'Cyclic beta-ketoester as sodium salt. After acidic workup: cyclic beta-ketoester. After hydrolysis and decarboxylation: cyclic ketone. Preferred ring sizes: 5 and 6.', note: 'Dieckmann is entropy-disfavoured but enthalpy-favoured. The driving force is the same as Claisen — irreversible deprotonation of the active methylene in the product.' },
+            thermodynamic: { name: 'Why it goes to completion', formula: 'Product pKa ~11', conditions: ['NaOEt deprotonates product','pKa product ~11 << pKa EtOH ~16'], conditionType: ['green','green'], products: 'The beta-ketoester sodium enolate salt is the actual product isolated initially. Acidification gives the free beta-ketoester.', note: 'This is why exactly one equivalent of NaOEt is consumed per mole of product. The base acts twice: once to generate the nucleophilic enolate, and once to trap the product.' }
+        },
+        benzoin: {
+            mechanism: { name: 'Cyanide-catalysed mechanism', formula: '2 ArCHO + KCN (cat.)', conditions: ['KCN or NaCN (10-20 mol%)','Aqueous EtOH','Mild warming (40-60°C)'], conditionType: ['green','green',''], products: 'Benzoin (ArCO-CH(OH)-Ar). The cyanide is regenerated at the end of each catalytic cycle. Both aryl groups in the product come from the aldehyde starting material.', note: 'The reaction is reversible — benzoin can be cleaved back to benzaldehyde and cyanide under acidic conditions. This retro-benzoin condensation is useful for protecting and deprotecting aldehydes.' },
+            nhc: { name: 'NHC catalysis', formula: 'Breslow intermediate (umpolung)', conditions: ['Chiral triazolium or imidazolium salt','Base (DIPEA or K₂CO₃)','Enantioselective versions available'], conditionType: ['green','green','green'], products: 'Chiral benzoin products with up to >99% ee using chiral NHC precatalysts. The NHC adds to the aldehyde and the resulting Breslow intermediate is the acyl anion equivalent.', note: 'NHC catalysis avoids the toxicity of cyanide and enables enantioselective reactions. Thiamine (Vitamin B1) is a biological NHC that catalyses benzoin-type reactions in pyruvate decarboxylase.' },
+            scope: { name: 'Scope', formula: 'ArCHO only (classical)', conditions: ['Aromatic aldehydes required','No aliphatic (classical)','Extended by NHC catalysis'], conditionType: ['green','red','green'], products: 'Symmetrical benzoin from ArCHO. Crossed benzoin (two different ArCHOs) is possible with NHC catalysis. Aliphatic aldehydes require NHC catalysts with specific steric profiles.', note: 'Aliphatic aldehydes do not work with KCN because their cyanohydrin carbanions undergo Cannizzaro or aldol instead of the cross-addition.' }
+        }
+    };
+
+    // ── NAVIGATION ──
+    function startLesson(rxn) {
+        activeReaction = rxn;
+        currentStep = 0;
+        mcqAnswered = {};
+        document.getElementById('intro-screen').style.display = 'none';
+        document.getElementById('panel-backdrop').classList.add('open');
+        document.getElementById('lesson-panel').classList.add('open');
+        document.body.style.overflow = 'hidden';
+        renderStep();
+    }
+
+    function switchReaction(rxn) {
+        document.querySelectorAll('.rxn-tab').forEach(function(t) { t.classList.remove('active'); });
+        document.getElementById('tab-' + rxn).classList.add('active');
+        document.querySelectorAll('.reaction-section').forEach(function(s) { s.classList.remove('active'); });
+        document.getElementById('section-' + rxn).classList.add('active');
+        activeReaction = rxn;
+        currentStep = 0;
+        mcqAnswered = {};
+        document.getElementById('panel-backdrop').classList.add('open');
+        document.getElementById('lesson-panel').classList.add('open');
+        document.body.style.overflow = 'hidden';
+        renderStep();
+    }
+
+    function closePanel() {
+        document.getElementById('lesson-panel').classList.remove('open');
+        document.getElementById('panel-backdrop').classList.remove('open');
+        document.body.style.overflow = '';
+    }
+
+    function openDashboard() {
+        closePanel();
+        document.getElementById('main-screen').style.display = 'block';
+        document.getElementById('reaction-nav').classList.add('visible');
+        document.querySelectorAll('.rxn-tab').forEach(function(t) { t.classList.remove('active'); });
+        document.getElementById('tab-' + activeReaction).classList.add('active');
+        document.querySelectorAll('.reaction-section').forEach(function(s) { s.classList.remove('active'); });
+        document.getElementById('section-' + activeReaction).classList.add('active');
+        window.scrollTo(0, 0);
+    }
+
+    // ── RENDER STEP ──
+    function renderStep() {
+        var lesson = lessons[activeReaction];
+        var step = lesson.steps[currentStep];
+        var total = lesson.steps.length;
+        document.getElementById('panel-step-tag').textContent = step.tag;
+        document.getElementById('panel-title').textContent = step.title;
+        document.getElementById('panel-body').innerHTML = step.html;
+        document.getElementById('progress-bar').style.width = (((currentStep + 1) / total) * 100) + '%';
+        document.getElementById('step-counter').textContent = 'STEP ' + (currentStep + 1) + ' OF ' + total;
+        var backBtn = document.getElementById('btn-back');
+        var nextBtn = document.getElementById('btn-next');
+        backBtn.style.display = currentStep === 0 ? 'none' : 'inline-flex';
+        var isMCQ = step.mcq && !mcqAnswered[activeReaction + '-' + currentStep];
+        nextBtn.disabled = !!isMCQ;
+        nextBtn.textContent = currentStep === total - 1 ? 'GO TO DASHBOARD →' : 'NEXT →';
+        document.getElementById('panel-body').scrollTop = 0;
+    }
+
+    function nextStep() {
+        var lesson = lessons[activeReaction];
+        if (currentStep === lesson.steps.length - 1) { openDashboard(); return; }
+        currentStep++;
+        renderStep();
+    }
+
+    function prevStep() {
+        if (currentStep > 0) { currentStep--; renderStep(); }
+    }
+
+    // ── MCQ ──
+    function answerMCQ(id, btn, isCorrect) {
+        var container = document.getElementById('mcq-' + id);
+        if (!container) return;
+        container.querySelectorAll('.mcq-option').forEach(function(b) { b.disabled = true; });
+        btn.classList.add(isCorrect ? 'correct' : 'wrong');
+        var reveal = document.getElementById('reveal-' + id);
+        if (reveal) reveal.classList.add('show');
+        mcqAnswered[activeReaction + '-' + currentStep] = true;
+        document.getElementById('btn-next').disabled = false;
+        setTimeout(function() {
+            if (reveal) reveal.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }, 200);
+    }
+
+    // ── DASHBOARD ──
+    function selectDash(rxn, key, el) {
+        document.querySelectorAll('#section-' + rxn + ' .dash-card').forEach(function(c) { c.classList.remove('active'); });
+        el.classList.add('active');
+        var data = dashData[rxn][key];
+        document.getElementById('exp-placeholder-' + rxn).style.display = 'none';
+        document.getElementById('exp-content-' + rxn).classList.add('visible');
+        document.getElementById('exp-name-' + rxn).textContent = data.name;
+        document.getElementById('exp-formula-' + rxn).textContent = data.formula;
+        var condHTML = data.conditions.map(function(c, i) {
+            return '<span class="exp-pill' + (data.conditionType[i] ? ' ' + data.conditionType[i] : '') + '">' + c + '</span>';
+        }).join('');
+        document.getElementById('exp-conditions-' + rxn).innerHTML = condHTML;
+        document.getElementById('exp-products-' + rxn).textContent = data.products;
+        document.getElementById('exp-note-' + rxn).textContent = data.note;
+    }
+
+    function toggleApp(id) {
+        document.getElementById(id).classList.toggle('open');
+    }
+</script>
+</body>
+</html>

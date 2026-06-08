@@ -1,0 +1,672 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Attack</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="https://3dmol.org/build/3Dmol-min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323:wght@400&family=Fraunces:ital,wght@0,300;0,400;0,500;1,300&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg:        oklch(0.10 0.05 265);
+            --bg-card:   oklch(0.24 0.09 265);
+            --bg-card2:  oklch(0.18 0.07 265);
+            --surface:   oklch(0.28 0.07 265);
+            --neon:      oklch(0.85 0.22 210);
+            --primary:   oklch(0.72 0.18 230);
+            --accent:    oklch(0.78 0.2  200);
+            --danger:    oklch(0.65 0.25 25);
+            --text:      oklch(0.95 0.04 230);
+            --muted:     oklch(0.75 0.05 230);
+            --border:    oklch(0.5  0.15 240);
+            --prose:     oklch(0.88 0.03 230);
+            --prose-dim: oklch(0.72 0.04 230);
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background-image:
+                linear-gradient(color-mix(in oklab, var(--neon) 12%, transparent) 1px, transparent 1px),
+                linear-gradient(90deg, color-mix(in oklab, var(--neon) 12%, transparent) 1px, transparent 1px);
+            background-size: 40px 40px;
+            pointer-events: none;
+            z-index: 0;
+        }
+        body::after {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background-image: repeating-linear-gradient(0deg, rgba(0,0,0,0.13) 0px, rgba(0,0,0,0.13) 2px, transparent 2px, transparent 4px);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* ── pixel borders ── */
+        .px-border { box-shadow: 0 -4px 0 0 var(--border), 0 4px 0 0 var(--border), -4px 0 0 0 var(--border), 4px 0 0 0 var(--border); }
+        .px-border-neon { box-shadow: 0 -4px 0 0 var(--neon), 0 4px 0 0 var(--neon), -4px 0 0 0 var(--neon), 4px 0 0 0 var(--neon), 0 0 24px color-mix(in oklab, var(--neon) 50%, transparent); }
+
+        /* ── INTRO ── */
+        #intro-screen {
+            position: fixed; inset: 0; background: var(--bg);
+            display: flex; align-items: center; justify-content: center;
+            z-index: 100; flex-direction: column; gap: 20px;
+        }
+        #intro-screen::after {
+            content: ''; position: absolute; inset: 0;
+            background-image: repeating-linear-gradient(0deg, rgba(0,0,0,0.13) 0px, rgba(0,0,0,0.13) 2px, transparent 2px, transparent 4px);
+            pointer-events: none;
+        }
+        #intro-screen .module-tag {
+            font-family: 'Press Start 2P', monospace; font-size: 9px;
+            letter-spacing: 0.15em; color: var(--neon);
+            text-shadow: 0 0 6px var(--neon);
+            opacity: 0; animation: fadeUp 0.6s ease 0.3s forwards; position: relative; z-index: 1;
+        }
+        #intro-screen h1 {
+            font-family: 'Fraunces', serif; font-size: clamp(2rem, 5vw, 3.8rem);
+            font-weight: 300; color: var(--text); text-align: center;
+            opacity: 0; animation: fadeUp 0.7s ease 0.6s forwards;
+            line-height: 1.25; position: relative; z-index: 1;
+        }
+        #intro-screen h1 em {
+            font-style: italic; color: var(--neon);
+            text-shadow: 0 0 12px var(--neon), 0 0 30px color-mix(in oklab, var(--neon) 50%, transparent);
+            -webkit-text-fill-color: var(--neon);
+        }
+        #intro-screen .sub {
+            font-family: 'VT323', monospace; font-size: 22px; color: var(--muted);
+            opacity: 0; animation: fadeUp 0.6s ease 1s forwards;
+            letter-spacing: 0.05em; position: relative; z-index: 1;
+        }
+        #intro-screen .carbonyl-symbol {
+            font-family: 'Press Start 2P', monospace; font-size: clamp(1.4rem, 4vw, 2.8rem);
+            color: var(--neon);
+            text-shadow: 0 0 16px var(--neon), 0 0 40px color-mix(in oklab, var(--neon) 60%, transparent);
+            opacity: 0; animation: fadeUp 0.8s ease 1.4s forwards, flicker 3s ease 2.2s infinite;
+            position: relative; z-index: 1;
+        }
+        #intro-screen .begin-btn {
+            margin-top: 12px; padding: 14px 44px;
+            background: var(--primary); border: none;
+            color: oklch(0.12 0.06 265);
+            font-family: 'Press Start 2P', monospace; font-size: 11px;
+            letter-spacing: 0.08em; cursor: pointer;
+            opacity: 0; animation: fadeUp 0.6s ease 2s forwards;
+            transition: transform 0.15s; position: relative; z-index: 1;
+            box-shadow: 0 -4px 0 0 var(--neon), 0 4px 0 0 var(--neon), -4px 0 0 0 var(--neon), 4px 0 0 0 var(--neon), 0 0 24px color-mix(in oklab, var(--neon) 50%, transparent);
+        }
+        #intro-screen .begin-btn:hover { transform: translateY(-3px); }
+
+        /* ── SCREENS ── */
+        .screen { display: none; max-width: 1000px; margin: 0 auto; padding: 48px 24px 80px; position: relative; z-index: 1; }
+
+        /* ── LABELS ── */
+        .lesson-tag { font-family: 'Press Start 2P', monospace; font-size: 8px; letter-spacing: 0.15em; color: var(--neon); margin-bottom: 14px; text-shadow: 0 0 6px var(--neon); }
+        .section-label { font-family: 'Press Start 2P', monospace; font-size: 8px; letter-spacing: 0.15em; color: var(--neon); margin-bottom: 24px; }
+
+        .lesson-title { font-family: 'Fraunces', serif; font-size: 2.4rem; font-weight: 300; margin-bottom: 48px; color: var(--text); line-height: 1.2; }
+        .lesson-title em { font-style: italic; color: var(--neon); -webkit-text-fill-color: var(--neon); text-shadow: 0 0 10px var(--neon), 0 0 25px color-mix(in oklab, var(--neon) 40%, transparent); }
+
+        /* ── MCQ LAYOUT ── */
+        .mcq-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 48px; align-items: start; }
+        .mcq-molecule { position: sticky; top: 48px; }
+
+        .mcq-viewer {
+            width: 100%; height: 280px; overflow: hidden;
+            background: var(--bg); position: relative;
+            box-shadow: 0 -4px 0 0 var(--neon), 0 4px 0 0 var(--neon), -4px 0 0 0 var(--neon), 4px 0 0 0 var(--neon), 0 0 20px color-mix(in oklab, var(--neon) 25%, transparent);
+        }
+        .mcq-viewer div { width: 100%; height: 100%; position: absolute; }
+        .mcq-viewer-label { font-family: 'Press Start 2P', monospace; font-size: 8px; letter-spacing: 0.1em; color: var(--neon); margin-bottom: 12px; text-shadow: 0 0 6px var(--neon); }
+
+        .charge-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 16px; }
+        .charge-card {
+            background: var(--bg-card); padding: 14px; text-align: center;
+            box-shadow: 0 -4px 0 0 var(--border), 0 4px 0 0 var(--border), -4px 0 0 0 var(--border), 4px 0 0 0 var(--border);
+        }
+        .charge-card .charge { font-family: 'Press Start 2P', monospace; font-size: 0.9rem; color: var(--neon); display: block; margin-bottom: 6px; text-shadow: 0 0 6px var(--neon); }
+        .charge-card .charge-label { font-family: 'VT323', monospace; font-size: 16px; color: var(--muted); letter-spacing: 0.05em; }
+
+        /* ── MCQ RIGHT ── */
+        .mcq-right { display: flex; flex-direction: column; gap: 18px; }
+        .mcq-progress { font-family: 'Press Start 2P', monospace; font-size: 8px; letter-spacing: 0.15em; color: var(--neon); text-shadow: 0 0 6px var(--neon); }
+        .mcq-question { font-family: 'Fraunces', serif; font-size: 1.5rem; font-weight: 300; line-height: 1.5; color: var(--text); }
+        .mcq-options { display: flex; flex-direction: column; gap: 10px; margin-top: 8px; }
+
+        .mcq-option {
+            background: var(--bg-card); border: none; padding: 16px 20px;
+            cursor: pointer; text-align: left;
+            font-family: 'DM Sans', sans-serif; font-size: 14px; color: var(--prose);
+            transition: transform 0.15s; line-height: 1.6;
+            box-shadow: 0 -4px 0 0 var(--border), 0 4px 0 0 var(--border), -4px 0 0 0 var(--border), 4px 0 0 0 var(--border);
+        }
+        .mcq-option:hover:not(:disabled) {
+            transform: translateX(4px); color: var(--text);
+            box-shadow: 0 -4px 0 0 var(--neon), 0 4px 0 0 var(--neon), -4px 0 0 0 var(--neon), 4px 0 0 0 var(--neon), 0 0 12px color-mix(in oklab, var(--neon) 20%, transparent);
+        }
+        .mcq-option.correct { color: oklch(0.12 0.06 265); background: var(--neon); box-shadow: 0 -4px 0 0 var(--neon), 0 4px 0 0 var(--neon), -4px 0 0 0 var(--neon), 4px 0 0 0 var(--neon), 0 0 24px color-mix(in oklab, var(--neon) 50%, transparent); }
+        .mcq-option.wrong { color: oklch(0.98 0 0); background: oklch(0.3 0.1 25); box-shadow: 0 -4px 0 0 var(--danger), 0 4px 0 0 var(--danger), -4px 0 0 0 var(--danger), 4px 0 0 0 var(--danger), 0 0 16px color-mix(in oklab, var(--danger) 30%, transparent); }
+        .mcq-option.dimmed { opacity: 0.25; cursor: default; transform: none !important; }
+        .mcq-option:disabled { cursor: default; }
+
+        /* ── FEEDBACK ── */
+        .feedback-panel { display: none; padding: 20px 24px; margin-top: 8px; line-height: 1.7; font-size: 14px; }
+        .feedback-panel.correct { background: var(--bg-card); box-shadow: 0 -4px 0 0 var(--neon), 0 4px 0 0 var(--neon), -4px 0 0 0 var(--neon), 4px 0 0 0 var(--neon); }
+        .feedback-panel.wrong { background: var(--bg-card); box-shadow: 0 -4px 0 0 var(--danger), 0 4px 0 0 var(--danger), -4px 0 0 0 var(--danger), 4px 0 0 0 var(--danger); }
+        .feedback-verdict { font-family: 'Press Start 2P', monospace; font-size: 10px; margin-bottom: 12px; letter-spacing: 0.05em; }
+        .feedback-panel.correct .feedback-verdict { color: var(--neon); text-shadow: 0 0 8px var(--neon); }
+        .feedback-panel.wrong .feedback-verdict { color: var(--danger); }
+        .feedback-body { font-family: 'DM Sans', sans-serif; font-size: 14px; color: var(--prose); line-height: 1.75; }
+        .feedback-body .ht { color: var(--neon); font-weight: 500; text-shadow: 0 0 4px color-mix(in oklab, var(--neon) 40%, transparent); }
+        .feedback-actions { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 18px; }
+
+        /* ── TOGGLE BUTTONS ── */
+        .toggle-btn, .notebook-btn {
+            display: inline-flex; align-items: center; gap: 8px;
+            font-family: 'Press Start 2P', monospace; font-size: 7px;
+            color: var(--text); cursor: pointer; padding: 8px 14px;
+            background: var(--bg-card2); border: none;
+            transition: all 0.15s; letter-spacing: 0.05em;
+            box-shadow: 0 -2px 0 0 var(--border), 0 2px 0 0 var(--border), -2px 0 0 0 var(--border), 2px 0 0 0 var(--border);
+        }
+        .toggle-btn:hover { color: var(--neon); box-shadow: 0 -2px 0 0 var(--neon), 0 2px 0 0 var(--neon), -2px 0 0 0 var(--neon), 2px 0 0 0 var(--neon); }
+        .notebook-btn:hover { color: var(--accent); box-shadow: 0 -2px 0 0 var(--accent), 0 2px 0 0 var(--accent), -2px 0 0 0 var(--accent), 2px 0 0 0 var(--accent); }
+        .notebook-btn.saved { color: oklch(0.12 0.06 265); background: var(--accent); box-shadow: 0 -2px 0 0 var(--accent), 0 2px 0 0 var(--accent), -2px 0 0 0 var(--accent), 2px 0 0 0 var(--accent), 0 0 12px color-mix(in oklab, var(--accent) 40%, transparent); }
+
+        /* ── INFO / ANALOGY BOXES ── */
+        .info-box { display: none; margin-top: 10px; padding: 16px 18px; background: var(--bg-card2); border-left: 4px solid var(--neon); font-family: 'DM Sans', sans-serif; font-size: 13.5px; color: var(--prose-dim); line-height: 1.75; }
+        .analogy-box { display: none; margin-top: 14px; padding: 16px 18px; background: var(--bg-card2); border-left: 4px solid var(--accent); font-family: 'DM Sans', sans-serif; font-size: 13.5px; color: var(--prose-dim); line-height: 1.75; font-style: italic; }
+
+        /* ── TRANSITION CARD ── */
+        .transition-card {
+            background: var(--bg-card); padding: 28px 32px; margin: 0 0 48px;
+            border-left: 4px solid var(--accent);
+            box-shadow: 0 -4px 0 0 var(--border), 0 4px 0 0 var(--border), -4px 0 0 0 var(--border), 4px 0 0 0 var(--border);
+        }
+        .transition-card .tc-label { font-family: 'Press Start 2P', monospace; font-size: 8px; letter-spacing: 0.12em; color: var(--muted); margin-bottom: 12px; }
+        .transition-card .tc-text { font-family: 'Fraunces', serif; font-size: 1.35rem; font-weight: 300; color: var(--text); line-height: 1.6; }
+        .transition-card .tc-text em { font-style: italic; color: var(--neon); -webkit-text-fill-color: var(--neon); text-shadow: 0 0 8px var(--neon); }
+
+        /* ── ATTACK PROSE ── */
+        .attack-prose { max-width: 680px; }
+        .attack-prose p { font-family: 'DM Sans', sans-serif; font-size: 14.5px; line-height: 1.85; color: var(--prose); margin-bottom: 20px; }
+
+        .clickable-term { color: var(--neon); font-weight: 500; cursor: pointer; border-bottom: 2px solid var(--neon); text-shadow: 0 0 4px color-mix(in oklab, var(--neon) 30%, transparent); transition: all 0.15s; }
+        .clickable-term:hover { color: oklch(0.12 0.06 265); background: var(--neon); border-bottom-color: var(--neon); padding: 0 2px; }
+
+        /* ── MODEL COMPARISON ── */
+        .model-comparison { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin: 32px 0; }
+        .model-card {
+            background: var(--bg-card); overflow: hidden; transition: transform 0.15s;
+            box-shadow: 0 -4px 0 0 var(--border), 0 4px 0 0 var(--border), -4px 0 0 0 var(--border), 4px 0 0 0 var(--border);
+        }
+        .model-card:hover { transform: translateY(-4px); box-shadow: 0 -4px 0 0 var(--neon), 0 4px 0 0 var(--neon), -4px 0 0 0 var(--neon), 4px 0 0 0 var(--neon), 0 0 20px color-mix(in oklab, var(--neon) 25%, transparent); }
+        .model-viewer { width: 100%; height: 240px; background: var(--bg); position: relative; border-bottom: 4px solid var(--border); }
+        .model-viewer div { width: 100%; height: 100%; position: absolute; }
+        .model-info { padding: 18px 20px; }
+        .model-label { font-family: 'Fraunces', serif; font-size: 1.15rem; font-weight: 300; margin-bottom: 4px; color: var(--text); }
+        .model-sublabel { font-family: 'VT323', monospace; font-size: 16px; color: var(--muted); line-height: 1.4; }
+        .model-tags { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+
+        /* ── TAGS ── */
+        .tag { font-family: 'Press Start 2P', monospace; font-size: 7px; padding: 5px 10px; color: var(--muted); background: var(--surface); box-shadow: 0 -2px 0 0 var(--border), 0 2px 0 0 var(--border), -2px 0 0 0 var(--border), 2px 0 0 0 var(--border); }
+        .tag.highlight { color: var(--neon); box-shadow: 0 -2px 0 0 var(--neon), 0 2px 0 0 var(--neon), -2px 0 0 0 var(--neon), 2px 0 0 0 var(--neon); }
+        .tag.danger { color: var(--danger); box-shadow: 0 -2px 0 0 var(--danger), 0 2px 0 0 var(--danger), -2px 0 0 0 var(--danger), 2px 0 0 0 var(--danger); }
+
+        /* ── REACTION DISPLAY ── */
+        .reaction-display {
+            background: var(--bg-card); padding: 32px; margin-bottom: 32px;
+            box-shadow: 0 -4px 0 0 var(--border), 0 4px 0 0 var(--border), -4px 0 0 0 var(--border), 4px 0 0 0 var(--border);
+        }
+        .reaction-equation { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; margin-bottom: 28px; padding-bottom: 28px; border-bottom: 4px solid var(--border); }
+        .reaction-species { text-align: center; }
+        .reaction-species .species-name { font-family: 'Fraunces', serif; font-size: 1.15rem; font-weight: 300; color: var(--text); }
+        .reaction-species .species-formula { font-family: 'VT323', monospace; font-size: 18px; color: var(--neon); margin-top: 4px; text-shadow: 0 0 6px var(--neon); }
+        .reaction-arrow { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+        .reaction-arrow .arrow-line { font-size: 1.5rem; color: var(--muted); }
+        .reaction-arrow .arrow-conditions { font-family: 'VT323', monospace; font-size: 14px; color: var(--muted); text-align: center; line-height: 1.4; }
+        .reaction-features { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+
+        .reaction-feature {
+            background: var(--bg-card2); padding: 16px; cursor: pointer; transition: all 0.25s;
+            box-shadow: 0 -4px 0 0 var(--border), 0 4px 0 0 var(--border), -4px 0 0 0 var(--border), 4px 0 0 0 var(--border);
+        }
+        .reaction-feature:hover { transform: translateY(-2px); box-shadow: 0 -4px 0 0 var(--neon), 0 4px 0 0 var(--neon), -4px 0 0 0 var(--neon), 4px 0 0 0 var(--neon); }
+        .reaction-feature.open { box-shadow: 0 -4px 0 0 var(--accent), 0 4px 0 0 var(--accent), -4px 0 0 0 var(--accent), 4px 0 0 0 var(--accent); }
+        .reaction-feature-header { display: flex; align-items: center; justify-content: space-between; }
+        .reaction-feature-title { font-family: 'Press Start 2P', monospace; font-size: 8px; color: var(--neon); line-height: 1.6; }
+        .reaction-feature-icon { font-size: 18px; color: var(--muted); transition: transform 0.25s, color 0.25s; font-family: monospace; }
+        .reaction-feature:hover .reaction-feature-icon { color: var(--neon); }
+        .reaction-feature.open .reaction-feature-icon { transform: rotate(45deg); color: var(--danger); }
+        .reaction-feature-body { display: none; margin-top: 12px; font-family: 'DM Sans', sans-serif; font-size: 13px; color: var(--prose); line-height: 1.65; border-top: 2px solid var(--border); padding-top: 12px; }
+        .reaction-feature.open .reaction-feature-body { display: block; }
+
+        /* ── SECTION DIVIDER ── */
+        .section-divider { border: none; border-top: 4px solid var(--border); margin: 48px 0; }
+
+        /* ── NEXT BUTTON ── */
+        .next-wrap { margin-top: 48px; display: flex; justify-content: flex-end; }
+        .next-btn {
+            padding: 14px 36px; background: var(--primary); border: none;
+            color: oklch(0.12 0.06 265); font-family: 'Press Start 2P', monospace;
+            font-size: 10px; cursor: pointer; letter-spacing: 0.06em; transition: transform 0.15s;
+            box-shadow: 0 -4px 0 0 var(--neon), 0 4px 0 0 var(--neon), -4px 0 0 0 var(--neon), 4px 0 0 0 var(--neon), 0 0 20px color-mix(in oklab, var(--neon) 40%, transparent);
+        }
+        .next-btn:hover { transform: translateY(-3px); }
+
+        /* ── FINAL ── */
+        .final-cliffhanger { padding: 32px 0; border-left: 4px solid var(--neon); padding-left: 24px; margin-top: 16px; }
+        .final-cliffhanger .cf-label { font-family: 'Press Start 2P', monospace; font-size: 8px; letter-spacing: 0.15em; color: var(--neon); margin-bottom: 14px; text-shadow: 0 0 6px var(--neon); }
+        .final-cliffhanger .cf-title { font-family: 'Fraunces', serif; font-size: 1.8rem; font-weight: 300; color: var(--text); margin-bottom: 10px; line-height: 1.35; }
+        .final-cliffhanger .cf-sub { font-family: 'VT323', monospace; font-size: 20px; color: var(--muted); letter-spacing: 0.05em; }
+
+        /* ── FINAL PROSE ── */
+        .final-prose-wrap { max-width: 640px; }
+        .final-prose-wrap p { font-family: 'DM Sans', sans-serif; font-size: 14.5px; line-height: 1.85; color: var(--prose); margin-bottom: 20px; }
+
+        /* ── COMPARISON ROW ── */
+        .comparison-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 16px; }
+        .comparison-card {
+            background: var(--bg-card); padding: 14px; text-align: center;
+            box-shadow: 0 -4px 0 0 var(--border), 0 4px 0 0 var(--border), -4px 0 0 0 var(--border), 4px 0 0 0 var(--border);
+        }
+        .comparison-card .bond-type { font-family: 'Press Start 2P', monospace; font-size: 1.1rem; display: block; margin-bottom: 6px; }
+        .comparison-card .bond-label { font-family: 'VT323', monospace; font-size: 16px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; }
+
+        /* ── ANIMATIONS ── */
+        @keyframes fadeUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes flicker { 0%, 100% { opacity: 1; } 50% { opacity: 0.82; } }
+    </style>
+</head>
+<body>
+
+<div id="intro-screen">
+    <p class="module-tag">// MODULE 1 &middot; LESSON 2</p>
+    <h1>The <em>Attack</em></h1>
+    <p class="sub">Nucleophilic addition to the carbonyl group</p>
+    <div class="carbonyl-symbol">Nu: &#x2192; C=O</div>
+    <button class="begin-btn" onclick="beginLesson()">&#x25B6; BEGIN</button>
+</div>
+
+<!-- PANEL 1: MCQ 1 -->
+<div id="panel-mcq1" class="screen">
+    <p class="lesson-tag">// MODULE 1 &middot; LESSON 2</p>
+    <h2 class="lesson-title">The <em>Attack</em></h2>
+    <div class="mcq-layout">
+        <div class="mcq-molecule">
+            <p class="mcq-viewer-label">// THE CARBONYL GROUP</p>
+            <div class="mcq-viewer"><div id="viewer-mcq1"></div></div>
+            <div class="charge-row">
+                <div class="charge-card"><span class="charge" style="color:var(--danger);">δ+</span><span class="charge-label">Carbon</span></div>
+                <div class="charge-card"><span class="charge" style="color:var(--neon);">δ-</span><span class="charge-label">Oxygen</span></div>
+            </div>
+        </div>
+        <div class="mcq-right">
+            <p class="mcq-progress">// QUESTION 1 OF 3</p>
+            <p class="mcq-question">Carbon carries a δ+ and its π* orbital is exposed. Where do you think the nucleophile attacks?</p>
+            <div class="mcq-options" id="mcq1-options">
+                <button class="mcq-option" onclick="answerMCQ1(0)">Oxygen. It already carries δ- so it is more electron dense and accessible.</button>
+                <button class="mcq-option" onclick="answerMCQ1(1)">Carbon. It carries the δ+ and the π* orbital has a larger coefficient there.</button>
+                <button class="mcq-option" onclick="answerMCQ1(2)">Both equally. The nucleophile does not distinguish between the two.</button>
+            </div>
+            <div id="feedback-mcq1" class="feedback-panel">
+                <p class="feedback-verdict" id="verdict-mcq1"></p>
+                <div class="feedback-body" id="body-mcq1"></div>
+                <div class="feedback-actions">
+                    <button class="toggle-btn" onclick="toggleBox('homo-lumo-box')">&#x25B6; WHAT ARE HOMO AND LUMO?</button>
+                    <button class="notebook-btn" id="notebook-mcq1" onclick="saveToNotebook('mcq1')">+ SAVE TO NOTEBOOK</button>
+                </div>
+                <div class="info-box" id="homo-lumo-box">
+                    HOMO stands for Highest Occupied Molecular Orbital. LUMO stands for Lowest Unoccupied Molecular Orbital. Reactions happen when the HOMO of one molecule donates electrons into the LUMO of another. In nucleophilic addition, the nucleophile is the HOMO donor and the carbonyl's π* orbital is the LUMO acceptor. The π* has a larger coefficient at carbon, meaning the orbital lobe is bigger there. Bigger lobe means better overlap, and better overlap means a stronger, more favorable interaction.
+                </div>
+            </div>
+            <div id="mcq1-next" style="display:none;" class="next-wrap">
+                <button class="next-btn" onclick="goToTransition()">&#x25B6; LET'S UNDERSTAND THIS WITH CYANIDE</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- PANEL 2: TRANSITION + MCQ 2 -->
+<div id="panel-mcq2" class="screen">
+    <p class="lesson-tag">// MODULE 1 &middot; LESSON 2</p>
+    <h2 class="lesson-title">The <em>Attack</em></h2>
+    <div class="transition-card">
+        <p class="tc-label">// LET US MAKE THIS CONCRETE</p>
+        <p class="tc-text">Cyanide is one of the most studied nucleophiles in carbonyl chemistry. It is small, negatively charged, and attacks carbon cleanly. Let us follow exactly what happens when <em>CN⁻</em> meets a carbonyl.</p>
+    </div>
+    <div class="mcq-layout">
+        <div class="mcq-molecule">
+            <p class="mcq-viewer-label">// ACETALDEHYDE</p>
+            <div class="mcq-viewer"><div id="viewer-mcq2"></div></div>
+            <div class="charge-row">
+                <div class="charge-card"><span class="charge" style="font-size:0.75rem; color:var(--accent);">KCN</span><span class="charge-label">Our reagent</span></div>
+                <div class="charge-card"><span class="charge" style="font-size:0.75rem; color:var(--neon);">CN⁻ + K⁺</span><span class="charge-label">Dissociates to</span></div>
+            </div>
+        </div>
+        <div class="mcq-right">
+            <p class="mcq-progress">// QUESTION 2 OF 3</p>
+            <p class="mcq-question">In KCN, which species acts as the nucleophile?</p>
+            <div class="mcq-options" id="mcq2-options">
+                <button class="mcq-option" onclick="answerMCQ2(0)">K⁺, because it is attracted to the electron-rich oxygen.</button>
+                <button class="mcq-option" onclick="answerMCQ2(1)">CN⁻, because it carries a negative charge and has a lone pair available to donate.</button>
+                <button class="mcq-option" onclick="answerMCQ2(2)">The full KCN molecule attacks as a unit.</button>
+            </div>
+            <div id="feedback-mcq2" class="feedback-panel">
+                <p class="feedback-verdict" id="verdict-mcq2"></p>
+                <div class="feedback-body" id="body-mcq2"></div>
+                <div class="feedback-actions">
+                    <button class="notebook-btn" id="notebook-mcq2" onclick="saveToNotebook('mcq2')">+ SAVE TO NOTEBOOK</button>
+                </div>
+            </div>
+            <div id="mcq2-next" style="display:none;" class="next-wrap">
+                <button class="next-btn" onclick="goToAttack()">&#x25B6; THE ATTACK SEQUENCE</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- PANEL 3: ATTACK SEQUENCE -->
+<div id="panel-attack" class="screen">
+    <p class="lesson-tag">// MODULE 1 &middot; LESSON 2</p>
+    <h2 class="lesson-title">The <em>Attack</em></h2>
+    <p class="section-label">// THE ATTACK SEQUENCE</p>
+    <div class="attack-prose">
+        <p>CN⁻ approaches the carbonyl carbon from a specific angle. Not head-on, not from the side. This is the <span class="clickable-term" onclick="toggleBox('info-burgi')">Bürgi-Dunitz trajectory</span>, approximately 107° from the plane of the carbonyl.</p>
+        <div class="info-box" id="info-burgi" style="margin-bottom:16px;">The Bürgi-Dunitz trajectory describes the optimal angle of nucleophilic attack on a carbonyl carbon. It was determined experimentally by Hans-Beat Bürgi and Jack Dunitz by analyzing crystal structures of molecules where a nucleophile and a carbonyl are close together. The angle of approximately 107° represents the path of maximum orbital overlap between the nucleophile's HOMO and the carbonyl's π* LUMO.</div>
+        <p>As the lone pair on CN⁻ donates into the π*, two things happen simultaneously. The new C-CN sigma bond begins to form. The π bond of the carbonyl begins to break as the electrons that were in the π bond are pushed onto oxygen. Carbon changes geometry in real time.</p>
+        <p>Carbon starts as <span class="clickable-term" onclick="toggleBox('info-sp2')">sp² hybridized</span>, trigonal planar, with bond angles of 120°. As the new bond forms and the π bond breaks, carbon rehybridizes to <span class="clickable-term" onclick="toggleBox('info-sp3')">sp³</span>, tetrahedral, with bond angles of approximately 109°. Oxygen picks up the electrons from the broken π bond and becomes <span class="clickable-term" onclick="toggleBox('info-alkoxide')">O⁻</span>. The negative charge has moved from the nucleophile to oxygen.</p>
+        <div class="info-box" id="info-sp2" style="margin-bottom:8px;">sp² hybridization means carbon uses three hybrid orbitals to form sigma bonds, leaving one pure p orbital for the π bond. The result is a flat, planar geometry with bond angles of 120°.</div>
+        <div class="info-box" id="info-sp3" style="margin-bottom:8px;">sp³ hybridization means carbon uses four hybrid orbitals, one for each sigma bond, with no p orbital left over. The result is a tetrahedral geometry with bond angles of approximately 109.5°.</div>
+        <div class="info-box" id="info-alkoxide" style="margin-bottom:16px;">An alkoxide is an oxygen anion bonded to a carbon substituent, R-O⁻. It forms here when the π bond electrons are pushed onto oxygen during nucleophilic attack. Alkoxides are stronger bases than hydroxide and are very readily protonated by water or acid.</div>
+    </div>
+    <div class="model-comparison">
+        <div class="model-card">
+            <div class="model-viewer"><div id="viewer-before"></div></div>
+            <div class="model-info">
+                <p class="model-label">Before attack</p>
+                <p class="model-sublabel">Acetaldehyde</p>
+                <div class="model-tags">
+                    <span class="tag highlight">sp² carbon</span>
+                    <span class="tag">Trigonal planar</span>
+                    <span class="tag">120° bond angles</span>
+                </div>
+            </div>
+        </div>
+        <div class="model-card">
+            <div class="model-viewer"><div id="viewer-after"></div></div>
+            <div class="model-info">
+                <p class="model-label">After attack</p>
+                <p class="model-sublabel">Alkoxide intermediate — CN added, O⁻ formed</p>
+                <div class="model-tags">
+                    <span class="tag highlight">sp³ carbon</span>
+                    <span class="tag">Tetrahedral</span>
+                    <span class="tag danger">O⁻ formed</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="next-wrap">
+        <button class="next-btn" onclick="goToReaction()">&#x25B6; THE COMPLETE REACTION</button>
+    </div>
+</div>
+
+<!-- PANEL 4: COMPLETE REACTION -->
+<div id="panel-reaction" class="screen">
+    <p class="lesson-tag">// MODULE 1 &middot; LESSON 2</p>
+    <h2 class="lesson-title">The <em>Attack</em></h2>
+    <p class="section-label">// THE COMPLETE REACTION</p>
+    <div class="reaction-display">
+        <div class="reaction-equation">
+            <div class="reaction-species"><div class="species-name">Aldehyde</div><div class="species-formula">RCHO</div></div>
+            <div style="font-family:'VT323',monospace; font-size:1.4rem; color:var(--muted);">+</div>
+            <div class="reaction-species"><div class="species-name">Hydrogen cyanide</div><div class="species-formula">HCN</div></div>
+            <div class="reaction-arrow"><div class="arrow-line">⟶</div><div class="arrow-conditions">NaCN, H₂O, HCl</div></div>
+            <div class="reaction-species"><div class="species-name">Cyanohydrin</div><div class="species-formula">RCH(OH)CN</div></div>
+        </div>
+        <div class="reaction-features">
+            <div class="reaction-feature" onclick="toggleFeature(this)">
+                <div class="reaction-feature-header"><span class="reaction-feature-title">Reversibility</span><span class="reaction-feature-icon">+</span></div>
+                <div class="reaction-feature-body">Cyanohydrin formation is an equilibrium. Dissolving a cyanohydrin in water can regenerate the starting aldehyde or ketone because cyanide is a good leaving group. Aqueous base decomposes cyanohydrins completely.</div>
+            </div>
+            <div class="reaction-feature" onclick="toggleFeature(this)">
+                <div class="reaction-feature-header"><span class="reaction-feature-title">Why acid is needed</span><span class="reaction-feature-icon">+</span></div>
+                <div class="reaction-feature-body">The immediate product of the nucleophilic attack is an <span class="clickable-term" onclick="toggleBox('info-alkoxide2'); event.stopPropagation();">alkoxide</span>, R-O⁻. Acid is added to protonate this alkoxide and give the hydroxyl group of the cyanohydrin product.
+                    <div class="info-box" id="info-alkoxide2" style="margin-top:10px;">An alkoxide is an oxygen anion bonded to a carbon substituent. It is a stronger base than hydroxide and is protonated very readily by water or dilute acid.</div>
+                </div>
+            </div>
+            <div class="reaction-feature" onclick="toggleFeature(this)">
+                <div class="reaction-feature-header"><span class="reaction-feature-title">Why base is used</span><span class="reaction-feature-icon">+</span></div>
+                <div class="reaction-feature-body">The active nucleophile is CN⁻, not HCN. HCN is a weak acid and dissociates poorly on its own. A catalytic amount of base deprotonates HCN and generates enough CN⁻ to make the reaction practical.</div>
+            </div>
+            <div class="reaction-feature" onclick="toggleFeature(this)">
+                <div class="reaction-feature-header"><span class="reaction-feature-title">Aldehydes vs ketones</span><span class="reaction-feature-icon">+</span></div>
+                <div class="reaction-feature-body">Cyanohydrin formation works better with aldehydes. The K<sub>eq</sub> for benzaldehyde is 212, while a typical ketone sits around 28. The reason is steric. Ketones carry two alkyl groups. Aldehydes carry one alkyl group and one hydrogen. Less steric clash means a more favorable equilibrium.
+                    <div class="info-box" id="info-keq" style="margin-top:10px;">K<sub>eq</sub> is the equilibrium constant. A higher K<sub>eq</sub> means the equilibrium favors the products. K<sub>eq</sub> = 212 for benzaldehyde means the cyanohydrin product is strongly favored at equilibrium.</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="next-wrap">
+        <button class="next-btn" onclick="goToMCQ3()">&#x25B6; ALDEHYDES VS KETONES</button>
+    </div>
+</div>
+
+<!-- PANEL 5: MCQ 3 -->
+<div id="panel-mcq3" class="screen">
+    <p class="lesson-tag">// MODULE 1 &middot; LESSON 2</p>
+    <h2 class="lesson-title">The <em>Attack</em></h2>
+    <div class="mcq-layout">
+        <div class="mcq-molecule">
+            <p class="mcq-viewer-label">// ALDEHYDE VS KETONE</p>
+            <div style="display:flex; flex-direction:column; gap:12px;">
+                <div>
+                    <p style="font-family:'Press Start 2P',monospace; font-size:7px; text-transform:uppercase; letter-spacing:0.1em; color:var(--muted); margin-bottom:8px;">Aldehyde — CH<sub>3</sub>CHO</p>
+                    <div style="height:160px; overflow:hidden; background:var(--bg); position:relative; box-shadow: 0 -3px 0 0 var(--border), 0 3px 0 0 var(--border), -3px 0 0 0 var(--border), 3px 0 0 0 var(--border);">
+                        <div id="viewer-mcq3-ald" style="width:100%; height:100%; position:absolute;"></div>
+                    </div>
+                </div>
+                <div>
+                    <p style="font-family:'Press Start 2P',monospace; font-size:7px; text-transform:uppercase; letter-spacing:0.1em; color:var(--muted); margin-bottom:8px;">Ketone — (CH<sub>3</sub>)<sub>2</sub>CO</p>
+                    <div style="height:160px; overflow:hidden; background:var(--bg); position:relative; box-shadow: 0 -3px 0 0 var(--border), 0 3px 0 0 var(--border), -3px 0 0 0 var(--border), 3px 0 0 0 var(--border);">
+                        <div id="viewer-mcq3-ket" style="width:100%; height:100%; position:absolute;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="mcq-right">
+            <p class="mcq-progress">// QUESTION 3 OF 3</p>
+            <p class="mcq-question">Given what you know about the sp² to sp³ geometry change during nucleophilic addition, which is more reactive toward this type of reaction?</p>
+            <div class="mcq-options" id="mcq3-options">
+                <button class="mcq-option" onclick="answerMCQ3(0)">An aldehyde. One substituent is a small hydrogen atom, so there is less steric clash during the geometry change.</button>
+                <button class="mcq-option" onclick="answerMCQ3(1)">A ketone. Two alkyl groups donate electron density toward carbon, making it more electron-rich and more attractive to nucleophiles.</button>
+                <button class="mcq-option" onclick="answerMCQ3(2)">They are equally reactive. The same C=O group is present in both.</button>
+            </div>
+            <div id="feedback-mcq3" class="feedback-panel">
+                <p class="feedback-verdict" id="verdict-mcq3"></p>
+                <div class="feedback-body" id="body-mcq3"></div>
+                <div class="feedback-actions">
+                    <button class="toggle-btn" onclick="toggleBox('info-steric')">&#x25B6; WHAT IS STERIC HINDRANCE?</button>
+                    <button class="notebook-btn" id="notebook-mcq3" onclick="saveToNotebook('mcq3')">+ SAVE TO NOTEBOOK</button>
+                </div>
+                <div class="info-box" id="info-steric">Steric hindrance refers to the repulsion that occurs when large groups are forced close together. In nucleophilic addition, the geometry change from sp² to sp³ forces substituents on carbon closer together. The larger those substituents are, the greater the steric repulsion, and the higher the energy of the transition state.
+                    <div class="info-box" id="info-ts" style="margin-top:10px;">The transition state is the point of highest energy along the reaction coordinate. It is neither the starting material nor the product. It cannot be isolated. A higher energy transition state means a slower reaction and a less favorable equilibrium.</div>
+                </div>
+            </div>
+            <div id="mcq3-next" style="display:none;" class="next-wrap">
+                <button class="next-btn" onclick="goToFinal()">&#x25B6; SEE THE FULL PICTURE</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- PANEL 6: FINAL -->
+<div id="panel-final" class="screen">
+    <p class="lesson-tag">// MODULE 1 &middot; LESSON 2</p>
+    <h2 class="lesson-title">The <em>Attack</em></h2>
+    <div class="final-prose-wrap">
+        <p class="section-label">// THE FULL PICTURE</p>
+        <p style="font-family:'Fraunces',serif; font-size:1.1rem; line-height:1.85; color:var(--text); margin-bottom:20px; font-weight:300;">Nucleophilic addition is not random. Every part of it is directed by orbital geometry, charge distribution, and steric environment.</p>
+        <p>The nucleophile arrives at 107° along the Bürgi-Dunitz trajectory, aimed directly at the larger lobe of the π* orbital at carbon. The HOMO of the nucleophile overlaps with the LUMO of the carbonyl. A new sigma bond forms, the π bond breaks, electrons move to oxygen, and carbon rehybridizes from sp² to sp³. The negative charge that started on the nucleophile ends up on oxygen as an alkoxide.</p>
+        <p>Whether the reaction is favorable depends on what is attached to the carbonyl carbon. Aldehydes react more readily than ketones because the geometry change from sp² to sp³ causes less steric clash when one substituent is a hydrogen. This is not a special rule to memorize. It follows directly from the geometry.</p>
+        <hr class="section-divider">
+        <div class="final-cliffhanger">
+            <p class="cf-label">// COMING UP</p>
+            <p class="cf-title">Cyanide is just one nucleophile. What happens when the nucleophile is a hydride, a Grignard, or water?</p>
+            <p class="cf-sub">Each one tells a different story about the same carbon.</p>
+        </div>
+        
+    </div>
+</div>
+
+<script>
+    const acetaldehydePDB = `
+HETATM    1  C1  UNK     1      -0.506   0.415   0.000  1.00  0.00           C
+HETATM    2  C2  UNK     1       0.920   0.015   0.000  1.00  0.00           C
+HETATM    3  O1  UNK     1       1.816   0.843   0.000  1.00  0.00           O
+HETATM    4  H1  UNK     1      -0.610   1.501   0.000  1.00  0.00           H
+HETATM    5  H2  UNK     1      -1.023  -0.002   0.890  1.00  0.00           H
+HETATM    6  H3  UNK     1      -1.023  -0.002  -0.890  1.00  0.00           H
+HETATM    7  H4  UNK     1       1.094  -1.063   0.000  1.00  0.00           H
+CONECT    1    2    4    5    6
+CONECT    2    1    3    7
+CONECT    3    2
+END`;
+
+    const acetonePDB = `
+HETATM    1  C1  UNK     1      -1.268   0.105   0.000  1.00  0.00           C
+HETATM    2  C2  UNK     1       0.000   0.672   0.000  1.00  0.00           C
+HETATM    3  O1  UNK     1       0.000   1.889   0.000  1.00  0.00           O
+HETATM    4  C3  UNK     1       1.268   0.105   0.000  1.00  0.00           C
+HETATM    5  H1  UNK     1      -1.313  -0.979   0.000  1.00  0.00           H
+HETATM    6  H2  UNK     1      -1.826   0.433   0.890  1.00  0.00           H
+HETATM    7  H3  UNK     1      -1.826   0.433  -0.890  1.00  0.00           H
+HETATM    8  H4  UNK     1       1.313  -0.979   0.000  1.00  0.00           H
+HETATM    9  H5  UNK     1       1.826   0.433   0.890  1.00  0.00           H
+HETATM   10  H6  UNK     1       1.826   0.433  -0.890  1.00  0.00           H
+CONECT    1    2    5    6    7
+CONECT    2    1    3    4
+CONECT    3    2
+CONECT    4    2    8    9   10
+END`;
+
+    const cyanohydrinPDB = `
+HETATM    1  C1  UNK     1      -1.220   0.100   0.000  1.00  0.00           C
+HETATM    2  C2  UNK     1       0.000   0.800   0.000  1.00  0.00           C
+HETATM    3  O1  UNK     1       0.100   1.600   1.100  1.00  0.00           O
+HETATM    4  C3  UNK     1       1.300   0.000   0.000  1.00  0.00           C
+HETATM    5  N1  UNK     1       2.450  -0.700   0.000  1.00  0.00           N
+HETATM    6  H1  UNK     1       0.000   1.450  -0.900  1.00  0.00           H
+HETATM    7  H2  UNK     1      -1.300  -0.530   0.890  1.00  0.00           H
+HETATM    8  H3  UNK     1      -1.300  -0.530  -0.890  1.00  0.00           H
+HETATM    9  H4  UNK     1      -2.050   0.820   0.000  1.00  0.00           H
+CONECT    1    2    7    8    9
+CONECT    2    1    3    4    6
+CONECT    3    2
+CONECT    4    2    5
+CONECT    5    4
+END`;
+
+    let viewers = {};
+    function initViewer(id, pdb, spin = 0.4) {
+        if (viewers[id]) return;
+        const v = $3Dmol.createViewer($('#' + id), { backgroundColor: 'oklch(0.10 0.05 265)' });
+        v.addModel(pdb, 'pdb');
+        v.setStyle({}, { stick: { colorscheme: 'Jmol', radius: 0.18 }, sphere: { colorscheme: 'Jmol', radius: 0.38 } });
+        v.zoomTo(); v.spin('y', spin); v.render();
+        viewers[id] = v;
+    }
+    function showScreen(id) { $('.screen').hide(); $('#' + id).fadeIn(400); window.scrollTo(0, 0); }
+    function beginLesson() {
+        $('#intro-screen').fadeOut(600, function() {
+            showScreen('panel-mcq1');
+            initViewer('viewer-mcq1', acetaldehydePDB);
+        });
+    }
+    function goToTransition() { showScreen('panel-mcq2'); initViewer('viewer-mcq2', acetaldehydePDB); }
+    function goToAttack() { showScreen('panel-attack'); initViewer('viewer-before', acetaldehydePDB, 0.3); initViewer('viewer-after', cyanohydrinPDB, 0.3); }
+    function goToReaction() { showScreen('panel-reaction'); }
+    function goToMCQ3() { showScreen('panel-mcq3'); initViewer('viewer-mcq3-ald', acetaldehydePDB, 0.3); initViewer('viewer-mcq3-ket', acetonePDB, 0.3); }
+    function goToFinal() { showScreen('panel-final'); }
+    function lockOptions(id) { $('#' + id + ' .mcq-option').prop('disabled', true); }
+
+    function answerMCQ1(index) {
+        lockOptions('mcq1-options');
+        const options = $('#mcq1-options .mcq-option');
+        options.each((i, el) => { if (i !== index) $(el).addClass('dimmed'); });
+        const feedback = $('#feedback-mcq1');
+        if (index === 1) {
+            options.eq(1).addClass('correct');
+            $('#verdict-mcq1').text('CORRECT.');
+            $('#body-mcq1').html('The nucleophile targets carbon specifically. Two reasons lock this in. First, carbon carries the <span class="ht">δ+</span>, making it electron-poor and hungry for donation. Second, the <span class="ht">π* antibonding orbital</span>, which is the LUMO the nucleophile donates into, has a larger coefficient at carbon than at oxygen. A larger coefficient means better orbital overlap, and better orbital overlap means a stronger, more favorable interaction. Oxygen\'s δ- actually repels incoming nucleophiles.');
+            feedback.addClass('correct').fadeIn(300);
+        } else {
+            options.eq(index).addClass('wrong');
+            $('#verdict-mcq1').text('NOT QUITE.');
+            if (index === 0) $('#body-mcq1').html('Oxygen carries the <span class="ht">δ-</span>, which means it is electron-rich, not electron-poor. Nucleophiles are also electron-rich. Like charges repel. Oxygen is not the target. The nucleophile needs somewhere electron-poor to donate into, and that is carbon.');
+            else $('#body-mcq1').html('Nucleophiles are selective. The <span class="ht">δ+ on carbon</span> and the distribution of the π* orbital both point to carbon as the specific site of attack. Reactions happen where orbital interactions are most favorable, not randomly across the molecule.');
+            feedback.addClass('wrong').fadeIn(300);
+        }
+        setTimeout(() => $('#mcq1-next').fadeIn(300), 600);
+    }
+
+    function answerMCQ2(index) {
+        lockOptions('mcq2-options');
+        const options = $('#mcq2-options .mcq-option');
+        options.each((i, el) => { if (i !== index) $(el).addClass('dimmed'); });
+        const feedback = $('#feedback-mcq2');
+        if (index === 1) {
+            options.eq(1).addClass('correct');
+            $('#verdict-mcq2').text('CORRECT.');
+            $('#body-mcq2').html('KCN dissociates in solution to give K⁺ and <span class="ht">CN⁻</span>. The cyanide ion carries a negative charge and has a lone pair on the carbon end of CN⁻. That lone pair is the HOMO. It is what donates into the π* of the carbonyl. K⁺ is a spectator ion and plays no role in the bond-forming step.');
+            feedback.addClass('correct').fadeIn(300);
+        } else {
+            options.eq(index).addClass('wrong');
+            $('#verdict-mcq2').text('NOT QUITE.');
+            if (index === 0) $('#body-mcq2').html('K⁺ is a cation, which means it is <span class="ht">electron-poor itself</span>. It is attracted to electron-rich sites, not to the δ+ on carbon. K⁺ plays no role in the bond-forming step. It is a spectator ion.');
+            else $('#body-mcq2').html('KCN <span class="ht">dissociates fully</span> in solution. It does not attack as a unit. The active species is CN⁻ alone. The lone pair on the carbon end of cyanide is what forms the new bond with the carbonyl carbon.');
+            feedback.addClass('wrong').fadeIn(300);
+        }
+        setTimeout(() => $('#mcq2-next').fadeIn(300), 600);
+    }
+
+    function answerMCQ3(index) {
+        lockOptions('mcq3-options');
+        const options = $('#mcq3-options .mcq-option');
+        options.each((i, el) => { if (i !== index) $(el).addClass('dimmed'); });
+        const feedback = $('#feedback-mcq3');
+        if (index === 0) {
+            options.eq(0).addClass('correct');
+            $('#verdict-mcq3').text('CORRECT.');
+            $('#body-mcq3').html('Two factors are at play here. First, the <span class="ht">inductive effect</span>: alkyl groups are electron-donating. Two alkyl groups in a ketone push electron density toward the carbonyl carbon, making it slightly less electrophilic than an aldehyde. Second and more importantly, the <span class="ht">steric factor</span>: as carbon rehybridizes from sp² to sp³, bond angles compress from 120° to 109° and the two alkyl groups in a ketone are forced closer together. Aldehydes have only one alkyl group and one hydrogen — far less steric clash.');
+            feedback.addClass('correct').fadeIn(300);
+        } else {
+            options.eq(index).addClass('wrong');
+            $('#verdict-mcq3').text('NOT QUITE.');
+            if (index === 1) $('#body-mcq3').html('Actually the opposite is true. Two alkyl groups donate electron density toward carbon through the <span class="ht">inductive effect</span>, making it slightly more electron-rich, not more electron-poor. This slightly reduces its electrophilicity. The dominant factor here is <span class="ht">steric hindrance</span>. As carbon rehybridizes from sp² to sp³, bond angles compress from 120° to 109° and those two alkyl groups are forced closer together.');
+            else $('#body-mcq3').html('The same C=O group is present in both, but what is <span class="ht">attached</span> to that carbonyl carbon matters enormously. The geometry change from sp² to sp³ forces substituents closer together. Ketones have two alkyl groups. Aldehydes have one alkyl group and one hydrogen. The steric consequences are very different.');
+            feedback.addClass('wrong').fadeIn(300);
+        }
+        setTimeout(() => $('#mcq3-next').fadeIn(300), 600);
+    }
+
+    function toggleBox(id) { $('#' + id).slideToggle(200); }
+    function toggleFeature(el) { $(el).toggleClass('open'); }
+    function saveToNotebook(id) {
+        const btn = $('#notebook-' + id);
+        btn.toggleClass('saved');
+        btn.text(btn.hasClass('saved') ? 'SAVED ✓' : '+ SAVE TO NOTEBOOK');
+    }
+</script>
+</body>
+</html>
