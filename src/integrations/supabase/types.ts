@@ -35,6 +35,51 @@ export type Database = {
         }
         Relationships: []
       }
+      notebook: {
+        Row: {
+          highlighted_text: string
+          id: string
+          lesson_number: number
+          saved_at: string
+          user_id: string
+        }
+        Insert: {
+          highlighted_text: string
+          id?: string
+          lesson_number: number
+          saved_at?: string
+          user_id: string
+        }
+        Update: {
+          highlighted_text?: string
+          id?: string
+          lesson_number?: number
+          saved_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_progress: {
+        Row: {
+          completed_at: string
+          id: string
+          lesson_number: number
+          user_id: string
+        }
+        Insert: {
+          completed_at?: string
+          id?: string
+          lesson_number: number
+          user_id: string
+        }
+        Update: {
+          completed_at?: string
+          id?: string
+          lesson_number?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
